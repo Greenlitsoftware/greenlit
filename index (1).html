@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Green Lit Software — Roofing Operating System</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #f5f5f3;
+    color: #1a1a1a;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+  .topbar {
+    background: #0a0a0a;
+    color: #fff;
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #222;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand-dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: #7bc043;
+    box-shadow: 0 0 8px rgba(123,192,67,0.6);
+  }
+  .brand-name { font-weight: 600; font-size: 15px; letter-spacing: 0.2px; }
+  .brand-sub { font-size: 13px; color: #7bc043; font-weight: 500; }
+  .tagline { font-size: 12px; color: #999; }
+
+  .container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 32px 28px 48px;
+  }
+
+  .hero {
+    background: #fff;
+    border: 1px solid #e5e5e0;
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .hero-text h1 {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .hero-text p {
+    color: #666;
+    font-size: 14px;
+  }
+  .hero-stats {
+    display: flex;
+    gap: 24px;
+  }
+  .stat { text-align: right; }
+  .stat-num { font-size: 24px; font-weight: 600; color: #1a1a1a; }
+  .stat-label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .section-title {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #888;
+    margin: 28px 0 12px;
+    padding-left: 4px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 14px;
+  }
+
+  .tile {
+    background: #fff;
+    border: 1px solid #e5e5e0;
+    border-radius: 12px;
+    padding: 18px 20px;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: all 0.15s ease;
+    cursor: pointer;
+    position: relative;
+  }
+  .tile:hover {
+    border-color: #7bc043;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+  }
+  .tile-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .tile-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .tile-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+  .tile-desc {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.45;
+  }
+  .tile-status {
+    margin-top: 8px;
+    font-size: 11px;
+    color: #7bc043;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .tile-status::before {
+    content: "";
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #7bc043;
+  }
+
+  .ico-purple { background: #ede9fe; color: #5b21b6; }
+  .ico-teal   { background: #ccfbf1; color: #0f766e; }
+  .ico-coral  { background: #ffe4e1; color: #b91c1c; }
+  .ico-amber  { background: #fef3c7; color: #92400e; }
+  .ico-blue   { background: #dbeafe; color: #1e40af; }
+
+  .footer {
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid #e5e5e0;
+    font-size: 12px;
+    color: #999;
+    text-align: center;
+  }
+  .footer strong { color: #666; }
+
+  @media (max-width: 600px) {
+    .topbar { padding: 12px 16px; }
+    .container { padding: 20px 16px 32px; }
+    .hero { padding: 18px 20px; flex-direction: column; align-items: flex-start; }
+    .hero-stats { gap: 16px; }
+    .grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-dot"></div>
+    <div>
+      <div class="brand-name">Green Lit <span class="brand-sub">Software</span></div>
+      <div class="tagline">Roofing operating system · Built by Cory Gardner</div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="hero">
+    <div class="hero-text">
+      <h1>Welcome to Green Lit</h1>
+      <p>Pick a module to get started. Everything saves locally to your browser.</p>
+    </div>
+    <div class="hero-stats">
+      <div class="stat">
+        <div class="stat-num">14</div>
+        <div class="stat-label">Modules</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">9</div>
+        <div class="stat-label">Brands</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">4</div>
+        <div class="stat-label">Suppliers</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">Sales pipeline</div>
+  <div class="grid">
+    <a class="tile" href="lead_management.html">
+      <div class="tile-header">
+        <div class="tile-icon ico-purple">📋</div>
+        <div class="tile-name">Lead Management</div>
+      </div>
+      <div class="tile-desc">Capture leads, assign to staff, parse forwarded emails with AI.</div>
+      <div class="tile-status">Live</div>
+    </a>
+    <a class="tile" href="roofing_estimator.html">
+      <div class="tile-header">
+        <div class="tile-icon ico-purple">🏠</div>
+        <div class="tile-name">Estimator</div>
+      </div>
+      <div class="tile-desc">9 brand systems, multi-structure takeoffs, supplier pricing wired in.</div>
+      <div class="tile-status">Live</div>
+    </a>
+    <a class="tile" href="customer_quote.html">
+      <div class="tile-header">
+        <div class="tile-icon ico-purple">📄</div>
+        <div class="tile-name">Customer Quote Builder</div>
+      </div>
+      <div class="tile-desc">Build scope &amp; investment tables, copy straight to Proposify.</div>
+      <div class="tile-status">Live</div>
+    </a>
+    <a class="tile" href="crm.html">
+      <div class="tile-header">
+        <div class="tile-icon ico-purple">👥</div>
+        <div class="tile-name">CRM</div>
+      </div>
+      <div class="tile-desc">Quote history, customer database, pipeline status tracking.</div>
+      <div class="tile-status">Live</div>
+    </a>
+  </div>
+
+  <div class="section-title">Procurement &amp; supply</div>
+  <div class="grid">
+    <a class="tile" href="supplier_pricing.html">
+      <div class="tile-header">
+        <div class="tile-icon ico-teal">💰</div>
+        <div class="tile-name">Supplier Pricing</div>
+      </div>
+      <div class="tile-desc">RoofMart, ABC, QXO, Proline, Euroshield Direct. Project pricing toggles.</div>
+      <div class="tile-status">Live</div>
+    </a>
+    <a class="tile" href="product_catalog.html">
+      <div class="tile-header">
+        <div class="tile-icon ico-teal">🔍</div>
+        <div class="tile-name">Product Catalog</div>
+      </div>
+      <div class="tile-desc">Searchable add-ons across all suppliers, with labour &amp; scope.</div>
+      <div class="tile-status">Live</div>
+    </a>
+    <a class="tile" href="material_order.html">
+      <div class="tile-header">
+        <div class="tile-icon ico-teal">📦</div>
+        <div class="tile-name">Material Order</div>
+      </div>
+      <div class="tile-desc">Auto-filled material PO from any approved estimate.</div>
+      <div class="tile-status">Live</div>
+    </a>
+  </div>
+
+  <div class="section-title">Operations &amp; delivery</div>
+  <div class="grid">
+    <a class="tile" href="work_order.html">
+      <div class="tile-header">
+        <div class="tile-icon ico-coral">🔨</div>
+        <div class="tile-name">Labour Work Order</div>
+      </div>
+      <div class="tile-desc">Installer scope, pay rates, schedule, sign-off — all in one PO.</div>
+      <div class="tile-status">Live</div>
+    </a>
+    <a class="tile" href="job_board.html">
+      <div class="tile-header">
+        <div class="tile-icon ico-coral">📌</div>
+        <div class="tile-name">Job Board</div>
+      </div>
+      <div class="tile-desc">9-stage Kanban from Scheduled to Paid, with crews assigned.</div>
+      <div class="tile-status">Live</div>
+    </a>
+    <a class="tile" href="weather.html">
+      <div class="tile-header">
+        <div class="tile-icon ico-coral">🌤️</div>
+        <div class="tile-name">Weather &amp; Job Risk</div>
+      </div>
+      <div class="tile-desc">Live forecast per job site. Flags rain, freeze, wind risk.</div>
+      <div class="tile-status">Live</div>
+    </a>
+  </div>
+
+  <div class="section-title">Customer &amp; finance</div>
+  <div class="grid">
+    <a class="tile" href="communications.html">
+      <div class="tile-header">
+        <div class="tile-icon ico-amber">💬</div>
+        <div class="tile-name">Communications</div>
+      </div>
+      <div class="tile-desc">Log calls, emails, texts. Templates, follow-up reminders.</div>
+      <div class="tile-status">Live</div>
+    </a>
+    <a class="tile" href="financials.html">
+      <div class="tile-header">
+        <div class="tile-icon ico-amber">🧾</div>
+        <div class="tile-name">Invoicing</div>
+      </div>
+      <div class="tile-desc">Commitment fees, progress draws, final invoices. GST built in.</div>
+      <div class="tile-status">Live</div>
+    </a>
+  </div>
+
+  <div class="section-title">Other tools</div>
+  <div class="grid">
+    <a class="tile" href="roofr_prefill.html">
+      <div class="tile-header">
+        <div class="tile-icon ico-blue">📥</div>
+        <div class="tile-name">Roofr Prefill Loader</div>
+      </div>
+      <div class="tile-desc">Push a Roofr report into the estimator with one click.</div>
+      <div class="tile-status">Live</div>
+    </a>
+  </div>
+
+  <div class="footer">
+    <strong>Green Lit Software</strong> · Empowering roofing entrepreneurs<br>
+    Hosted on GitHub Pages · v1.0 beta
+  </div>
+
+</div>
+
+</body>
+</html>
