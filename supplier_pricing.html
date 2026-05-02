@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supplier Pricing — Green Lit Software</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #f5f5f3; color: #1a1a1a; line-height: 1.45; min-height: 100vh; font-size: 14px;
+  }
+  .topbar {
+    background: #0a0a0a; color: #fff; padding: 14px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid #222;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand-dot { width: 12px; height: 12px; border-radius: 50%; background: #7bc043; box-shadow: 0 0 8px rgba(123,192,67,0.6); }
+  .brand-name { font-weight: 600; font-size: 15px; }
+  .brand-sub { font-size: 13px; color: #7bc043; font-weight: 500; }
+  .module-label { font-size: 12px; color: #7bc043; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; }
+  .home-btn { color: #7bc043; text-decoration: none; font-size: 13px; padding: 6px 12px; border: 1px solid #333; border-radius: 6px; }
+  .home-btn:hover { background: #1a1a1a; border-color: #7bc043; }
+
+  .container { max-width: 1400px; margin: 0 auto; padding: 24px 28px; }
+  .card { background: #fff; border: 1px solid #e5e5e0; border-radius: 12px; padding: 20px 22px; margin-bottom: 16px; }
+  .section-h { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+  .section-h-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .small { font-size: 11px; color: #888; }
+
+  .header-row {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; gap: 12px; flex-wrap: wrap;
+  }
+  .header-row h1 { font-size: 20px; font-weight: 600; }
+  .header-row .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border: 1px solid #d4d4d0; border-radius: 6px; background: #fff; cursor: pointer; font-size: 13px; font-weight: 500; color: #1a1a1a; }
+  .btn:hover { background: #f5f5f3; }
+  .btn.primary { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+  .btn.primary:hover { background: #000; }
+  .btn.green { background: #7bc043; color: #fff; border-color: #7bc043; }
+  .btn.green:hover { background: #6aab37; }
+  .btn.amber { background: #f59e0b; color: #fff; border-color: #f59e0b; }
+  .btn.amber:hover { background: #d97706; }
+  .btn.danger { color: #b91c1c; border-color: #fca5a5; }
+  .btn.sm { padding: 4px 10px; font-size: 12px; }
+
+  .sup-tabs { display: flex; gap: 4px; border-bottom: 1px solid #e5e5e0; margin-bottom: 16px; flex-wrap: wrap; }
+  .sup-tab { padding: 10px 18px; border: none; background: transparent; cursor: pointer; font-size: 14px; font-weight: 500; color: #666; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .sup-tab.active { color: #1a1a1a; border-color: #7bc043; font-weight: 600; }
+  .sup-tab .count { display: inline-block; margin-left: 6px; padding: 1px 7px; background: #f0f0eb; color: #666; border-radius: 999px; font-size: 11px; }
+  .sup-tab.active .count { background: #7bc043; color: #fff; }
+
+  .sup-panel { display: none; }
+  .sup-panel.active { display: block; }
+
+  .brand-tabs { display: flex; gap: 4px; margin-bottom: 12px; flex-wrap: wrap; padding: 4px; background: #f5f5f3; border-radius: 8px; }
+  .brand-tab { padding: 6px 14px; border: none; background: transparent; cursor: pointer; font-size: 13px; font-weight: 500; color: #666; border-radius: 6px; }
+  .brand-tab.active { background: #fff; color: #1a1a1a; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+  .brand-panel { display: none; }
+  .brand-panel.active { display: block; }
+
+  .price-section { margin-bottom: 22px; }
+  .price-section h3 {
+    font-size: 12px; font-weight: 600; color: #555; text-transform: uppercase;
+    letter-spacing: 0.5px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #f0f0eb;
+  }
+
+  .price-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .price-table th {
+    text-align: left; padding: 8px 10px; background: #fafaf7; border-bottom: 1px solid #e5e5e0;
+    font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;
+  }
+  .price-table th.num, .price-table td.num { text-align: right; }
+  .price-table th.cell { width: 1%; white-space: nowrap; }
+  .price-table td { padding: 6px 10px; border-bottom: 1px solid #f0f0eb; vertical-align: middle; }
+  .price-table tr.project-active td { background: #fef3c7; }
+  .price-table tr:hover td { background: #fafaf7; }
+  .price-table tr.project-active:hover td { background: #fde68a; }
+  .price-input {
+    width: 90px; padding: 5px 8px; border: 1px solid #d4d4d0; border-radius: 4px;
+    font-size: 13px; font-family: inherit; text-align: right; background: #fff;
+    font-variant-numeric: tabular-nums;
+  }
+  .price-input:focus { outline: none; border-color: #7bc043; box-shadow: 0 0 0 2px rgba(123,192,67,0.15); }
+  .price-input.empty { background: #fafaf7; }
+
+  .toggle {
+    position: relative; display: inline-block; width: 36px; height: 20px;
+  }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+    background: #d4d4d0; border-radius: 20px; transition: 0.2s;
+  }
+  .toggle-slider::before {
+    position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px;
+    background: #fff; border-radius: 50%; transition: 0.2s;
+  }
+  .toggle input:checked + .toggle-slider { background: #f59e0b; }
+  .toggle input:checked + .toggle-slider::before { transform: translateX(16px); }
+
+  .savings { font-size: 11px; font-weight: 600; }
+  .savings.up { color: #166534; }
+  .savings.down { color: #b91c1c; }
+
+  .bulk-actions {
+    display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;
+  }
+
+  .alt-section {
+    margin-top: 16px; padding: 12px 14px; background: #f5f5f3; border-radius: 8px;
+    border: 1px solid #e5e5e0;
+  }
+  .alt-section h4 { font-size: 12px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+  .alt-row { display: grid; grid-template-columns: 110px 1fr; gap: 12px; align-items: center; padding: 6px 0; }
+  .alt-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid #d4d4d0; border-radius: 6px; overflow: hidden; }
+  .alt-pair button { padding: 6px 10px; border: none; background: #fff; cursor: pointer; font-size: 12px; color: #555; }
+  .alt-pair button.active { background: #7bc043; color: #fff; }
+  .alt-pair button.active.mfg { background: #1a1a1a; }
+
+  .compare-card {
+    background: #fff; border: 1px solid #e5e5e0; border-radius: 12px; padding: 20px;
+    margin-top: 16px; display: none;
+  }
+  .compare-card.show { display: block; }
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .compare-table th { text-align: left; padding: 10px; background: #fafaf7; border-bottom: 1px solid #e5e5e0; font-size: 11px; color: #666; text-transform: uppercase; font-weight: 600; }
+  .compare-table th.num, .compare-table td.num { text-align: right; }
+  .compare-table td { padding: 8px 10px; border-bottom: 1px solid #f0f0eb; }
+  .compare-table .best { background: #f0fdf4; color: #166534; font-weight: 600; }
+  .compare-table .worst { background: #fef2f2; color: #991b1b; }
+
+  .status-bar {
+    position: fixed; bottom: 20px; right: 20px; padding: 12px 20px;
+    background: #1a1a1a; color: #fff; border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2); font-size: 13px;
+    transform: translateY(100px); opacity: 0; transition: all 0.25s;
+    z-index: 1000;
+  }
+  .status-bar.show { transform: translateY(0); opacity: 1; }
+  .status-bar.success { background: #166534; }
+  .status-bar.error { background: #991b1b; }
+
+  .info-banner {
+    background: #f0f9ff; border: 1px solid #bae6fd; color: #0c4a6e;
+    padding: 10px 14px; border-radius: 8px; margin-bottom: 14px; font-size: 13px;
+  }
+
+  @media (max-width: 700px) {
+    .container { padding: 16px; }
+    .price-input { width: 80px; }
+    .alt-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-dot"></div>
+    <div>
+      <div class="brand-name">Green Lit <span class="brand-sub">Software</span></div>
+      <div class="module-label">Supplier Pricing</div>
+    </div>
+  </div>
+  <a href="index.html" class="home-btn">← Home</a>
+</div>
+
+<div class="container">
+
+<div class="header-row">
+  <div>
+    <h1>Supplier Pricing</h1>
+    <div class="small" style="margin-top:4px;">Manage standard and project pricing per supplier. Saved prices flow into the Estimator automatically.</div>
+  </div>
+  <div class="actions">
+    <button class="btn" onclick="toggleCompare()">📊 Compare Suppliers</button>
+    <button class="btn primary" onclick="saveAll()">💾 Save All Prices</button>
+  </div>
+</div>
+
+<div id="info" class="info-banner" style="display:none;"></div>
+
+<!-- Compare Suppliers panel -->
+<div id="compare" class="compare-card">
+  <div class="section-h-row">
+    <div class="section-h">Side-by-side supplier comparison</div>
+    <button class="btn sm" onclick="toggleCompare()">× Close</button>
+  </div>
+  <div id="compareBody"></div>
+</div>
+
+<!-- Supplier tabs -->
+<div class="sup-tabs" id="supTabs"></div>
+<div id="supPanels"></div>
+
+</div>
+
+<!-- =================== BULK UPLOAD MODAL =================== -->
+<div id="bulkModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;border-radius:12px;max-width:900px;width:100%;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;">
+    <div style="padding:16px 22px;border-bottom:1px solid #e5e5e0;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:1px;" id="bulkModalSup">SUPPLIER</div>
+        <div style="font-size:17px;font-weight:600;margin-top:2px;" id="bulkModalTitle">Bulk upload prices</div>
+      </div>
+      <button class="btn" onclick="closeBulkUpload()">× Close</button>
+    </div>
+    <div style="overflow-y:auto;padding:20px 22px;flex:1;" id="bulkModalBody"></div>
+  </div>
+</div>
+
+<div id="status" class="status-bar"></div>
+
+<script>
+'use strict';
+
+// ============ STORAGE KEY ============
+// Documented schema for Estimator integration:
+// {
+//   suppliers: { roofmart: ['iko'], abc: ['iko','oc','gaf','mal','fw','ct'], ... },
+//   prices: {
+//     "<supplierId>__<brandId>__<productKey>": { standard: 0, project: 0, useProject: false }
+//   },
+//   altPrefs: {
+//     "<supplierId>__<brandId>__icewater": "manufacturer" | "cheapest",
+//     "<supplierId>__<brandId>__underlay": "manufacturer" | "cheapest"
+//   },
+//   savedAt: <timestamp>
+// }
+const STORAGE_KEY = 'greenlit_supplier_pricing';
+
+// ============ SUPPLIER & BRAND CONFIG ============
+const SUPPLIERS = [
+  { id: 'roofmart', label: 'RoofMart', brands: ['iko'] },
+  { id: 'abc', label: 'ABC Supply', brands: ['iko','oc','gaf','mal','fw','ct'] },
+  { id: 'proline', label: 'Proline', brands: ['bp','oc','gaf'] },
+  { id: 'qxo', label: 'QXO', brands: ['iko','mal','bp','ct'] },
+  { id: 'euro', label: 'Euroshield Direct', brands: ['euro'] }
+];
+
+const BRANDS = {
+  iko: { label: 'IKO', products: ['Cambridge','Dynasty','Nordic','Armourshake','Crowne Slate','Royal Estate'] },
+  bp: { label: 'BP', products: ['Mystique','Vanguard'] },
+  gaf: { label: 'GAF', products: ['Timberline HDZ','Timberline UHDZ','Camelot II','Woodland','Slateline','Grand Sequoia AS'] },
+  ct: { label: 'CertainTeed', products: ['Landmark','Northgate'] },
+  oc: { label: 'Owens Corning', products: ['Oakridge','Duration','Duration FLEX'] },
+  mal: { label: 'Malarkey', products: ['Highlander AR','Vista AR','Legacy Scotchgard'] },
+  euro: { label: 'Euroshield', products: ['Ranchlands Shake','Rundle Slate','Beaumont Shake','Vermont Slate','Vermont Slate HP'] },
+  fw: { label: 'F Wave', products: ['Classic Slate','Hand-Split Shake','Designer Slate (American Blends)','Designer Slate (Estate Series)'] }
+};
+
+// Brand-specific starters & ridges (matches Estimator's data model exactly)
+const BRAND_STARTERS = {
+  iko: [
+    { key: 'starter', label: 'Leading Edge Plus Starter (123 LF/bdl)' },
+    { key: 'starterArmour', label: 'Armourshake Starter (69 LF/bdl)' }
+  ],
+  bp: [{ key: 'starter', label: 'BP Starter Strip (69 LF/bdl)' }],
+  gaf: [
+    { key: 'starter', label: 'Weather Blocker Starter (100 LF/bdl)' },
+    { key: 'starterMatch', label: 'StarterMatch (60 LF/bdl) — Grand Sequoia AS' }
+  ],
+  ct: [{ key: 'starter', label: 'Swift Start (116 LF/bdl)' }],
+  oc: [{ key: 'starter', label: 'Starter Strip Plus (105 LF/bdl)' }],
+  mal: [{ key: 'starter', label: 'Smart Start (72 LF/bdl)' }],
+  euro: [
+    { key: 'starterEaveEuro', label: 'Eave Starter (33 LF) — Beaumont/Vermont/HP' },
+    { key: 'starterRakeEuro', label: 'Rake/Valley Starter (40 LF) — Beaumont/Vermont/HP' },
+    { key: 'starter3030', label: 'Starter (30 LF) — Ranchlands/Rundle' }
+  ],
+  fw: [{ key: 'starter', label: 'Universal Starter (30 LF/bdl)' }]
+};
+
+const BRAND_RIDGES = {
+  iko: [{ key: 'hipridge', label: 'Hip & Ridge 12 (36.5 LF/bdl)' }],
+  bp: [{ key: 'hipridge', label: 'Yukon SB (29 LF/bdl)' }],
+  gaf: [{ key: 'hipridge', label: 'Timbertex (20 LF/bdl)' }],
+  ct: [{ key: 'hipridge', label: 'Shadow Ridge (30 LF/bdl)' }],
+  oc: [{ key: 'hipridge', label: 'ProEdge Hip & Ridge (33 LF/bdl)' }],
+  mal: [{ key: 'hipridge', label: 'EZ Ridge (20 LF/bdl)' }],
+  euro: [
+    { key: 'hipridge3340', label: 'H&R 9 LF — Beaumont/Vermont/HP' },
+    { key: 'hipridge3030', label: 'H&R 10 LF — Ranchlands/Rundle' }
+  ],
+  fw: [{ key: 'hipridge', label: 'Ridge (20 LF/bdl)' }]
+};
+
+const ACCESSORIES = [
+  { key: 'icewater', label: '44" Ice & Water Shield', unit: 'roll' },
+  { key: 'underlay', label: 'Synthetic Underlayment', unit: 'roll' },
+  { key: 'drip', label: 'Drip Edge (8 ft)', unit: 'pc' },
+  { key: 'valley', label: '"W" Valley Metal (8 ft)', unit: 'pc' },
+  { key: 'gable', label: 'Gable Flashing (8 ft)', unit: 'pc' },
+  { key: 'gravelstop', label: 'Gravel Stop Flashing (8 ft)', unit: 'pc' },
+  { key: 'step', label: 'Step Flashing (9")', unit: 'pc' },
+  { key: 'wallfl', label: 'Wall Flashing (8 ft)', unit: 'pc' },
+  { key: 'bp4', label: 'Backpan 4 ft', unit: 'pc' },
+  { key: 'bp8', label: 'Backpan 8 ft', unit: 'pc' },
+  { key: 'staples', label: 'Staples', unit: 'box' },
+  { key: 'nails', label: 'Nails', unit: 'box' },
+  { key: 'eurnails', label: '1⅜" Nails (Euroshield only)', unit: 'box', euroOnly: true },
+  { key: 'vent', label: 'Standard Vents', unit: 'each' },
+  { key: 'slantback', label: 'Slant Back Vents', unit: 'each' },
+  { key: 'turbo', label: 'Turbo Vents', unit: 'each' },
+  { key: 'ridgevent', label: 'Ridge Vent', unit: 'LF' },
+  { key: 'stack2', label: 'Plumbing Stack 2"', unit: 'each' },
+  { key: 'stack3', label: 'Plumbing Stack 3"', unit: 'each' },
+  { key: 'stack4', label: 'Plumbing Stack 4"', unit: 'each' },
+  { key: 'goose', label: 'Goose Necks', unit: 'each' }
+];
+
+// ============ STATE ============
+let state = { suppliers: {}, prices: {}, altPrefs: {}, savedAt: 0 };
+let activeSup = SUPPLIERS[0].id;
+let activeBrand = {};
+
+// ============ HELPERS ============
+function $(id){ return document.getElementById(id); }
+function priceKey(supId, brandId, productKey){
+  return supId + '__' + brandId + '__' + productKey;
+}
+function altKey(supId, brandId, accKey){
+  return supId + '__' + brandId + '__' + accKey;
+}
+function getPrice(supId, brandId, productKey){
+  return state.prices[priceKey(supId, brandId, productKey)] || { standard: 0, project: 0, useProject: false };
+}
+function setPrice(supId, brandId, productKey, data){
+  state.prices[priceKey(supId, brandId, productKey)] = data;
+}
+function fmt(n){
+  if (typeof n !== 'number' || isNaN(n) || n === 0) return '';
+  return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function showStatus(msg, type){
+  const el = $('status');
+  el.textContent = msg;
+  el.className = 'status-bar show' + (type ? ' ' + type : '');
+  setTimeout(() => el.classList.remove('show'), 2400);
+}
+function slug(name){
+  return name.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+}
+
+// ============ LOAD / SAVE ============
+function loadFromStorage(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw){
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object'){
+        state.prices = parsed.prices || {};
+        state.altPrefs = parsed.altPrefs || {};
+        state.savedAt = parsed.savedAt || 0;
+      }
+    }
+  } catch(e){
+    console.error('Load error:', e);
+  }
+}
+
+function saveAll(){
+  // Pull current values from inputs into state
+  document.querySelectorAll('input.price-input').forEach(inp => {
+    const key = inp.dataset.priceKey;
+    const which = inp.dataset.which; // 'standard' or 'project'
+    if (!key || !which) return;
+    const val = parseFloat(inp.value) || 0;
+    if (!state.prices[key]) state.prices[key] = { standard: 0, project: 0, useProject: false };
+    state.prices[key][which] = val;
+  });
+
+  state.savedAt = Date.now();
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      prices: state.prices,
+      altPrefs: state.altPrefs,
+      savedAt: state.savedAt
+    }));
+    showStatus('✓ Prices saved — Estimator will use these on next quote', 'success');
+    updateInfoBanner();
+  } catch(e){
+    showStatus('Could not save: ' + e.message, 'error');
+  }
+}
+
+function updateInfoBanner(){
+  const b = $('info');
+  if (state.savedAt){
+    const d = new Date(state.savedAt);
+    b.style.display = 'block';
+    b.textContent = '💾 Last saved ' + d.toLocaleString() + ' · Prices are live in the Estimator.';
+  } else {
+    b.style.display = 'block';
+    b.textContent = '⚠️ No prices saved yet. Enter prices below and click "Save All Prices" — the Estimator reads from here.';
+  }
+}
+
+// ============ BUILD UI ============
+function buildSupplierTabs(){
+  const tabs = $('supTabs');
+  const panels = $('supPanels');
+  tabs.innerHTML = '';
+  panels.innerHTML = '';
+
+  SUPPLIERS.forEach((sup, i) => {
+    const tab = document.createElement('button');
+    tab.className = 'sup-tab' + (i === 0 ? ' active' : '');
+    tab.id = 'sup-tab-' + sup.id;
+    tab.onclick = function(){ switchSupplier(sup.id); };
+
+    const lbl = document.createElement('span');
+    lbl.textContent = sup.label;
+    tab.appendChild(lbl);
+    const cnt = document.createElement('span');
+    cnt.className = 'count';
+    cnt.textContent = sup.brands.length;
+    tab.appendChild(cnt);
+    tabs.appendChild(tab);
+
+    const panel = document.createElement('div');
+    panel.className = 'sup-panel' + (i === 0 ? ' active' : '');
+    panel.id = 'sup-panel-' + sup.id;
+    buildSupplierPanel(panel, sup);
+    panels.appendChild(panel);
+
+    activeBrand[sup.id] = sup.brands[0];
+  });
+}
+
+function switchSupplier(supId){
+  activeSup = supId;
+  document.querySelectorAll('.sup-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.sup-panel').forEach(p => p.classList.remove('active'));
+  $('sup-tab-' + supId).classList.add('active');
+  $('sup-panel-' + supId).classList.add('active');
+}
+
+function buildSupplierPanel(panel, sup){
+  // Bulk upload bar
+  const bulkBar = document.createElement('div');
+  bulkBar.style.cssText = 'background:#fafaf7;border:1px solid #e5e5e0;border-radius:8px;padding:10px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;';
+  const bulkLeft = document.createElement('div');
+  bulkLeft.style.cssText = 'font-size:12px;color:#666;';
+  bulkLeft.innerHTML = '<strong style="color:#1a1a1a;">' + sup.label + ' bulk pricing</strong> · Upload a CSV or paste rows to update many prices at once.';
+  bulkBar.appendChild(bulkLeft);
+  const bulkBtns = document.createElement('div');
+  bulkBtns.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;';
+  const dlBtn = document.createElement('button');
+  dlBtn.className = 'btn sm';
+  dlBtn.textContent = '⬇ Download template';
+  dlBtn.onclick = function(){ downloadTemplate(sup.id); };
+  bulkBtns.appendChild(dlBtn);
+  const upBtn = document.createElement('button');
+  upBtn.className = 'btn primary sm';
+  upBtn.textContent = '⬆ Bulk upload prices';
+  upBtn.onclick = function(){ openBulkUpload(sup.id); };
+  bulkBtns.appendChild(upBtn);
+  bulkBar.appendChild(bulkBtns);
+  panel.appendChild(bulkBar);
+
+  // Brand sub-tabs
+  const brandTabs = document.createElement('div');
+  brandTabs.className = 'brand-tabs';
+  sup.brands.forEach((bid, i) => {
+    const t = document.createElement('button');
+    t.className = 'brand-tab' + (i === 0 ? ' active' : '');
+    t.id = 'brand-tab-' + sup.id + '-' + bid;
+    t.textContent = BRANDS[bid].label;
+    t.onclick = function(){ switchBrand(sup.id, bid); };
+    brandTabs.appendChild(t);
+  });
+  panel.appendChild(brandTabs);
+
+  sup.brands.forEach((bid, i) => {
+    const bp = document.createElement('div');
+    bp.className = 'brand-panel' + (i === 0 ? ' active' : '');
+    bp.id = 'brand-panel-' + sup.id + '-' + bid;
+    buildBrandPanel(bp, sup, bid);
+    panel.appendChild(bp);
+  });
+}
+
+function switchBrand(supId, bid){
+  activeBrand[supId] = bid;
+  const supPanel = $('sup-panel-' + supId);
+  supPanel.querySelectorAll('.brand-tab').forEach(t => t.classList.remove('active'));
+  supPanel.querySelectorAll('.brand-panel').forEach(p => p.classList.remove('active'));
+  $('brand-tab-' + supId + '-' + bid).classList.add('active');
+  $('brand-panel-' + supId + '-' + bid).classList.add('active');
+}
+
+function buildBrandPanel(panel, sup, bid){
+  const brand = BRANDS[bid];
+
+  // Bulk action buttons
+  const bulk = document.createElement('div');
+  bulk.className = 'bulk-actions';
+  const onAll = document.createElement('button');
+  onAll.className = 'btn amber sm';
+  onAll.textContent = '★ Activate all project pricing';
+  onAll.onclick = function(){ bulkProject(sup.id, bid, true); };
+  bulk.appendChild(onAll);
+  const offAll = document.createElement('button');
+  offAll.className = 'btn sm';
+  offAll.textContent = 'Clear all project pricing';
+  offAll.onclick = function(){ bulkProject(sup.id, bid, false); };
+  bulk.appendChild(offAll);
+  panel.appendChild(bulk);
+
+  // Field shingles section
+  const sec1 = document.createElement('div');
+  sec1.className = 'price-section';
+  const h1 = document.createElement('h3'); h1.textContent = 'Field Shingles'; sec1.appendChild(h1);
+  sec1.appendChild(buildPriceTable(sup.id, bid, brand.products.map(p => ({ key: slug(p), label: p })), 'bdl'));
+  panel.appendChild(sec1);
+
+  // Starters section
+  const starters = BRAND_STARTERS[bid] || [];
+  if (starters.length){
+    const sec2 = document.createElement('div');
+    sec2.className = 'price-section';
+    const h2 = document.createElement('h3'); h2.textContent = 'Starters'; sec2.appendChild(h2);
+    sec2.appendChild(buildPriceTable(sup.id, bid, starters, 'bdl'));
+    panel.appendChild(sec2);
+  }
+
+  // Hip & Ridge section
+  const ridges = BRAND_RIDGES[bid] || [];
+  if (ridges.length){
+    const sec3 = document.createElement('div');
+    sec3.className = 'price-section';
+    const h3 = document.createElement('h3'); h3.textContent = 'Hip & Ridge'; sec3.appendChild(h3);
+    sec3.appendChild(buildPriceTable(sup.id, bid, ridges, 'bdl'));
+    panel.appendChild(sec3);
+  }
+
+  // Accessories section
+  const sec4 = document.createElement('div');
+  sec4.className = 'price-section';
+  const h4 = document.createElement('h3'); h4.textContent = 'Accessories'; sec4.appendChild(h4);
+  const accList = ACCESSORIES.filter(a => !a.euroOnly || bid === 'euro');
+  sec4.appendChild(buildPriceTable(sup.id, bid, accList, '__perItem__'));
+  panel.appendChild(sec4);
+
+  // Underlay & I&W preference section
+  const altSec = document.createElement('div');
+  altSec.className = 'alt-section';
+  const altH = document.createElement('h4');
+  altH.textContent = 'Underlayment & Ice & Water — Default Preference';
+  altSec.appendChild(altH);
+  ['icewater','underlay'].forEach(accKey => {
+    const accLabel = accKey === 'icewater' ? 'Ice & Water' : 'Underlayment';
+    const row = document.createElement('div'); row.className = 'alt-row';
+    const lbl = document.createElement('div'); lbl.style.fontSize = '12px'; lbl.style.fontWeight = '500'; lbl.textContent = accLabel;
+    row.appendChild(lbl);
+    const pair = document.createElement('div'); pair.className = 'alt-pair';
+    const cur = state.altPrefs[altKey(sup.id, bid, accKey)] || 'manufacturer';
+    const mfgBtn = document.createElement('button');
+    mfgBtn.className = cur === 'manufacturer' ? 'active mfg' : '';
+    mfgBtn.textContent = 'Manufacturer';
+    mfgBtn.onclick = function(){ setAltPref(sup.id, bid, accKey, 'manufacturer'); };
+    pair.appendChild(mfgBtn);
+    const chBtn = document.createElement('button');
+    chBtn.className = cur === 'cheapest' ? 'active' : '';
+    chBtn.textContent = 'Cheapest alternative';
+    chBtn.onclick = function(){ setAltPref(sup.id, bid, accKey, 'cheapest'); };
+    pair.appendChild(chBtn);
+    row.appendChild(pair);
+    altSec.appendChild(row);
+  });
+  panel.appendChild(altSec);
+}
+
+function buildPriceTable(supId, bid, items, defaultUnit){
+  const tbl = document.createElement('table');
+  tbl.className = 'price-table';
+
+  const thead = document.createElement('thead');
+  const trH = document.createElement('tr');
+  ['Product','Unit','Standard ($)','Project ($)','Use project','Savings'].forEach((label, i) => {
+    const th = document.createElement('th');
+    th.textContent = label;
+    if (i >= 2) th.className = 'num';
+    if (i === 4) th.className = 'cell';
+    trH.appendChild(th);
+  });
+  thead.appendChild(trH);
+  tbl.appendChild(thead);
+
+  const tbody = document.createElement('tbody');
+  items.forEach(item => {
+    const tr = buildPriceRow(supId, bid, item, defaultUnit);
+    tbody.appendChild(tr);
+  });
+  tbl.appendChild(tbody);
+
+  return tbl;
+}
+
+function buildPriceRow(supId, bid, item, defaultUnit){
+  const k = priceKey(supId, bid, item.key);
+  const data = getPrice(supId, bid, item.key);
+  const tr = document.createElement('tr');
+  tr.dataset.priceKey = k;
+  if (data.useProject) tr.classList.add('project-active');
+
+  // Product
+  const tdN = document.createElement('td');
+  tdN.textContent = item.label;
+  tr.appendChild(tdN);
+
+  // Unit
+  const tdU = document.createElement('td');
+  const unit = item.unit || (defaultUnit === '__perItem__' ? '—' : defaultUnit);
+  tdU.textContent = unit;
+  tdU.className = 'small';
+  tr.appendChild(tdU);
+
+  // Standard input
+  const tdS = document.createElement('td');
+  tdS.className = 'num';
+  const inpS = document.createElement('input');
+  inpS.type = 'number'; inpS.step = '0.01'; inpS.className = 'price-input';
+  inpS.dataset.priceKey = k;
+  inpS.dataset.which = 'standard';
+  if (data.standard) inpS.value = data.standard;
+  inpS.placeholder = '0.00';
+  inpS.oninput = function(){ updateRowSavings(tr, k); };
+  tdS.appendChild(inpS);
+  tr.appendChild(tdS);
+
+  // Project input
+  const tdP = document.createElement('td');
+  tdP.className = 'num';
+  const inpP = document.createElement('input');
+  inpP.type = 'number'; inpP.step = '0.01'; inpP.className = 'price-input';
+  inpP.dataset.priceKey = k;
+  inpP.dataset.which = 'project';
+  if (data.project) inpP.value = data.project;
+  inpP.placeholder = '0.00';
+  inpP.oninput = function(){ updateRowSavings(tr, k); };
+  tdP.appendChild(inpP);
+  tr.appendChild(tdP);
+
+  // Toggle
+  const tdT = document.createElement('td');
+  tdT.className = 'cell';
+  const lblT = document.createElement('label'); lblT.className = 'toggle';
+  const inpT = document.createElement('input'); inpT.type = 'checkbox'; inpT.checked = !!data.useProject;
+  inpT.onchange = function(){
+    if (!state.prices[k]) state.prices[k] = { standard: 0, project: 0, useProject: false };
+    state.prices[k].useProject = inpT.checked;
+    state.prices[k].standard = parseFloat(inpS.value) || 0;
+    state.prices[k].project = parseFloat(inpP.value) || 0;
+    tr.classList.toggle('project-active', inpT.checked);
+  };
+  lblT.appendChild(inpT);
+  const sl = document.createElement('span'); sl.className = 'toggle-slider';
+  lblT.appendChild(sl);
+  tdT.appendChild(lblT);
+  tr.appendChild(tdT);
+
+  // Savings
+  const tdSav = document.createElement('td');
+  tdSav.className = 'num savings';
+  tdSav.id = 'sav-' + k;
+  tr.appendChild(tdSav);
+
+  updateRowSavings(tr, k);
+
+  return tr;
+}
+
+function updateRowSavings(tr, k){
+  const inps = tr.querySelectorAll('input.price-input');
+  let std = 0, proj = 0;
+  inps.forEach(inp => {
+    const v = parseFloat(inp.value) || 0;
+    if (inp.dataset.which === 'standard') std = v;
+    if (inp.dataset.which === 'project') proj = v;
+  });
+  const sav = $('sav-' + k);
+  if (!sav) return;
+  if (std > 0 && proj > 0){
+    const diff = std - proj;
+    const pct = (diff / std) * 100;
+    if (diff > 0){
+      sav.className = 'num savings up';
+      sav.textContent = '−' + pct.toFixed(0) + '%';
+    } else if (diff < 0){
+      sav.className = 'num savings down';
+      sav.textContent = '+' + Math.abs(pct).toFixed(0) + '%';
+    } else {
+      sav.className = 'num savings';
+      sav.textContent = '—';
+    }
+  } else {
+    sav.className = 'num savings';
+    sav.textContent = '';
+  }
+}
+
+function bulkProject(supId, bid, on){
+  const panel = $('brand-panel-' + supId + '-' + bid);
+  panel.querySelectorAll('tr[data-price-key]').forEach(tr => {
+    const k = tr.dataset.priceKey;
+    const tog = tr.querySelector('.toggle input');
+    if (tog && tog.checked !== on){
+      tog.checked = on;
+      tog.dispatchEvent(new Event('change'));
+    }
+  });
+  showStatus(on ? '★ Project pricing activated for all ' + BRANDS[bid].label + ' lines' : 'Project pricing cleared for ' + BRANDS[bid].label, 'success');
+}
+
+function setAltPref(supId, bid, accKey, val){
+  state.altPrefs[altKey(supId, bid, accKey)] = val;
+  // Re-render the section
+  const panel = $('brand-panel-' + supId + '-' + bid);
+  // Remove old alt section + rebuild
+  const old = panel.querySelector('.alt-section');
+  if (old) old.remove();
+  // Re-build the alt section in place
+  const altSec = document.createElement('div');
+  altSec.className = 'alt-section';
+  const altH = document.createElement('h4');
+  altH.textContent = 'Underlayment & Ice & Water — Default Preference';
+  altSec.appendChild(altH);
+  ['icewater','underlay'].forEach(k => {
+    const accLabel = k === 'icewater' ? 'Ice & Water' : 'Underlayment';
+    const row = document.createElement('div'); row.className = 'alt-row';
+    const lbl = document.createElement('div'); lbl.style.fontSize = '12px'; lbl.style.fontWeight = '500'; lbl.textContent = accLabel;
+    row.appendChild(lbl);
+    const pair = document.createElement('div'); pair.className = 'alt-pair';
+    const cur = state.altPrefs[altKey(supId, bid, k)] || 'manufacturer';
+    const mfgBtn = document.createElement('button');
+    mfgBtn.className = cur === 'manufacturer' ? 'active mfg' : '';
+    mfgBtn.textContent = 'Manufacturer';
+    mfgBtn.onclick = function(){ setAltPref(supId, bid, k, 'manufacturer'); };
+    pair.appendChild(mfgBtn);
+    const chBtn = document.createElement('button');
+    chBtn.className = cur === 'cheapest' ? 'active' : '';
+    chBtn.textContent = 'Cheapest alternative';
+    chBtn.onclick = function(){ setAltPref(supId, bid, k, 'cheapest'); };
+    pair.appendChild(chBtn);
+    row.appendChild(pair);
+    altSec.appendChild(row);
+  });
+  panel.appendChild(altSec);
+  showStatus('Preference saved (remember to click Save All)', 'success');
+}
+
+// ============ COMPARE SUPPLIERS ============
+function toggleCompare(){
+  const c = $('compare');
+  if (c.classList.contains('show')){
+    c.classList.remove('show');
+  } else {
+    buildCompare();
+    c.classList.add('show');
+    c.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function buildCompare(){
+  // Pull current values from inputs first
+  document.querySelectorAll('input.price-input').forEach(inp => {
+    const k = inp.dataset.priceKey;
+    const w = inp.dataset.which;
+    if (!state.prices[k]) state.prices[k] = { standard: 0, project: 0, useProject: false };
+    state.prices[k][w] = parseFloat(inp.value) || 0;
+  });
+
+  const body = $('compareBody');
+  body.innerHTML = '';
+
+  // Find brands with multiple suppliers
+  const brandSupplierMap = {};
+  SUPPLIERS.forEach(s => {
+    s.brands.forEach(b => {
+      if (!brandSupplierMap[b]) brandSupplierMap[b] = [];
+      brandSupplierMap[b].push(s.id);
+    });
+  });
+
+  let any = false;
+  Object.entries(brandSupplierMap).forEach(([bid, supIds]) => {
+    if (supIds.length < 2) return;
+    any = true;
+    const brand = BRANDS[bid];
+
+    const h = document.createElement('h3');
+    h.style.cssText = 'font-size:14px;font-weight:600;margin:16px 0 8px;color:#1a1a1a;';
+    h.textContent = brand.label;
+    body.appendChild(h);
+
+    // Average bundle price per supplier for this brand
+    const avgs = supIds.map(supId => {
+      const prices = brand.products.map(p => {
+        const data = getPrice(supId, bid, slug(p));
+        const useP = data.useProject && data.project > 0;
+        return useP ? data.project : data.standard;
+      }).filter(p => p > 0);
+      const avg = prices.length > 0 ? prices.reduce((a,b)=>a+b,0) / prices.length : 0;
+      const hasProj = brand.products.some(p => {
+        const d = getPrice(supId, bid, slug(p));
+        return d.useProject && d.project > 0;
+      });
+      return { supId: supId, avg: avg, hasProject: hasProj, count: prices.length };
+    });
+
+    const valid = avgs.filter(a => a.avg > 0);
+    if (valid.length === 0){
+      const p = document.createElement('div');
+      p.className = 'small';
+      p.style.cssText = 'color:#999;font-style:italic;margin-bottom:12px;';
+      p.textContent = 'No prices entered yet for this brand.';
+      body.appendChild(p);
+      return;
+    }
+    const min = Math.min(...valid.map(a => a.avg));
+    const max = Math.max(...valid.map(a => a.avg));
+
+    const tbl = document.createElement('table');
+    tbl.className = 'compare-table';
+    let html = '<thead><tr><th>Supplier</th><th class="num">Avg bundle price</th><th>Project pricing</th><th>Products priced</th><th></th></tr></thead><tbody>';
+    avgs.forEach(a => {
+      let cls = '';
+      let label = '';
+      if (a.avg > 0){
+        if (a.avg === min && valid.length > 1){ cls = 'best'; label = '★ Best'; }
+        else if (a.avg === max && valid.length > 1){ cls = 'worst'; }
+      }
+      const supLabel = SUPPLIERS.find(s => s.id === a.supId).label;
+      html += '<tr class="'+cls+'"><td>'+supLabel+'</td>';
+      html += '<td class="num">'+(a.avg > 0 ? '$'+a.avg.toFixed(2) : '—')+' '+label+'</td>';
+      html += '<td>'+(a.hasProject ? '★ Active' : '—')+'</td>';
+      html += '<td>'+a.count+' / '+brand.products.length+'</td>';
+      html += '<td><button class="btn sm" onclick="jumpTo(\''+a.supId+'\',\''+bid+'\')">View</button></td>';
+      html += '</tr>';
+    });
+    html += '</tbody>';
+    tbl.innerHTML = html;
+    body.appendChild(tbl);
+  });
+
+  if (!any){
+    body.innerHTML = '<div class="small" style="color:#999;font-style:italic;">No brands carried by multiple suppliers.</div>';
+  }
+}
+
+function jumpTo(supId, bid){
+  switchSupplier(supId);
+  switchBrand(supId, bid);
+  toggleCompare();
+}
+
+// ============ BULK UPLOAD ============
+
+// Build all valid product keys for a supplier — used both for template and validation
+function getProductCatalogForSupplier(supId){
+  const sup = SUPPLIERS.find(s => s.id === supId);
+  if (!sup) return [];
+  const catalog = [];
+  sup.brands.forEach(bid => {
+    const brand = BRANDS[bid];
+    // Field shingles
+    brand.products.forEach(p => {
+      catalog.push({
+        category: 'Field Shingles',
+        brandId: bid,
+        brandLabel: brand.label,
+        productKey: slug(p),
+        productLabel: p,
+        priceKey: priceKey(supId, bid, slug(p))
+      });
+    });
+    // Starters
+    (BRAND_STARTERS[bid] || []).forEach(item => {
+      catalog.push({
+        category: 'Starter',
+        brandId: bid,
+        brandLabel: brand.label,
+        productKey: item.key,
+        productLabel: item.label,
+        priceKey: priceKey(supId, bid, item.key)
+      });
+    });
+    // Ridges
+    (BRAND_RIDGES[bid] || []).forEach(item => {
+      catalog.push({
+        category: 'Hip & Ridge',
+        brandId: bid,
+        brandLabel: brand.label,
+        productKey: item.key,
+        productLabel: item.label,
+        priceKey: priceKey(supId, bid, item.key)
+      });
+    });
+    // Accessories
+    ACCESSORIES.forEach(a => {
+      if (a.euroOnly && bid !== 'euro') return;
+      catalog.push({
+        category: 'Accessory',
+        brandId: bid,
+        brandLabel: brand.label,
+        productKey: a.key,
+        productLabel: a.label,
+        priceKey: priceKey(supId, bid, a.key)
+      });
+    });
+  });
+  return catalog;
+}
+
+function downloadTemplate(supId){
+  const sup = SUPPLIERS.find(s => s.id === supId);
+  const catalog = getProductCatalogForSupplier(supId);
+  const lines = ['brand,category,product,standard_price,project_price'];
+  catalog.forEach(item => {
+    // CSV-quote product label since it can have commas/quotes
+    const quotedProduct = '"' + item.productLabel.replace(/"/g, '""') + '"';
+    lines.push(item.brandId + ',' + item.category + ',' + quotedProduct + ',,');
+  });
+  const csv = lines.join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'greenlit-pricing-template-' + sup.id + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showStatus('✓ Template downloaded — fill it in and re-upload here', 'success');
+}
+
+function openBulkUpload(supId){
+  const sup = SUPPLIERS.find(s => s.id === supId);
+  $('bulkModalSup').textContent = sup.label;
+  $('bulkModalTitle').textContent = 'Bulk upload prices for ' + sup.label;
+  const body = $('bulkModalBody');
+  body.dataset.supId = supId;
+  body.innerHTML =
+    '<div style="font-size:13px;color:#555;margin-bottom:14px;">' +
+    'Upload a CSV file or paste table data. The parser will match products to ' + sup.label + '\'s catalog and show you a preview before saving.' +
+    '</div>' +
+    '<div style="background:#f0f9ff;border:1px solid #bae6fd;color:#0c4a6e;padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:12px;">' +
+    '💡 <strong>Tip:</strong> The cleanest workflow is to download the template above, paste a supplier PDF into ChatGPT/Claude with the prompt <em>"fill this CSV from the attached price list"</em>, save the AI\'s output as a CSV, then upload it here.' +
+    '</div>' +
+    '<div id="bulkDrop" style="border:2px dashed #d4d4d0;border-radius:10px;padding:28px;text-align:center;cursor:pointer;background:#fafaf7;transition:all 0.15s;">' +
+    '<div style="font-size:14px;font-weight:500;color:#555;margin-bottom:6px;">📁 Drop CSV file here, or click to choose</div>' +
+    '<div style="font-size:12px;color:#888;">Accepts the template format or any CSV with brand/product/price columns</div>' +
+    '<input type="file" id="bulkFile" accept=".csv,text/csv,.txt,.tsv" style="display:none;">' +
+    '</div>' +
+    '<div style="margin:14px 0;text-align:center;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">— or paste —</div>' +
+    '<textarea id="bulkPaste" placeholder="Paste rows here. Tab-separated (from Excel) or comma-separated. Should have brand, product, and price columns." style="width:100%;min-height:140px;font-family:monospace;font-size:11px;padding:10px;border:1px solid #d4d4d0;border-radius:6px;"></textarea>' +
+    '<div style="margin-top:12px;display:flex;gap:8px;">' +
+    '<button class="btn green" onclick="parseBulkInput()">Parse &amp; preview</button>' +
+    '<button class="btn" onclick="closeBulkUpload()">Cancel</button>' +
+    '</div>' +
+    '<div id="bulkResult" style="margin-top:14px;"></div>';
+
+  setupBulkDrop();
+  $('bulkModal').style.display = 'flex';
+}
+
+function setupBulkDrop(){
+  const drop = $('bulkDrop');
+  const file = $('bulkFile');
+  if (!drop || !file) return;
+  drop.onclick = function(){ file.click(); };
+  file.onchange = function(){
+    if (file.files && file.files[0]) readBulkFile(file.files[0]);
+  };
+  ['dragenter','dragover'].forEach(ev => {
+    drop.addEventListener(ev, function(e){
+      e.preventDefault(); e.stopPropagation();
+      drop.style.borderColor = '#7bc043';
+      drop.style.background = '#f0fdf4';
+    });
+  });
+  ['dragleave','drop'].forEach(ev => {
+    drop.addEventListener(ev, function(e){
+      e.preventDefault(); e.stopPropagation();
+      drop.style.borderColor = '#d4d4d0';
+      drop.style.background = '#fafaf7';
+    });
+  });
+  drop.addEventListener('drop', function(e){
+    if (e.dataTransfer.files && e.dataTransfer.files[0]){
+      readBulkFile(e.dataTransfer.files[0]);
+    }
+  });
+}
+
+function readBulkFile(f){
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    $('bulkPaste').value = ev.target.result;
+    parseBulkInput();
+  };
+  reader.onerror = function(){ alert('Could not read file.'); };
+  reader.readAsText(f);
+}
+
+function closeBulkUpload(){
+  $('bulkModal').style.display = 'none';
+}
+
+function parseCsvLine(line, sep){
+  const out = [];
+  let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++){
+    const c = line[i];
+    if (c === '"'){
+      if (inQ && line[i+1] === '"'){ cur += '"'; i++; }
+      else inQ = !inQ;
+    } else if (c === sep && !inQ){
+      out.push(cur); cur = '';
+    } else { cur += c; }
+  }
+  out.push(cur);
+  return out;
+}
+
+// Normalize a product name for fuzzy matching
+function normalizeProductName(name){
+  return (name || '').toLowerCase()
+    .replace(/[®™]/g, '')
+    .replace(/[^\w\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function fuzzyMatchProduct(catalog, brandHint, productNameRaw){
+  const target = normalizeProductName(productNameRaw);
+  if (!target) return null;
+
+  // First, narrow by brand hint if given
+  let pool = catalog;
+  if (brandHint){
+    const bh = brandHint.toLowerCase().trim();
+    const filtered = catalog.filter(c =>
+      c.brandId === bh ||
+      c.brandLabel.toLowerCase() === bh ||
+      c.brandLabel.toLowerCase().startsWith(bh) ||
+      bh.startsWith(c.brandId)
+    );
+    if (filtered.length > 0) pool = filtered;
+  }
+
+  // Exact match on normalized label
+  let exact = pool.find(c => normalizeProductName(c.productLabel) === target);
+  if (exact) return exact;
+
+  // Match on productKey (slug)
+  exact = pool.find(c => c.productKey === slug(productNameRaw));
+  if (exact) return exact;
+
+  // Partial: target contains all words of catalog label, or vice versa
+  const targetWords = target.split(' ').filter(w => w.length >= 3);
+  let bestMatch = null, bestScore = 0;
+  pool.forEach(c => {
+    const candidate = normalizeProductName(c.productLabel);
+    const candWords = candidate.split(' ').filter(w => w.length >= 3);
+    if (candWords.length === 0) return;
+    let score = 0;
+    targetWords.forEach(tw => {
+      if (candWords.includes(tw)) score += 2;
+      else if (candidate.includes(tw)) score += 1;
+    });
+    candWords.forEach(cw => {
+      if (target.includes(cw) && !targetWords.includes(cw)) score += 0.5;
+    });
+    // Penalize if very different lengths
+    const lenRatio = Math.min(targetWords.length, candWords.length) / Math.max(targetWords.length, candWords.length);
+    score *= lenRatio;
+    if (score > bestScore){ bestScore = score; bestMatch = c; }
+  });
+  return bestScore >= 2 ? bestMatch : null;
+}
+
+let pendingChanges = [];
+let unmatchedRows = [];
+
+function parseBulkInput(){
+  const supId = $('bulkModalBody').dataset.supId;
+  const txt = $('bulkPaste').value.trim();
+  if (!txt){ alert('Drop a CSV or paste rows first.'); return; }
+
+  const lines = txt.split(/\r?\n/).filter(l => l.trim().length);
+  if (lines.length < 2){ alert('Need at least a header row and one data row.'); return; }
+
+  // Detect separator
+  const sep = lines[0].indexOf('\t') > -1 ? '\t' : ',';
+  const headers = parseCsvLine(lines[0], sep).map(h => h.toLowerCase().trim());
+
+  // Find column indices flexibly
+  const idx = {
+    brand: headers.findIndex(h => h === 'brand' || h === 'manufacturer'),
+    category: headers.findIndex(h => h === 'category' || h === 'type'),
+    product: headers.findIndex(h => h === 'product' || h === 'product name' || h === 'item' || h === 'description' || h === 'name'),
+    standard: headers.findIndex(h => h === 'standard_price' || h === 'standard price' || h === 'standard' || h === 'price' || h === 'list price' || h === 'retail'),
+    project: headers.findIndex(h => h === 'project_price' || h === 'project price' || h === 'project' || h === 'sale' || h === 'sale price')
+  };
+
+  if (idx.product < 0){
+    alert('Could not find a "product" column in the header row. Headers found: ' + headers.join(', '));
+    return;
+  }
+  if (idx.standard < 0 && idx.project < 0){
+    alert('Could not find a "price" column. Need at least "standard_price" or "project_price" column.');
+    return;
+  }
+
+  const catalog = getProductCatalogForSupplier(supId);
+  pendingChanges = [];
+  unmatchedRows = [];
+
+  for (let i = 1; i < lines.length; i++){
+    const cells = parseCsvLine(lines[i], sep);
+    const productName = (cells[idx.product] || '').trim();
+    if (!productName) continue;
+
+    const brandHint = idx.brand >= 0 ? cells[idx.brand] : '';
+    const stdRaw = idx.standard >= 0 ? cells[idx.standard] : '';
+    const projRaw = idx.project >= 0 ? cells[idx.project] : '';
+    const stdVal = parseFloat(String(stdRaw).replace(/[^0-9.\-]/g, '')) || 0;
+    const projVal = parseFloat(String(projRaw).replace(/[^0-9.\-]/g, '')) || 0;
+
+    if (stdVal === 0 && projVal === 0) continue; // skip blank rows
+
+    const matched = fuzzyMatchProduct(catalog, brandHint, productName);
+    if (matched){
+      const existing = state.prices[matched.priceKey] || { standard: 0, project: 0, useProject: false };
+      pendingChanges.push({
+        priceKey: matched.priceKey,
+        brandLabel: matched.brandLabel,
+        category: matched.category,
+        productLabel: matched.productLabel,
+        rowText: productName,
+        oldStd: existing.standard,
+        oldProj: existing.project,
+        newStd: stdVal > 0 ? stdVal : existing.standard,
+        newProj: projVal > 0 ? projVal : existing.project,
+        useProject: existing.useProject
+      });
+    } else {
+      unmatchedRows.push({
+        rowText: productName,
+        brandHint: brandHint,
+        stdVal: stdVal,
+        projVal: projVal,
+        catalog: catalog
+      });
+    }
+  }
+
+  renderBulkPreview();
+}
+
+function renderBulkPreview(){
+  const wrap = $('bulkResult');
+  if (pendingChanges.length === 0 && unmatchedRows.length === 0){
+    wrap.innerHTML = '<div style="background:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:14px;border-radius:8px;">No matchable rows found. Check that your file has product names that match this supplier\'s catalog.</div>';
+    return;
+  }
+
+  let html = '<div style="margin-top:6px;padding:14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;color:#166534;font-size:13px;">';
+  html += '<strong>Preview — review before saving</strong><br>';
+  html += '<span style="color:#15803d;">' + pendingChanges.length + ' rows matched</span>';
+  if (unmatchedRows.length > 0) html += ' · <span style="color:#b91c1c;">' + unmatchedRows.length + ' need attention</span>';
+  html += '</div>';
+
+  if (pendingChanges.length > 0){
+    html += '<div style="margin-top:14px;font-size:12px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:0.5px;">Matched rows</div>';
+    html += '<div style="max-height:280px;overflow-y:auto;border:1px solid #e5e5e0;border-radius:8px;margin-top:8px;">';
+    html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
+    html += '<thead style="position:sticky;top:0;background:#fafaf7;"><tr>' +
+      '<th style="text-align:left;padding:8px;border-bottom:1px solid #e5e5e0;font-weight:600;color:#666;">Brand</th>' +
+      '<th style="text-align:left;padding:8px;border-bottom:1px solid #e5e5e0;font-weight:600;color:#666;">Product</th>' +
+      '<th style="text-align:right;padding:8px;border-bottom:1px solid #e5e5e0;font-weight:600;color:#666;">Old Std</th>' +
+      '<th style="text-align:right;padding:8px;border-bottom:1px solid #e5e5e0;font-weight:600;color:#666;">→ New Std</th>' +
+      '<th style="text-align:right;padding:8px;border-bottom:1px solid #e5e5e0;font-weight:600;color:#666;">Old Proj</th>' +
+      '<th style="text-align:right;padding:8px;border-bottom:1px solid #e5e5e0;font-weight:600;color:#666;">→ New Proj</th>' +
+      '<th style="text-align:right;padding:8px;border-bottom:1px solid #e5e5e0;font-weight:600;color:#666;">Δ</th>' +
+      '</tr></thead><tbody>';
+    pendingChanges.forEach(c => {
+      const stdChanged = c.oldStd !== c.newStd && c.newStd > 0;
+      const projChanged = c.oldProj !== c.newProj && c.newProj > 0;
+      const stdPct = stdChanged && c.oldStd > 0 ? ((c.newStd - c.oldStd) / c.oldStd) * 100 : 0;
+      const bigChange = Math.abs(stdPct) >= 20;
+      const changeColor = bigChange ? '#b91c1c' : '#888';
+      html += '<tr style="' + (bigChange ? 'background:#fff1f2;' : '') + '">';
+      html += '<td style="padding:6px 8px;border-bottom:1px solid #f0f0eb;">' + c.brandLabel + '</td>';
+      html += '<td style="padding:6px 8px;border-bottom:1px solid #f0f0eb;"><span style="color:#888;font-size:10px;text-transform:uppercase;">' + c.category + '</span><br>' + c.productLabel + '</td>';
+      html += '<td style="text-align:right;padding:6px 8px;border-bottom:1px solid #f0f0eb;color:#888;">' + (c.oldStd > 0 ? '$'+c.oldStd.toFixed(2) : '—') + '</td>';
+      html += '<td style="text-align:right;padding:6px 8px;border-bottom:1px solid #f0f0eb;font-weight:' + (stdChanged ? '600' : '400') + ';color:' + (stdChanged ? '#1a1a1a' : '#888') + ';">' + (c.newStd > 0 ? '$'+c.newStd.toFixed(2) : '—') + '</td>';
+      html += '<td style="text-align:right;padding:6px 8px;border-bottom:1px solid #f0f0eb;color:#888;">' + (c.oldProj > 0 ? '$'+c.oldProj.toFixed(2) : '—') + '</td>';
+      html += '<td style="text-align:right;padding:6px 8px;border-bottom:1px solid #f0f0eb;font-weight:' + (projChanged ? '600' : '400') + ';color:' + (projChanged ? '#1a1a1a' : '#888') + ';">' + (c.newProj > 0 ? '$'+c.newProj.toFixed(2) : '—') + '</td>';
+      html += '<td style="text-align:right;padding:6px 8px;border-bottom:1px solid #f0f0eb;color:' + changeColor + ';font-weight:' + (bigChange ? '700' : '500') + ';">' + (stdChanged && stdPct !== 0 ? (stdPct > 0 ? '+' : '') + stdPct.toFixed(0) + '%' : '') + '</td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+
+  if (unmatchedRows.length > 0){
+    html += '<div style="margin-top:18px;font-size:12px;font-weight:600;color:#b45309;text-transform:uppercase;letter-spacing:0.5px;">⚠️ Unmatched rows — please pick the right product or skip</div>';
+    html += '<div style="max-height:240px;overflow-y:auto;border:1px solid #fcd34d;border-radius:8px;margin-top:8px;background:#fffbeb;">';
+    unmatchedRows.forEach((u, ui) => {
+      html += '<div style="padding:10px 12px;border-bottom:1px solid #fde68a;display:grid;grid-template-columns:1fr 220px;gap:10px;align-items:center;">';
+      html += '<div style="font-size:12px;"><strong>' + u.rowText + '</strong>' + (u.brandHint ? ' <span style="color:#888;">(brand: ' + u.brandHint + ')</span>' : '') + '<br><span style="color:#888;font-size:11px;">Std $' + (u.stdVal || 0).toFixed(2) + (u.projVal > 0 ? ' / Proj $' + u.projVal.toFixed(2) : '') + '</span></div>';
+      html += '<select id="unmatch-' + ui + '" style="padding:5px 8px;border:1px solid #d4d4d0;border-radius:4px;font-size:12px;">';
+      html += '<option value="">⊘ Skip this row</option>';
+      const grouped = {};
+      u.catalog.forEach(c => {
+        const grp = c.brandLabel + ' — ' + c.category;
+        if (!grouped[grp]) grouped[grp] = [];
+        grouped[grp].push(c);
+      });
+      Object.entries(grouped).forEach(([grp, items]) => {
+        html += '<optgroup label="' + grp + '">';
+        items.forEach(c => {
+          html += '<option value="' + c.priceKey + '">' + c.productLabel + '</option>';
+        });
+        html += '</optgroup>';
+      });
+      html += '</select>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  html += '<div style="margin-top:18px;display:flex;gap:8px;">';
+  html += '<button class="btn green" onclick="applyBulkChanges()">✓ Apply changes</button>';
+  html += '<button class="btn" onclick="closeBulkUpload()">Cancel</button>';
+  html += '</div>';
+
+  wrap.innerHTML = html;
+}
+
+function applyBulkChanges(){
+  // Apply matched changes
+  pendingChanges.forEach(c => {
+    const existing = state.prices[c.priceKey] || { standard: 0, project: 0, useProject: false };
+    state.prices[c.priceKey] = {
+      standard: c.newStd > 0 ? c.newStd : existing.standard,
+      project: c.newProj > 0 ? c.newProj : existing.project,
+      useProject: existing.useProject
+    };
+  });
+
+  // Apply user-resolved unmatched rows
+  let resolved = 0;
+  unmatchedRows.forEach((u, ui) => {
+    const sel = $('unmatch-' + ui);
+    if (!sel || !sel.value) return;
+    const k = sel.value;
+    const existing = state.prices[k] || { standard: 0, project: 0, useProject: false };
+    state.prices[k] = {
+      standard: u.stdVal > 0 ? u.stdVal : existing.standard,
+      project: u.projVal > 0 ? u.projVal : existing.project,
+      useProject: existing.useProject
+    };
+    resolved++;
+  });
+
+  // Save to storage
+  state.savedAt = Date.now();
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      prices: state.prices,
+      altPrefs: state.altPrefs,
+      savedAt: state.savedAt
+    }));
+  } catch(e){
+    alert('Could not save: ' + e.message);
+    return;
+  }
+
+  // Re-render the panel inputs to reflect new state
+  buildSupplierTabs();
+  switchSupplier($('bulkModalBody').dataset.supId);
+  updateInfoBanner();
+
+  closeBulkUpload();
+  showStatus('✓ Applied ' + pendingChanges.length + ' updates' + (resolved > 0 ? ' + ' + resolved + ' resolved' : ''), 'success');
+
+  pendingChanges = [];
+  unmatchedRows = [];
+}
+
+// ============ INIT ============
+window.addEventListener('DOMContentLoaded', function(){
+  loadFromStorage();
+  buildSupplierTabs();
+  updateInfoBanner();
+});
+</script>
+
+</body>
+</html>
