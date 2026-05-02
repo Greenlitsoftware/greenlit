@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roofing Material Order</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;font-size:14px;color:#1a1a1a;background:#f0efe9;padding:1rem}
+.gl-header{background:#1a1a1a;color:#fff;border-radius:12px;padding:1rem 1.5rem;margin-bottom:1.25rem;display:flex;justify-content:space-between;align-items:center}
+.gl-logo{display:flex;align-items:center;gap:10px}
+.gl-dot{width:28px;height:28px;background:#22c55e;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.gl-name{font-size:17px;font-weight:700;letter-spacing:-.01em}
+.gl-tagline{font-size:11px;color:#888;margin-top:1px}
+.gl-module{font-size:12px;color:#22c55e;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+h1{font-size:19px;font-weight:600;margin-bottom:.25rem}
+.subtitle{font-size:12px;color:#888;margin-bottom:1.25rem}
+h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#777;margin-bottom:.75rem}
+h3{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#aaa;margin-bottom:.5rem;margin-top:.875rem}
+.card{background:#fff;border:0.5px solid #ddd;border-radius:12px;padding:1.25rem;margin-bottom:.875rem}
+label{font-size:12px;color:#666;display:block;margin-bottom:3px;margin-top:10px}
+label:first-of-type{margin-top:0}
+input,select,textarea{width:100%;padding:7px 10px;border:0.5px solid #ccc;border-radius:7px;font-size:13px;background:#fff;color:#1a1a1a;outline:none}
+input:focus,select:focus,textarea:focus{border-color:#555}
+input[readonly]{background:#f5f5f5;color:#666}
+textarea{resize:vertical;min-height:56px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
+.qty-row{display:grid;grid-template-columns:1fr 1fr 120px;gap:10px;align-items:end}
+.multi-check{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.multi-check label{display:flex;align-items:center;gap:5px;font-size:13px;color:#444;margin:0;cursor:pointer;background:#f5f4f0;padding:4px 10px;border-radius:20px;border:0.5px solid #e0e0e0}
+.multi-check input[type=checkbox]{width:auto;margin:0}
+.checklist-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;margin-bottom:4px;background:#f5f4f0;font-size:13px}
+.checklist-item input[type=checkbox]{width:auto;cursor:pointer}
+.checklist-item.done{background:#f0faf0;color:#2e7d32}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;background:#f0efe9;color:#666;margin-left:6px}
+.qty-label{font-size:12px;color:#888;margin-top:4px}
+.btn{border:none;border-radius:8px;padding:10px 18px;font-size:14px;cursor:pointer;font-weight:500}
+.btn-dark{background:#1a1a1a;color:#fff}.btn-dark:hover{background:#333}
+.btn-outline{background:#fff;color:#1a1a1a;border:0.5px solid #ccc}.btn-outline:hover{background:#f5f5f5}
+.btn-row{display:flex;gap:8px;margin-top:.5rem}
+.signoff-line{border-bottom:0.5px solid #333;width:100%;margin-top:2rem;margin-bottom:.25rem}
+.signoff-label{font-size:11px;color:#888}
+.saved-item{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#f5f4f0;border-radius:8px;margin-bottom:6px;font-size:13px}
+.saved-item button{background:none;border:0.5px solid #ccc;border-radius:6px;padding:3px 10px;font-size:12px;cursor:pointer}
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+.toast.show{opacity:1}
+.total-highlight{background:#f0efe9;border-radius:8px;padding:.65rem 1rem;font-size:15px;font-weight:600;margin-top:8px}
+@media print{
+  body{background:#fff;padding:0}
+  .no-print{display:none!important}
+  .card{border:none;padding:.5rem 0;margin-bottom:.5rem;page-break-inside:avoid}
+  h1{font-size:16px}
+}
+</style>
+</head>
+<body>
+
+<div class="gl-header">
+  <div class="gl-logo">
+    <div class="gl-dot">🟢</div>
+    <div>
+      <div class="gl-name">Green Lit Software</div>
+      <div class="gl-tagline">Empowering Roofing Entrepreneurs</div>
+    </div>
+  </div>
+  <div class="gl-module">Material Order</div>
+</div>
+<div class="no-print" style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
+  <div style="display:flex;gap:8px">
+    <button class="btn btn-outline" onclick="loadSaved()">📂 Saved Orders</button>
+    <button class="btn btn-outline" onclick="window.print()">🖨 Print / PDF</button>
+    <button class="btn btn-dark" onclick="saveMO()">💾 Save Order</button>
+  </div>
+</div>
+
+<!-- SAVED PANEL -->
+<div id="saved-panel" class="card no-print" style="display:none">
+  <h2 style="margin-bottom:.5rem">Saved Material Orders</h2>
+  <div id="saved-list"><em style="color:#aaa;font-size:13px">No saved orders yet.</em></div>
+</div>
+
+<!-- 1. ORDER INFO -->
+<div class="card">
+  <h2>1. Order Information</h2>
+  <div class="g3">
+    <div><label>Supplier name</label><input id="mo-supplier" placeholder="e.g. Beacon Roofing Supply"></div>
+    <div><label>PO / Order #</label><input id="mo-ponum" readonly placeholder="Auto from quote #"></div>
+    <div><label>Ordered by</label><input id="mo-orderedby" placeholder="Estimator name"></div>
+  </div>
+  <div class="g3" style="margin-top:4px">
+    <div><label>Order date</label><input id="mo-orderdate" type="date"></div>
+    <div><label>Delivery date requested</label><input id="mo-delivdate" type="date"></div>
+    <div></div>
+  </div>
+</div>
+
+<!-- 2. JOB INFO -->
+<div class="card">
+  <h2>2. Job Information</h2>
+  <div class="g2">
+    <div><label>Project name / Customer</label><input id="mo-customer" placeholder="Customer name"></div>
+    <div><label>Job address</label><input id="mo-address" placeholder="Street address"></div>
+  </div>
+  <div class="g3" style="margin-top:4px">
+    <div><label>City</label><input id="mo-city" placeholder="City"></div>
+    <div><label>Delivery type</label>
+      <select id="mo-delivtype">
+        <option>Rooftop Delivery</option><option>Ground Drop</option>
+        <option>Boom Truck Required</option><option>Hand Unload</option>
+      </select>
+    </div>
+    <div><label>Access conditions</label>
+      <select id="mo-access">
+        <option>Easy Access</option><option>Limited Access</option>
+        <option>Alley Access</option><option>Tight Lot / Infill</option><option>Acreage</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- 3. ROOFING SYSTEM -->
+<div class="card">
+  <h2>3. Roofing System</h2>
+  <div class="g3">
+    <div><label>Roof type</label>
+      <select id="rs-type">
+        <option>Architectural Asphalt</option>
+        <option>Designer Asphalt</option>
+        <option>F-Wave Synthetic</option>
+        <option>Euroshield Rubber</option>
+        <option>Cedar</option>
+        <option>Metal Roofing</option>
+      </select>
+    </div>
+    <div><label>Manufacturer</label>
+      <select id="rs-mfr" onchange="updateProductDropdown()">
+        <option>IKO</option><option>BP</option><option>GAF</option>
+        <option>Owens Corning</option><option>Malarkey</option>
+        <option>CertainTeed</option><option>Euroshield</option>
+        <option>F-Wave</option><option>Cedar</option><option>Other</option>
+      </select>
+    </div>
+    <div><label>Product line</label>
+      <select id="rs-product"></select>
+    </div>
+  </div>
+  <div class="g2" style="margin-top:4px">
+    <div><label>Colour / Style</label><input id="rs-colour" placeholder="e.g. Weathered Wood, Charcoal"></div>
+    <div><label>Bundles per square</label>
+      <select id="rs-bdlsq">
+        <option value="3">3 Bundle / sq</option>
+        <option value="4">4 Bundle / sq</option>
+        <option value="5">5 Bundle / sq</option>
+        <option value="6">6 Bundle / sq (F-Wave)</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- 4. QUANTITIES -->
+<div class="card">
+  <h2>4. Quantities</h2>
+  <div class="g3">
+    <div><label>Total sloped squares</label><input id="q-squares" type="number" min="0" step="0.01" placeholder="0.00" oninput="calcBundles()"></div>
+    <div><label>Waste factor (%)</label><input id="q-waste" type="number" min="0" max="50" value="12" oninput="calcBundles()"></div>
+    <div>
+      <label>Order squares (auto)</label>
+      <input id="q-ordersq" readonly>
+    </div>
+  </div>
+</div>
+
+<!-- 5. SHINGLES -->
+<div class="card">
+  <h2>5. Shingles</h2>
+  <div class="qty-row">
+    <div><label>Field shingle bundles (auto)</label><input id="sh-bundles" readonly></div>
+    <div><label>Starter bundles (auto)</label><input id="sh-starter" readonly></div>
+    <div><label>Starter LF/bdl</label><input id="sh-starterlf" type="number" placeholder="e.g. 123" oninput="calcStarter()"></div>
+  </div>
+  <div class="g3" style="margin-top:4px">
+    <div><label>Starter type</label>
+      <select id="sh-startertype">
+        <option>Manufacturer Starter</option><option>WeatherBlocker (GAF) 100'/bdl</option>
+        <option>Leading Edge Plus (IKO) 123'/bdl</option><option>Armor Starter 69'/bdl</option>
+        <option>Swift Start (CT) 116'/bdl</option><option>Smart Start (Mal) 72'/bdl</option>
+        <option>Starter Strip Plus (OC) 105'/bdl</option>
+        <option>StarterMatch (Grand Sequoia) 60'/bdl</option>
+        <option>Armourshake Starter 69'/bdl</option>
+        <option>F-Wave Universal 30'/bdl</option>
+        <option>Euroshield Eave 30'/bdl</option>
+        <option>Euroshield Eave 33'/bdl</option>
+        <option>Cut 3-Tab</option>
+      </select>
+    </div>
+    <div><label>LF Eaves</label><input id="sh-eaves" type="number" placeholder="0" oninput="calcStarter()"></div>
+    <div><label>LF Rake</label><input id="sh-rake" type="number" placeholder="0" oninput="calcStarter()"></div>
+  </div>
+</div>
+
+<!-- 6. HIP & RIDGE -->
+<div class="card">
+  <h2>6. Hip &amp; Ridge Cap</h2>
+  <div class="qty-row">
+    <div><label>Ridge type</label>
+      <select id="hr-type">
+        <option>Standard Ridge Cap</option><option>High Profile Ridge</option>
+        <option>Designer Ridge</option><option>F-Wave Ridge</option><option>Metal Ridge</option>
+        <option>IKO Hip & Ridge 12 (36.5'/bdl)</option>
+        <option>BP Yukon SB (29'/bdl)</option>
+        <option>GAF Timbertex (20'/bdl)</option>
+        <option>OC ProEdge (33'/bdl)</option>
+        <option>Malarkey EZ Ridge (20'/bdl)</option>
+        <option>CT Shadow Ridge (30'/bdl)</option>
+        <option>Euroshield Ridge (10'/bdl)</option>
+        <option>Euroshield Ridge (9'/bdl)</option>
+      </select>
+    </div>
+    <div><label>LF Hip + Ridge</label><input id="hr-lf" type="number" placeholder="0" oninput="calcRidge()"></div>
+    <div><label>LF per bundle</label><input id="hr-lfbdl" type="number" placeholder="e.g. 36.5" oninput="calcRidge()"></div>
+  </div>
+  <div style="margin-top:8px">
+    <label>Ridge bundles required (auto)</label>
+    <input id="hr-bundles" readonly>
+  </div>
+</div>
+
+<!-- 7. UNDERLAYMENT -->
+<div class="card">
+  <h2>7. Underlayment</h2>
+  <div class="qty-row">
+    <div><label>Primary underlayment</label>
+      <select id="ul-type">
+        <option>Synthetic (IKO Stormtite 250'×48" ~1000sf/roll)</option>
+        <option>Felt #15</option><option>Felt #30</option><option>Self-Adhered (full)</option>
+      </select>
+    </div>
+    <div><label>Coverage per roll (sq ft)</label><input id="ul-coverage" type="number" value="1000" oninput="calcUnderlay()"></div>
+    <div><label>Rolls required (auto)</label><input id="ul-rolls" readonly></div>
+  </div>
+</div>
+
+<!-- 8. ICE & WATER -->
+<div class="card">
+  <h2>8. Ice &amp; Water Shield</h2>
+  <div class="qty-row">
+    <div><label>Coverage area</label>
+      <select id="iw-coverage" onchange="calcIceWater()">
+        <option>Eaves Only</option><option>Eaves + Valleys</option>
+        <option>Full Roof</option><option>Custom</option>
+      </select>
+    </div>
+    <div><label>Roll coverage</label>
+      <select id="iw-rolltype" onchange="calcIceWater()">
+        <option value="61">44" × 61 ft / 225 sf roll</option>
+        <option value="66">36" × 66 ft roll</option>
+      </select>
+    </div>
+    <div><label>Rolls required (auto)</label><input id="iw-rolls" readonly></div>
+  </div>
+  <div class="g3" style="margin-top:4px">
+    <div><label>LF Eaves (for calc)</label><input id="iw-eaves" type="number" placeholder="0" oninput="calcIceWater()"></div>
+    <div><label>LF Valleys (for calc)</label><input id="iw-valleys" type="number" placeholder="0" oninput="calcIceWater()"></div>
+    <div><label>2nd row ice &amp; water</label>
+      <select id="iw-secondrow" onchange="calcIceWater()">
+        <option value="0">No</option><option value="1">Yes — eaves only</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- 9. VENTILATION -->
+<div class="card">
+  <h2>9. Ventilation</h2>
+  <div class="g4">
+    <div><label>Exhaust vent type</label>
+      <select id="vt-type">
+        <option>Box Vents</option><option>Slant Back Vents</option>
+        <option>Ridge Vent</option><option>Off-Ridge Vent</option>
+        <option>Turbo Vent</option><option>None</option>
+      </select>
+    </div>
+    <div><label>Exhaust qty</label><input id="vt-qty" type="number" min="0" placeholder="0"></div>
+    <div><label>Intake type</label>
+      <select id="vt-intake">
+        <option>Existing</option><option>SmartVent</option>
+        <option>Vented Drip Edge</option><option>Soffit Vents</option><option>None</option>
+      </select>
+    </div>
+    <div><label>Intake qty</label><input id="vt-intakeqty" type="number" min="0" placeholder="0"></div>
+  </div>
+  <div class="g3" style="margin-top:4px">
+    <div><label>Goose necks (#)</label><input id="vt-goose" type="number" min="0" placeholder="0"></div>
+    <div><label>Ridge vent LF</label><input id="vt-ridgelf" type="number" min="0" placeholder="0"></div>
+    <div></div>
+  </div>
+</div>
+
+<!-- 10. FLASHING & METAL -->
+<div class="card">
+  <h2>10. Flashing &amp; Metal</h2>
+  <h3>Drip Edge</h3>
+  <div class="g3">
+    <div><label>Colour</label>
+      <select id="fl-dripcolour">
+        <option>Brown</option><option>Black</option><option>White</option><option>Custom</option>
+      </select>
+    </div>
+    <div><label>LF eaves</label><input id="fl-driplf" type="number" placeholder="0" oninput="calcDrip()"></div>
+    <div><label>Pieces (8ft/pc, auto)</label><input id="fl-drippc" readonly></div>
+  </div>
+
+  <h3>Valley Metal</h3>
+  <div class="g3">
+    <div><label>Valley type</label>
+      <select id="fl-valtype">
+        <option>W Valley</option><option>Open Valley</option>
+        <option>Pre-Finished</option><option>Galvanized</option>
+      </select>
+    </div>
+    <div><label>LF valley</label><input id="fl-vallf" type="number" placeholder="0" oninput="calcValley()"></div>
+    <div><label>Pieces (8ft/pc, auto)</label><input id="fl-valpc" readonly></div>
+  </div>
+
+  <h3>Gable / Rake Flashing</h3>
+  <div class="g2">
+    <div><label>LF gable</label><input id="fl-gablelf" type="number" placeholder="0" oninput="calcGable()"></div>
+    <div><label>Pieces (8ft/pc, auto)</label><input id="fl-gablepc" readonly></div>
+  </div>
+
+  <h3>Gravel Stop Flashing</h3>
+  <div class="g2">
+    <div><label>LF gravel stop</label><input id="fl-gravelf" type="number" placeholder="0" oninput="calcGravel()"></div>
+    <div><label>Pieces (8ft/pc, auto)</label><input id="fl-gravepc" readonly></div>
+  </div>
+
+  <h3>Step &amp; Wall Flashing</h3>
+  <div class="g3">
+    <div><label>Step/wall flashing type</label>
+      <select id="fl-steptype">
+        <option>Pre-Bent</option><option>Site Bent</option><option>None</option>
+      </select>
+    </div>
+    <div><label>Step flashing LF</label><input id="fl-steplf" type="number" placeholder="0" oninput="calcStep()"></div>
+    <div><label>Pieces (9"/pc → nearest 25, auto)</label><input id="fl-steppc" readonly></div>
+  </div>
+
+  <h3>Backpan Flashing</h3>
+  <div class="g2">
+    <div><label>4ft backpan pieces (#)</label><input id="fl-bp4" type="number" min="0" placeholder="0"></div>
+    <div><label>8ft backpan pieces (#)</label><input id="fl-bp8" type="number" min="0" placeholder="0"></div>
+  </div>
+</div>
+
+<!-- 11. PENETRATION FLASHINGS -->
+<div class="card">
+  <h2>11. Penetration Flashings</h2>
+  <div class="g4">
+    <div><label>Pipe boots 2" (#)</label><input id="pb-2" type="number" min="0" placeholder="0"></div>
+    <div><label>Pipe boots 3" (#)</label><input id="pb-3" type="number" min="0" placeholder="0"></div>
+    <div><label>Pipe boots 4" (#)</label><input id="pb-4" type="number" min="0" placeholder="0"></div>
+    <div><label>Multi-size boots (#)</label><input id="pb-multi" type="number" min="0" placeholder="0"></div>
+  </div>
+  <div style="margin-top:8px"><label>Other penetrations</label>
+    <div class="multi-check" id="mc-penetrations">
+      <label><input type="checkbox" value="Furnace Vents"> Furnace Vents</label>
+      <label><input type="checkbox" value="Goosenecks"> Goosenecks</label>
+      <label><input type="checkbox" value="B-Vents"> B-Vents</label>
+      <label><input type="checkbox" value="Skylight Kits"> Skylight Kits</label>
+    </div>
+  </div>
+</div>
+
+<!-- 12. FASTENERS -->
+<div class="card">
+  <h2>12. Fasteners</h2>
+  <div class="g4">
+    <div><label>Nail type</label>
+      <select id="fn-type">
+        <option>Coil Nails</option><option>Hand Drive</option>
+        <option>Stainless</option><option>Hot Dipped Galvanized</option>
+      </select>
+    </div>
+    <div><label>Length</label>
+      <select id="fn-length">
+        <option>1 1/4"</option><option>1 1/2"</option>
+        <option>1 3/4"</option><option>2"</option><option>1 3/8" (Euroshield)</option>
+      </select>
+    </div>
+    <div><label>Boxes required (auto)</label><input id="fn-boxes" readonly></div>
+    <div><label>Staple boxes</label><input id="fn-staples" type="number" min="0" placeholder="0"></div>
+  </div>
+</div>
+
+<!-- 13. SEALANTS & ACCESSORIES -->
+<div class="card">
+  <h2>13. Sealants &amp; Accessories</h2>
+  <div class="g3">
+    <div><label>Sealant type</label>
+      <select id="sa-type">
+        <option>Asphalt Plastic Cement</option><option>Polyurethane</option>
+        <option>Silicone</option>
+      </select>
+    </div>
+    <div><label>Sealant qty</label><input id="sa-qty" type="number" min="0" placeholder="0"></div>
+    <div></div>
+  </div>
+  <div style="margin-top:8px"><label>Other accessories</label>
+    <div class="multi-check" id="mc-accessories">
+      <label><input type="checkbox" value="Caulking Tubes"> Caulking Tubes</label>
+      <label><input type="checkbox" value="Roof Cement Buckets"> Roof Cement</label>
+      <label><input type="checkbox" value="Tarps"> Tarps</label>
+      <label><input type="checkbox" value="Chalk Line"> Chalk Line</label>
+      <label><input type="checkbox" value="Blades"> Blades</label>
+    </div>
+  </div>
+</div>
+
+<!-- 14. SPECIAL INSTRUCTIONS -->
+<div class="card">
+  <h2>14. Special Instructions</h2>
+  <div><label>Delivery notes</label><textarea id="si-notes" placeholder="e.g. Call 30 min before delivery, gate code #1234..."></textarea></div>
+  <div style="margin-top:8px"><label>Placement instructions</label><textarea id="si-placement" placeholder="e.g. Place on garage side, avoid driveway..."></textarea></div>
+  <div class="g2" style="margin-top:8px">
+    <div><label>Call before delivery</label>
+      <select id="si-call"><option>Yes</option><option>No</option></select>
+    </div>
+    <div><label>Equipment required on site</label>
+      <input id="si-equipment" placeholder="e.g. Forklift, none, boom truck">
+    </div>
+  </div>
+</div>
+
+<!-- 15. VERIFICATION CHECKLIST -->
+<div class="card">
+  <h2>15. Order Verification Checklist</h2>
+  <p style="font-size:12px;color:#888;margin-bottom:.75rem">Check each item before sending the order.</p>
+  <div id="checklist">
+    <div class="checklist-item"><input type="checkbox" onchange="markDone(this)"><span>Quantities match estimate</span></div>
+    <div class="checklist-item"><input type="checkbox" onchange="markDone(this)"><span>Correct product line &amp; colour confirmed</span></div>
+    <div class="checklist-item"><input type="checkbox" onchange="markDone(this)"><span>All accessories included</span></div>
+    <div class="checklist-item"><input type="checkbox" onchange="markDone(this)"><span>Delivery method confirmed with supplier</span></div>
+    <div class="checklist-item"><input type="checkbox" onchange="markDone(this)"><span>Site access conditions reviewed</span></div>
+    <div class="checklist-item"><input type="checkbox" onchange="markDone(this)"><span>Delivery date confirmed</span></div>
+    <div class="checklist-item"><input type="checkbox" onchange="markDone(this)"><span>PO # assigned and recorded</span></div>
+  </div>
+  <div id="checklist-status" style="margin-top:.75rem;font-size:13px;color:#888"></div>
+</div>
+
+<!-- SIGN-OFF -->
+<div class="card">
+  <h2>Sign-Off</h2>
+  <div class="g3">
+    <div><div class="signoff-line"></div><div class="signoff-label">Ordered By / Estimator</div></div>
+    <div><div class="signoff-line"></div><div class="signoff-label">Approved By</div></div>
+    <div><div class="signoff-line"></div><div class="signoff-label">Date</div></div>
+  </div>
+</div>
+
+<div class="btn-row no-print">
+  <button class="btn btn-dark" onclick="saveMO()" style="flex:1">💾 Save Order</button>
+  <button class="btn btn-outline" onclick="window.print()" style="flex:1">🖨 Print / PDF</button>
+  <button class="btn btn-outline" onclick="clearMO()" style="flex:1">🗑 Clear Form</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Product dropdown by manufacturer ─────────────────────────────────────────
+const MFR_PRODUCTS={
+  'IKO':['Cambridge','Dynasty','Nordic (Class 4)','Armourshake','Crowne Slate','Royal Estate'],
+  'BP':['Mystique','Vanguard'],
+  'GAF':['Timberline HDZ','Timberline UHDZ','Camelot II','Woodland','Slateline','Grand Sequoia AS'],
+  'Owens Corning':['Oakridge','Duration','Duration FLEX'],
+  'Malarkey':['Highlander AR','Vista AR','Legacy Scotchgard'],
+  'CertainTeed':['Landmark','Northgate'],
+  'Euroshield':['Ranchlands Shake','Rundle Slate','Beaumont Shake','Vermont Slate','Vermont Slate HP'],
+  'F-Wave':['Classic Slate','Hand-Split Shake','Designer Slate (American Blends)','Designer Slate (Estate Series)'],
+  'Cedar':['Cedar'],
+  'Other':['Other'],
+};
+
+function updateProductDropdown(){
+  const mfr=document.getElementById('rs-mfr').value;
+  const sel=document.getElementById('rs-product');
+  sel.innerHTML='';
+  (MFR_PRODUCTS[mfr]||['Other']).forEach(p=>{
+    const o=document.createElement('option');o.value=p;o.textContent=p;sel.appendChild(o);
+  });
+}
+updateProductDropdown();
+
+// ── Auto-calculations ────────────────────────────────────────────────────────
+function v(id){const el=document.getElementById(id);return el?parseFloat(el.value)||0:0;}
+function s(id){const el=document.getElementById(id);return el?el.value.trim():'';}
+function set(id,val){const el=document.getElementById(id);if(el)el.value=val;}
+function ceilTo(val,mul){return Math.ceil(val/mul)*mul;}
+
+function calcBundles(){
+  const sq=v('q-squares'), waste=1+v('q-waste')/100;
+  const orderSq=sq*waste;
+  set('q-ordersq', orderSq.toFixed(2)+' sq');
+  const bdlSq=parseInt(document.getElementById('rs-bdlsq').value)||3;
+  const bundles=Math.ceil(orderSq/(100/bdlSq));
+  set('sh-bundles', bundles+' bundles');
+  calcNails(orderSq);
+  calcUnderlay(orderSq*100);
+}
+document.getElementById('rs-bdlsq').addEventListener('change', calcBundles);
+
+function calcStarter(){
+  const eaves=v('sh-eaves'), rake=v('sh-rake'), lfBdl=v('sh-starterlf')||123;
+  const bdl=Math.ceil((eaves+rake)*1.05/lfBdl);
+  set('sh-starter', bdl>0?bdl+' bundles':'—');
+}
+
+function calcRidge(){
+  const lf=v('hr-lf'), lfBdl=v('hr-lfbdl')||36.5;
+  set('hr-bundles', Math.ceil(lf/lfBdl)+' bundles');
+}
+
+function calcUnderlay(sqFt){
+  if(!sqFt){const sq=v('q-squares')*(1+v('q-waste')/100);sqFt=sq*100;}
+  const cov=v('ul-coverage')||1000;
+  set('ul-rolls', Math.ceil(sqFt/cov)+' rolls');
+}
+document.getElementById('ul-coverage').addEventListener('input',()=>calcUnderlay());
+
+function calcIceWater(){
+  const eaves=v('iw-eaves'), valleys=v('iw-valleys');
+  const mode=s('iw-coverage'), lfPerRoll=v('iw-rolltype')||61;
+  const sq=v('q-squares')*(1+v('q-waste')/100);
+  let lf=0;
+  if(mode==='Eaves Only') lf=eaves;
+  else if(mode==='Eaves + Valleys') lf=eaves+valleys;
+  else if(mode==='Full Roof'){set('iw-rolls',Math.ceil(sq*100/225)+' rolls');
+    if(v('iw-secondrow')) {const r2=Math.ceil((eaves*1.05)/lfPerRoll);set('iw-rolls',Math.ceil(sq*100/225)+r2+' rolls (incl 2nd row)');}
+    return;}
+  let rolls=Math.ceil((lf*1.05)/lfPerRoll);
+  if(v('iw-secondrow')) rolls+=Math.ceil((eaves*1.05)/lfPerRoll);
+  set('iw-rolls', rolls+' rolls');
+}
+
+function calcDrip(){set('fl-drippc', Math.ceil((v('fl-driplf')*1.05)/8)+' pcs');}
+function calcValley(){set('fl-valpc', Math.ceil((v('fl-vallf')*1.05)/8)+' pcs');}
+function calcGable(){set('fl-gablepc', Math.ceil((v('fl-gablelf')*1.05)/8)+' pcs');}
+function calcGravel(){set('fl-gravepc', Math.ceil((v('fl-gravelf')*1.05)/8)+' pcs');}
+function calcStep(){set('fl-steppc', ceilTo(Math.ceil(v('fl-steplf')/0.75),25)+' pcs');}
+function calcNails(sqFt){
+  if(!sqFt){const sq=v('q-squares')*(1+v('q-waste')/100);sqFt=sq*100;}
+  set('fn-boxes', Math.ceil(sqFt/1500)+' boxes');
+}
+
+// ── Checklist ────────────────────────────────────────────────────────────────
+function markDone(cb){
+  cb.closest('.checklist-item').classList.toggle('done',cb.checked);
+  const total=document.querySelectorAll('#checklist input[type=checkbox]').length;
+  const done=document.querySelectorAll('#checklist input[type=checkbox]:checked').length;
+  const st=document.getElementById('checklist-status');
+  if(done===total) st.innerHTML='<span style="color:#2e7d32;font-weight:600">✓ All items verified — ready to send</span>';
+  else st.textContent=`${done} of ${total} items verified`;
+}
+
+// ── Auto-fill from storage ────────────────────────────────────────────────────
+function autoFill(){
+  const stored=localStorage.getItem('mo-autofill')||localStorage.getItem('wo-autofill');
+  if(stored){
+    try{
+      const d=JSON.parse(stored);
+      if(d.customer)  set('mo-customer', d.customer);
+      if(d.address)   set('mo-address',  d.address);
+      if(d.city)      set('mo-city',     d.city);
+      if(d.quote)     set('mo-ponum',    d.quote+'-MO');
+      if(d.orderedby) set('mo-orderedby',d.orderedby);
+      if(d.squares)  {set('q-squares',   d.squares); calcBundles();}
+      if(d.waste)     set('q-waste',     d.waste);
+      if(d.eaves)    {set('sh-eaves',    d.eaves); set('iw-eaves',d.eaves); set('fl-driplf',d.eaves); calcDrip(); calcStarter();}
+      if(d.rake)     {set('sh-rake',     d.rake);}
+      if(d.valleys)  {set('iw-valleys',  d.valleys); set('fl-vallf',d.valleys); calcValley();}
+      if(d.ridge)     set('hr-lf',       d.ridge);
+      if(d.gable)    {set('fl-gablelf',  d.gable); calcGable();}
+      if(d.gravel)   {set('fl-gravelf',  d.gravel); calcGravel();}
+      if(d.step)     {set('fl-steplf',   d.step); calcStep();}
+      if(d.product){
+        set('rs-colour', d.colour||'');
+        // Try to match manufacturer
+        const mfrMap={
+          'Cambridge':'IKO','Dynasty':'IKO','Nordic':'IKO','Armourshake':'IKO','Crowne Slate':'IKO','Royal Estate':'IKO',
+          'Mystique':'BP','Vanguard':'BP',
+          'Timberline HDZ':'GAF','Timberline UHDZ':'GAF','Camelot II':'GAF','Woodland':'GAF','Slateline':'GAF','Grand Sequoia AS':'GAF',
+          'Oakridge':'Owens Corning','Duration':'Owens Corning','Duration FLEX':'Owens Corning',
+          'Highlander AR':'Malarkey','Vista AR':'Malarkey','Legacy Scotchgard':'Malarkey',
+          'Landmark':'CertainTeed','Northgate':'CertainTeed',
+          'Ranchlands Shake':'Euroshield','Rundle Slate':'Euroshield','Beaumont Shake':'Euroshield','Vermont Slate':'Euroshield','Vermont Slate HP':'Euroshield',
+          'Classic Slate':'F-Wave','Hand-Split Shake':'F-Wave','Designer Slate (American Blends)':'F-Wave','Designer Slate (Estate Series)':'F-Wave',
+        };
+        const mfr=Object.keys(mfrMap).find(k=>d.product.includes(k));
+        if(mfr){
+          set('rs-mfr', mfrMap[mfr]);
+          updateProductDropdown();
+          set('rs-product', d.product);
+        }
+      }
+      if(d.stacks2){set('pb-2',d.stacks2);}
+      if(d.stacks3){set('pb-3',d.stacks3);}
+      if(d.stacks4){set('pb-4',d.stacks4);}
+      if(d.vents)  set('vt-qty', d.vents);
+      if(d.turbo)  set('vt-qty', d.turbo);
+      if(d.goose)  set('vt-goose',d.goose);
+      if(d.ridgevent) set('vt-ridgelf',d.ridgevent);
+      if(d.backpan4) set('fl-bp4',d.backpan4);
+      if(d.backpan8) set('fl-bp8',d.backpan8);
+      if(d.date) set('mo-orderdate',d.date);
+    }catch(e){}
+  }
+  if(!s('mo-orderdate')) set('mo-orderdate', new Date().toISOString().split('T')[0]);
+}
+autoFill();
+
+// ── Collect ───────────────────────────────────────────────────────────────────
+function getMulti(id){return [...document.querySelectorAll(`#${id} input[type=checkbox]:checked`)].map(c=>c.value);}
+function setMulti(id,vals=[]){document.querySelectorAll(`#${id} input[type=checkbox]`).forEach(c=>{c.checked=vals.includes(c.value);});}
+function getChecklist(){return [...document.querySelectorAll('#checklist input[type=checkbox]')].map(c=>c.checked);}
+function setChecklist(vals=[]){document.querySelectorAll('#checklist input[type=checkbox]').forEach((c,i)=>{c.checked=!!vals[i];c.closest('.checklist-item').classList.toggle('done',!!vals[i]);});}
+
+function collectMO(){
+  return {
+    supplier:s('mo-supplier'), poNum:s('mo-ponum'), orderedBy:s('mo-orderedby'),
+    orderDate:s('mo-orderdate'), delivDate:s('mo-delivdate'),
+    customer:s('mo-customer'), address:s('mo-address'), city:s('mo-city'),
+    delivType:s('mo-delivtype'), access:s('mo-access'),
+    rsType:s('rs-type'), rsMfr:s('rs-mfr'), rsProduct:s('rs-product'),
+    rsColour:s('rs-colour'), rsBdlSq:s('rs-bdlsq'),
+    qSquares:s('q-squares'), qWaste:s('q-waste'),
+    shStarterType:s('sh-startertype'), shEaves:s('sh-eaves'), shRake:s('sh-rake'), shStarterLF:s('sh-starterlf'),
+    hrType:s('hr-type'), hrLF:s('hr-lf'), hrLFBdl:s('hr-lfbdl'),
+    ulType:s('ul-type'), ulCoverage:s('ul-coverage'),
+    iwCoverage:s('iw-coverage'), iwRollType:s('iw-rolltype'), iwEaves:s('iw-eaves'), iwValleys:s('iw-valleys'), iwSecond:s('iw-secondrow'),
+    vtType:s('vt-type'), vtQty:s('vt-qty'), vtIntake:s('vt-intake'), vtIntakeQty:s('vt-intakeqty'), vtGoose:s('vt-goose'), vtRidgeLF:s('vt-ridgelf'),
+    flDripColour:s('fl-dripcolour'), flDripLF:s('fl-driplf'),
+    flValType:s('fl-valtype'), flValLF:s('fl-vallf'),
+    flGableLF:s('fl-gablelf'), flGraveLF:s('fl-gravelf'),
+    flStepType:s('fl-steptype'), flStepLF:s('fl-steplf'),
+    flBP4:s('fl-bp4'), flBP8:s('fl-bp8'),
+    pb2:s('pb-2'), pb3:s('pb-3'), pb4:s('pb-4'), pbMulti:s('pb-multi'),
+    penetrations:getMulti('mc-penetrations'),
+    fnType:s('fn-type'), fnLength:s('fn-length'), fnStaples:s('fn-staples'),
+    saType:s('sa-type'), saQty:s('sa-qty'), accessories:getMulti('mc-accessories'),
+    siNotes:s('si-notes'), siPlacement:s('si-placement'), siCall:s('si-call'), siEquipment:s('si-equipment'),
+    checklist:getChecklist(),
+    savedAt:new Date().toLocaleString(),
+  };
+}
+
+function populateMO(d){
+  const fields={
+    'mo-supplier':d.supplier,'mo-ponum':d.poNum,'mo-orderedby':d.orderedBy,
+    'mo-orderdate':d.orderDate,'mo-delivdate':d.delivDate,
+    'mo-customer':d.customer,'mo-address':d.address,'mo-city':d.city,
+    'mo-delivtype':d.delivType,'mo-access':d.access,
+    'rs-type':d.rsType,'rs-mfr':d.rsMfr,'rs-colour':d.rsColour,'rs-bdlsq':d.rsBdlSq,
+    'q-squares':d.qSquares,'q-waste':d.qWaste,
+    'sh-startertype':d.shStarterType,'sh-eaves':d.shEaves,'sh-rake':d.shRake,'sh-starterlf':d.shStarterLF,
+    'hr-type':d.hrType,'hr-lf':d.hrLF,'hr-lfbdl':d.hrLFBdl,
+    'ul-type':d.ulType,'ul-coverage':d.ulCoverage,
+    'iw-coverage':d.iwCoverage,'iw-rolltype':d.iwRollType,'iw-eaves':d.iwEaves,'iw-valleys':d.iwValleys,'iw-secondrow':d.iwSecond,
+    'vt-type':d.vtType,'vt-qty':d.vtQty,'vt-intake':d.vtIntake,'vt-intakeqty':d.vtIntakeQty,'vt-goose':d.vtGoose,'vt-ridgelf':d.vtRidgeLF,
+    'fl-dripcolour':d.flDripColour,'fl-driplf':d.flDripLF,
+    'fl-valtype':d.flValType,'fl-vallf':d.flValLF,
+    'fl-gablelf':d.flGableLF,'fl-gravelf':d.flGraveLF,
+    'fl-steptype':d.flStepType,'fl-steplf':d.flStepLF,
+    'fl-bp4':d.flBP4,'fl-bp8':d.flBP8,
+    'pb-2':d.pb2,'pb-3':d.pb3,'pb-4':d.pb4,'pb-multi':d.pbMulti,
+    'fn-type':d.fnType,'fn-length':d.fnLength,'fn-staples':d.fnStaples,
+    'sa-type':d.saType,'sa-qty':d.saQty,
+    'si-notes':d.siNotes,'si-placement':d.siPlacement,'si-call':d.siCall,'si-equipment':d.siEquipment,
+  };
+  Object.entries(fields).forEach(([id,val])=>set(id,val||''));
+  if(d.rsMfr){set('rs-mfr',d.rsMfr);updateProductDropdown();set('rs-product',d.rsProduct);}
+  setMulti('mc-penetrations',d.penetrations||[]);
+  setMulti('mc-accessories',d.accessories||[]);
+  setChecklist(d.checklist||[]);
+  calcBundles();calcStarter();calcRidge();calcIceWater();calcDrip();calcValley();calcGable();calcGravel();calcStep();
+}
+
+// ── Save / Load ───────────────────────────────────────────────────────────────
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+async function saveMO(){
+  const data=collectMO();
+  const key='mo:'+(data.poNum||Date.now());
+  try{await window.storage.set(key,JSON.stringify(data));toast('✓ Material order saved');}
+  catch(e){toast('Save failed');}
+}
+
+async function loadSaved(){
+  const panel=document.getElementById('saved-panel');
+  panel.style.display=panel.style.display==='none'?'block':'none';
+  if(panel.style.display==='none') return;
+  const list=document.getElementById('saved-list');
+  list.innerHTML='<em style="color:#aaa;font-size:13px">Loading...</em>';
+  try{
+    const keys=await window.storage.list('mo:');
+    if(!keys||!keys.keys||!keys.keys.length){list.innerHTML='<em style="color:#aaa;font-size:13px">No saved orders yet.</em>';return;}
+    list.innerHTML='';
+    for(const k of keys.keys){
+      try{
+        const r=await window.storage.get(k);if(!r)continue;
+        const d=JSON.parse(r.value);
+        const row=document.createElement('div');row.className='saved-item';
+        row.innerHTML=`<div><strong>${d.poNum||'No #'}</strong> — ${d.customer||'No customer'} — ${d.rsProduct||''}<span style="color:#aaa;font-size:11px;margin-left:8px">${d.savedAt||''}</span></div>
+          <div style="display:flex;gap:6px"><button onclick="loadMO('${k}')">Load</button><button onclick="deleteMO('${k}',this)" style="color:#c0392b">Delete</button></div>`;
+        list.appendChild(row);
+      }catch(e){}
+    }
+  }catch(e){list.innerHTML='<em style="color:#c0392b;font-size:13px">Could not load.</em>';}
+}
+
+async function loadMO(key){
+  try{const r=await window.storage.get(key);if(r){populateMO(JSON.parse(r.value));document.getElementById('saved-panel').style.display='none';toast('✓ Order loaded');window.scrollTo({top:0,behavior:'smooth'});}}
+  catch(e){toast('Could not load order');}
+}
+async function deleteMO(key,btn){
+  try{await window.storage.delete(key);btn.closest('.saved-item').remove();toast('Deleted');}
+  catch(e){toast('Could not delete');}
+}
+function clearMO(){
+  if(!confirm('Clear all fields?'))return;
+  document.querySelectorAll('input:not([readonly]),select,textarea').forEach(el=>{if(el.type==='checkbox')el.checked=false;else el.value='';});
+  autoFill();toast('Form cleared');
+}
+</script>
+</body>
+</html>

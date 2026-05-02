@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Load Roofr Report</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;font-size:14px;color:#1a1a1a;background:#f0efe9;padding:2rem;display:flex;align-items:center;justify-content:center;min-height:100vh}
+.card{background:#fff;border:0.5px solid #ddd;border-radius:16px;padding:2rem;max-width:520px;width:100%}
+h1{font-size:18px;font-weight:600;margin-bottom:.5rem}
+.addr{font-size:13px;color:#888;margin-bottom:1.5rem}
+.row{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:0.5px solid #f0f0f0}
+.row:last-of-type{border:none}
+.lbl{color:#888}
+.val{font-weight:500}
+.struct{background:#f5f4f0;border-radius:10px;padding:1rem;margin-bottom:.75rem}
+.struct h3{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#777;margin-bottom:.75rem}
+.btn{width:100%;border:none;border-radius:10px;padding:12px;font-size:15px;font-weight:600;cursor:pointer;margin-top:1rem}
+.btn-load{background:#1a1a1a;color:#fff}
+.btn-load:hover{background:#333}
+.status{margin-top:1rem;font-size:13px;text-align:center;color:#888;min-height:20px}
+.badge{display:inline-block;padding:2px 8px;background:#e8f0fe;color:#3a5abf;border-radius:10px;font-size:11px;font-weight:600;margin-left:6px}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>🟢 Project Green Lit</h1>
+  <div class="addr">Roofr Report — 50 Chestermere Crescent, Sherwood Park, AB T8H 2S3</div>
+
+  <div class="struct">
+    <h3>Structure 1 — Shed <span class="badge">5/12</span></h3>
+    <div class="row"><span class="lbl">Roof area</span><span class="val">54 sq ft</span></div>
+    <div class="row"><span class="lbl">Eaves</span><span class="val">14 LF</span></div>
+    <div class="row"><span class="lbl">Rakes</span><span class="val">15 LF</span></div>
+    <div class="row"><span class="lbl">Ridge</span><span class="val">7 LF</span></div>
+    <div class="row"><span class="lbl">Hips / Valleys</span><span class="val">0 / 0 LF</span></div>
+  </div>
+
+  <div class="struct">
+    <h3>Structure 2 — House <span class="badge">6/12</span></h3>
+    <div class="row"><span class="lbl">Roof area</span><span class="val">1,685 sq ft</span></div>
+    <div class="row"><span class="lbl">Eaves</span><span class="val">168 LF</span></div>
+    <div class="row"><span class="lbl">Rakes</span><span class="val">104 LF</span></div>
+    <div class="row"><span class="lbl">Ridge</span><span class="val">51 LF</span></div>
+    <div class="row"><span class="lbl">Hips</span><span class="val">15 LF</span></div>
+    <div class="row"><span class="lbl">Valleys</span><span class="val">12 LF</span></div>
+    <div class="row"><span class="lbl">Wall flashing</span><span class="val">65 LF</span></div>
+    <div class="row"><span class="lbl">Step flashing</span><span class="val">47 LF</span></div>
+  </div>
+
+  <div class="row"><span class="lbl">Waste factor</span><span class="val">12%</span></div>
+  <div class="row"><span class="lbl">Predominant pitch</span><span class="val">6/12</span></div>
+  <div class="row"><span class="lbl">Total area</span><span class="val">1,739 sq ft</span></div>
+
+  <button class="btn btn-load" onclick="loadToEstimator()">Load into Estimator</button>
+  <div class="status" id="status"></div>
+</div>
+
+<script>
+const ROOFR_DATA = {
+  // Job info
+  address: '50 Chestermere Crescent',
+  city: 'Sherwood Park',
+
+  // Structure 1 — Shed
+  s1: {
+    type: 'Shed',
+    pred: '5/12',
+    waste: null,
+    pitches: { 5: 54 },   // all area at 5/12 (flat sqft — we store sloped so divide by factor)
+    eaves: 14,
+    rake: 15,
+    ridge: 7,
+    hip: 0,
+    valley: 0,
+    gable: 0,
+    gravel: 0,
+    step: 0,
+    wall: 0,
+    bp4: 0, bp8: 0,
+    vents: 0, slantback: 0, turbo: 0, ridgevent: 0,
+    stack2: 0, stack3: 0, stack4: 0, goose: 0,
+    skylight: 0, chimney: 0,
+  },
+
+  // Structure 2 — House
+  s2: {
+    type: 'House',
+    pred: '6/12',
+    waste: null,
+    // Roofr gives sloped area per pitch: 5/12=517sqft sloped, 6/12=1169sqft sloped
+    // Convert to flat: flat = sloped / slope_factor
+    // 5/12 factor=1.083 → flat=517/1.083=477  6/12 factor=1.118 → flat=1169/1.118=1046
+    pitches: { 5: 477, 6: 1046 },
+    eaves: 168,
+    rake: 104,
+    ridge: 51,
+    hip: 15,
+    valley: 12,
+    gable: 0,
+    gravel: 0,
+    step: 47,
+    wall: 65,
+    bp4: 0, bp8: 0,
+    vents: 0, slantback: 0, turbo: 0, ridgevent: 0,
+    stack2: 0, stack3: 0, stack4: 0, goose: 0,
+    skylight: 0, chimney: 0,
+  }
+};
+
+async function loadToEstimator() {
+  const btn = document.getElementById('status');
+  btn.textContent = 'Saving to storage...';
+  try {
+    await window.storage.set('roofr-prefill', JSON.stringify(ROOFR_DATA));
+    document.getElementById('status').innerHTML =
+      '✓ Loaded! Switch to the <strong>Estimator</strong> tab and click <strong>"Load Roofr Report"</strong> to apply.';
+  } catch(e) {
+    document.getElementById('status').textContent = 'Error saving — try again.';
+  }
+}
+</script>
+</body>
+</html>

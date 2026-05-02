@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supplier Pricing Panel</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;font-size:14px;color:#1a1a1a;background:#f0efe9;padding:1rem}
+.gl-header{background:#1a1a1a;color:#fff;border-radius:12px;padding:1rem 1.5rem;margin-bottom:1.25rem;display:flex;justify-content:space-between;align-items:center}
+.gl-logo{display:flex;align-items:center;gap:10px}
+.gl-dot{width:28px;height:28px;background:#22c55e;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.gl-name{font-size:17px;font-weight:700;letter-spacing:-.01em}
+.gl-tagline{font-size:11px;color:#888;margin-top:1px}
+.gl-module{font-size:12px;color:#22c55e;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+h1{font-size:19px;font-weight:600;margin-bottom:.25rem}
+.subtitle{font-size:12px;color:#888;margin-bottom:1.25rem}
+h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#777;margin-bottom:.75rem}
+h3{font-size:12px;font-weight:600;color:#444;margin-bottom:.5rem;margin-top:1rem}
+h3:first-of-type{margin-top:0}
+.card{background:#fff;border:0.5px solid #ddd;border-radius:12px;padding:1.25rem;margin-bottom:.875rem}
+label{font-size:12px;color:#666;display:block;margin-bottom:3px;margin-top:8px}
+label:first-of-type{margin-top:0}
+input,select{width:100%;padding:7px 10px;border:0.5px solid #ccc;border-radius:7px;font-size:13px;background:#fff;color:#1a1a1a;outline:none}
+input:focus{border-color:#555}
+input[readonly]{background:#f5f5f5;color:#888}
+
+/* Supplier tabs */
+.sup-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1.25rem}
+.sup-tab{padding:6px 16px;border:0.5px solid #ccc;border-radius:20px;font-size:13px;cursor:pointer;background:#fff;color:#555;font-weight:500}
+.sup-tab.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.sup-panel{display:none}.sup-panel.active{display:block}
+
+/* Brand tabs within supplier */
+.brand-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1rem}
+.brand-tab{padding:4px 12px;border:0.5px solid #ccc;border-radius:20px;font-size:12px;cursor:pointer;background:#fff;color:#555}
+.brand-tab.active{background:#444;color:#fff;border-color:#444}
+.brand-panel{display:none}.brand-panel.active{display:block}
+
+/* Pricing table */
+.price-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.price-tbl th{font-size:11px;color:#999;font-weight:600;text-transform:uppercase;padding:5px 8px;border-bottom:1px solid #eee;text-align:left}
+.price-tbl th.num{text-align:right}
+.price-tbl td{padding:6px 8px;border-bottom:0.5px solid #f5f5f5;vertical-align:middle}
+.price-tbl tr:last-child td{border-bottom:none}
+.price-tbl .cat-row td{background:#fafafa;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#bbb;padding:7px 8px 4px}
+.price-tbl input{padding:4px 8px;font-size:13px;border:0.5px solid #ddd;border-radius:6px;text-align:right}
+.price-tbl input:focus{border-color:#555;outline:none}
+.price-tbl .proj-active input{background:#fffbeb;border-color:#f59e0b}
+.proj-toggle{display:flex;align-items:center;gap:6px;cursor:pointer}
+.proj-toggle input[type=checkbox]{width:auto;cursor:pointer}
+.proj-badge{display:inline-block;padding:2px 7px;background:#fef3c7;color:#92400e;border-radius:10px;font-size:10px;font-weight:600;margin-left:6px}
+.savings{font-size:11px;color:#2e7d32;margin-left:4px}
+
+/* Status bar */
+.status-bar{padding:.65rem 1rem;border-radius:8px;font-size:12px;margin-bottom:1rem}
+.status-bar.saved{background:#f0faf0;color:#2e7d32;border:0.5px solid #a7d7a8}
+.status-bar.unsaved{background:#fff8f0;color:#92400e;border:0.5px solid #fcd9a8}
+
+.btn{border:none;border-radius:8px;padding:10px 18px;font-size:14px;cursor:pointer;font-weight:500}
+.btn-dark{background:#1a1a1a;color:#fff}.btn-dark:hover{background:#333}
+.btn-outline{background:#fff;color:#1a1a1a;border:0.5px solid #ccc}.btn-outline:hover{background:#f5f5f5}
+.btn-sm{padding:5px 12px;font-size:12px;border-radius:7px}
+.btn-row{display:flex;gap:8px;margin-top:.75rem}
+
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+.toast.show{opacity:1}
+
+.compare-tbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:1rem}
+.compare-tbl th{background:#f5f4f0;padding:8px 10px;font-size:11px;font-weight:600;text-transform:uppercase;color:#888;border-bottom:1px solid #eee}
+.compare-tbl td{padding:8px 10px;border-bottom:0.5px solid #f2f2f2}
+.compare-tbl .best{color:#2e7d32;font-weight:600}
+.compare-tbl .worst{color:#c0392b}
+</style>
+</head>
+<body>
+
+<div class="gl-header">
+  <div class="gl-logo">
+    <div class="gl-dot">🟢</div>
+    <div>
+      <div class="gl-name">Green Lit Software</div>
+      <div class="gl-tagline">Empowering Roofing Entrepreneurs</div>
+    </div>
+  </div>
+  <div class="gl-module">Supplier Pricing</div>
+</div>
+<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
+  <div style="display:flex;gap:8px">
+    <button class="btn btn-outline" onclick="showCompare()">📊 Compare Suppliers</button>
+    <button class="btn btn-outline" onclick="prefillABC()">↺ Reload ABC Prices</button>
+    <button class="btn btn-outline" onclick="prefillQXO()">↺ Reload QXO Prices</button>
+    <button class="btn btn-dark" onclick="saveAll()">💾 Save All Prices</button>
+  </div>
+</div>
+
+<div class="status-bar unsaved" id="status-bar">Prices not yet saved — click Save All Prices to push to estimator.</div>
+
+<!-- SUPPLIER TABS -->
+<div class="sup-tabs" id="supTabs"></div>
+<div id="supPanels"></div>
+
+<!-- COMPARE PANEL -->
+<div id="compare-panel" class="card" style="display:none;margin-top:1rem">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+    <h2 style="margin:0">Supplier Price Comparison</h2>
+    <button class="btn btn-outline btn-sm" onclick="document.getElementById('compare-panel').style.display='none'">Close</button>
+  </div>
+  <p style="font-size:12px;color:#888;margin-bottom:.75rem">Green = best price available. Showing standard prices (or project price if active).</p>
+  <div id="compare-body"></div>
+</div>
+
+<div class="btn-row">
+  <button class="btn btn-dark" onclick="saveAll()" style="flex:1">💾 Save All Prices to Estimator</button>
+  <button class="btn btn-outline" onclick="clearAll()">🗑 Clear All</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Data model ────────────────────────────────────────────────────────────────
+const SUPPLIERS=[
+  {
+    id:'roofmart', label:'RoofMart',
+    brands:[
+      {id:'iko', label:'IKO', products:['Cambridge','Dynasty','Nordic (Class 4)','Armourshake','Crowne Slate','Royal Estate']},
+    ]
+  },
+  {
+    id:'abc', label:'ABC Supply',
+    brands:[
+      {id:'iko',  label:'IKO',           products:['Cambridge','Dynasty','Nordic (Class 4)','Armourshake','Crowne Slate','Royal Estate']},
+      {id:'oc',   label:'Owens Corning', products:['Oakridge','Duration','Duration FLEX']},
+      {id:'gaf',  label:'GAF',           products:['Timberline HDZ','Timberline UHDZ','Camelot II','Woodland','Slateline','Grand Sequoia AS']},
+      {id:'mal',  label:'Malarkey',      products:['Highlander AR','Vista AR','Legacy Scotchgard']},
+      {id:'fw',   label:'F-Wave',        products:['Classic Slate','Hand-Split Shake','Designer Slate (American Blends)','Designer Slate (Estate Series)']},
+      {id:'ct',   label:'CertainTeed',   products:['Landmark','Northgate']},
+    ]
+  },
+  {
+    id:'proline', label:'Proline',
+    brands:[
+      {id:'bp',  label:'BP',            products:['Mystique','Vanguard']},
+      {id:'oc',  label:'Owens Corning', products:['Oakridge','Duration','Duration FLEX']},
+      {id:'gaf', label:'GAF',           products:['Timberline HDZ','Timberline UHDZ','Camelot II','Woodland','Slateline','Grand Sequoia AS']},
+    ]
+  },
+  {
+    id:'qxo', label:'QXO',
+    brands:[
+      {id:'iko',  label:'IKO',          products:['Cambridge','Dynasty','Nordic (Class 4)','Armourshake','Crowne Slate','Royal Estate']},
+      {id:'mal',  label:'Malarkey',     products:['Highlander AR','Vista AR','Legacy Scotchgard']},
+      {id:'bp',   label:'BP',           products:['Mystique','Vanguard']},
+      {id:'ct',   label:'CertainTeed',  products:['Landmark','Northgate']},
+    ]
+  },
+    brands:[
+      {id:'euro', label:'Euroshield', products:['Ranchlands Shake','Rundle Slate','Beaumont Shake','Vermont Slate','Vermont Slate HP']},
+    ]
+  },
+];
+
+// Accessories per brand (same keys as estimator)
+const BRAND_ACC={
+  iko:  [{key:'starter',label:'Starter (Leading Edge Plus)',unit:'bdl'},{key:'starterArmour',label:'Starter Armourshake',unit:'bdl'},{key:'hipridge',label:'Hip & Ridge 12',unit:'bdl'},{key:'icewater',label:'44" Ice & Water Shield',unit:'roll'},{key:'underlay',label:'Stormtite Underlayment',unit:'roll'},{key:'nails',label:'Nails',unit:'box'},{key:'staples',label:'Staples',unit:'box'},{key:'valley',label:'W-Pan Valley Metal',unit:'pc'},{key:'drip',label:'Drip Edge',unit:'pc'},{key:'stepfl',label:'Step Flashing',unit:'pc'},{key:'wallfl',label:'Wall Flashing',unit:'pc'},{key:'gablefl',label:'Gable Flashing',unit:'pc'},{key:'backpan4',label:'Backpan 4ft',unit:'ea'},{key:'backpan8',label:'Backpan 8ft',unit:'ea'},{key:'vent',label:'Standard Vents',unit:'ea'},{key:'slantback',label:'Slant Back Vents',unit:'ea'},{key:'turbo',label:'Turbo Vents',unit:'ea'},{key:'ridgevent',label:'Ridge Vent',unit:'LF'},{key:'stack2',label:'Stack Boot 2"',unit:'ea'},{key:'stack3',label:'Stack Boot 3"',unit:'ea'},{key:'stack4',label:'Stack Boot 4"',unit:'ea'},{key:'goose',label:'Goose Necks',unit:'ea'}],
+  bp:   [{key:'starter',label:'BP Starter (69\'/bdl)',unit:'bdl'},{key:'hipridge',label:'Yukon SB Ridge (29\'/bdl)',unit:'bdl'},{key:'icewater',label:'Ice & Water Shield',unit:'roll'},{key:'underlay',label:'Synthetic Underlayment',unit:'roll'},{key:'nails',label:'Nails',unit:'box'},{key:'staples',label:'Staples',unit:'box'},{key:'valley',label:'W-Pan Valley Metal',unit:'pc'},{key:'drip',label:'Drip Edge',unit:'pc'},{key:'stepfl',label:'Step Flashing',unit:'pc'},{key:'wallfl',label:'Wall Flashing',unit:'pc'},{key:'gablefl',label:'Gable Flashing',unit:'pc'},{key:'backpan4',label:'Backpan 4ft',unit:'ea'},{key:'backpan8',label:'Backpan 8ft',unit:'ea'},{key:'vent',label:'Standard Vents',unit:'ea'},{key:'slantback',label:'Slant Back Vents',unit:'ea'},{key:'turbo',label:'Turbo Vents',unit:'ea'},{key:'ridgevent',label:'Ridge Vent',unit:'LF'},{key:'stack2',label:'Stack Boot 2"',unit:'ea'},{key:'stack3',label:'Stack Boot 3"',unit:'ea'},{key:'stack4',label:'Stack Boot 4"',unit:'ea'},{key:'goose',label:'Goose Necks',unit:'ea'}],
+  gaf:  [{key:'starter',label:'WeatherBlocker Starter (100\'/bdl)',unit:'bdl'},{key:'starterMatch',label:'StarterMatch (Grand Sequoia)',unit:'bdl'},{key:'hipridge',label:'Timbertex Ridge (20\'/bdl)',unit:'bdl'},{key:'icewater',label:'Ice & Water Shield',unit:'roll'},{key:'underlay',label:'Synthetic Underlayment',unit:'roll'},{key:'nails',label:'Nails',unit:'box'},{key:'staples',label:'Staples',unit:'box'},{key:'valley',label:'W-Pan Valley Metal',unit:'pc'},{key:'drip',label:'Drip Edge',unit:'pc'},{key:'stepfl',label:'Step Flashing',unit:'pc'},{key:'wallfl',label:'Wall Flashing',unit:'pc'},{key:'gablefl',label:'Gable Flashing',unit:'pc'},{key:'backpan4',label:'Backpan 4ft',unit:'ea'},{key:'backpan8',label:'Backpan 8ft',unit:'ea'},{key:'vent',label:'Standard Vents',unit:'ea'},{key:'slantback',label:'Slant Back Vents',unit:'ea'},{key:'turbo',label:'Turbo Vents',unit:'ea'},{key:'ridgevent',label:'Ridge Vent',unit:'LF'},{key:'stack2',label:'Stack Boot 2"',unit:'ea'},{key:'stack3',label:'Stack Boot 3"',unit:'ea'},{key:'stack4',label:'Stack Boot 4"',unit:'ea'},{key:'goose',label:'Goose Necks',unit:'ea'}],
+  oc:   [{key:'starter',label:'Starter Strip Plus (105\'/bdl)',unit:'bdl'},{key:'hipridge',label:'ProEdge Ridge (33\'/bdl)',unit:'bdl'},{key:'icewater',label:'Ice & Water Shield',unit:'roll'},{key:'underlay',label:'Synthetic Underlayment',unit:'roll'},{key:'nails',label:'Nails',unit:'box'},{key:'staples',label:'Staples',unit:'box'},{key:'valley',label:'W-Pan Valley Metal',unit:'pc'},{key:'drip',label:'Drip Edge',unit:'pc'},{key:'stepfl',label:'Step Flashing',unit:'pc'},{key:'wallfl',label:'Wall Flashing',unit:'pc'},{key:'gablefl',label:'Gable Flashing',unit:'pc'},{key:'backpan4',label:'Backpan 4ft',unit:'ea'},{key:'backpan8',label:'Backpan 8ft',unit:'ea'},{key:'vent',label:'Standard Vents',unit:'ea'},{key:'slantback',label:'Slant Back Vents',unit:'ea'},{key:'turbo',label:'Turbo Vents',unit:'ea'},{key:'ridgevent',label:'Ridge Vent',unit:'LF'},{key:'stack2',label:'Stack Boot 2"',unit:'ea'},{key:'stack3',label:'Stack Boot 3"',unit:'ea'},{key:'stack4',label:'Stack Boot 4"',unit:'ea'},{key:'goose',label:'Goose Necks',unit:'ea'}],
+  mal:  [{key:'starter',label:'Smart Start Starter (72\'/bdl)',unit:'bdl'},{key:'hipridge',label:'EZ Ridge (20\'/bdl)',unit:'bdl'},{key:'icewater',label:'Ice & Water Shield',unit:'roll'},{key:'underlay',label:'Synthetic Underlayment',unit:'roll'},{key:'nails',label:'Nails',unit:'box'},{key:'staples',label:'Staples',unit:'box'},{key:'valley',label:'W-Pan Valley Metal',unit:'pc'},{key:'drip',label:'Drip Edge',unit:'pc'},{key:'stepfl',label:'Step Flashing',unit:'pc'},{key:'wallfl',label:'Wall Flashing',unit:'pc'},{key:'gablefl',label:'Gable Flashing',unit:'pc'},{key:'backpan4',label:'Backpan 4ft',unit:'ea'},{key:'backpan8',label:'Backpan 8ft',unit:'ea'},{key:'vent',label:'Standard Vents',unit:'ea'},{key:'slantback',label:'Slant Back Vents',unit:'ea'},{key:'turbo',label:'Turbo Vents',unit:'ea'},{key:'ridgevent',label:'Ridge Vent',unit:'LF'},{key:'stack2',label:'Stack Boot 2"',unit:'ea'},{key:'stack3',label:'Stack Boot 3"',unit:'ea'},{key:'stack4',label:'Stack Boot 4"',unit:'ea'},{key:'goose',label:'Goose Necks',unit:'ea'}],
+  ct:   [{key:'starter',label:'Swift Start Starter (116\'/bdl)',unit:'bdl'},{key:'hipridge',label:'Shadow Ridge (30\'/bdl)',unit:'bdl'},{key:'icewater',label:'Ice & Water Shield',unit:'roll'},{key:'underlay',label:'Synthetic Underlayment',unit:'roll'},{key:'nails',label:'Nails',unit:'box'},{key:'staples',label:'Staples',unit:'box'},{key:'valley',label:'W-Pan Valley Metal',unit:'pc'},{key:'drip',label:'Drip Edge',unit:'pc'},{key:'stepfl',label:'Step Flashing',unit:'pc'},{key:'wallfl',label:'Wall Flashing',unit:'pc'},{key:'gablefl',label:'Gable Flashing',unit:'pc'},{key:'backpan4',label:'Backpan 4ft',unit:'ea'},{key:'backpan8',label:'Backpan 8ft',unit:'ea'},{key:'vent',label:'Standard Vents',unit:'ea'},{key:'slantback',label:'Slant Back Vents',unit:'ea'},{key:'turbo',label:'Turbo Vents',unit:'ea'},{key:'ridgevent',label:'Ridge Vent',unit:'LF'},{key:'stack2',label:'Stack Boot 2"',unit:'ea'},{key:'stack3',label:'Stack Boot 3"',unit:'ea'},{key:'stack4',label:'Stack Boot 4"',unit:'ea'},{key:'goose',label:'Goose Necks',unit:'ea'}],
+  fw:   [{key:'starter',label:'Universal F-Wave Starter (30\'/bdl)',unit:'bdl'},{key:'hipridge',label:'F-Wave Ridge (20\'/bdl)',unit:'bdl'},{key:'icewater',label:'Ice & Water Shield',unit:'roll'},{key:'underlay',label:'Synthetic Underlayment',unit:'roll'},{key:'nails',label:'Nails',unit:'box'},{key:'staples',label:'Staples',unit:'box'},{key:'valley',label:'W-Pan Valley Metal',unit:'pc'},{key:'drip',label:'Drip Edge',unit:'pc'},{key:'gravelstop',label:'Gravel Stop Flashing',unit:'pc'},{key:'stepfl',label:'Step Flashing',unit:'pc'},{key:'wallfl',label:'Wall Flashing',unit:'pc'},{key:'gablefl',label:'Gable Flashing',unit:'pc'},{key:'backpan4',label:'Backpan 4ft',unit:'ea'},{key:'backpan8',label:'Backpan 8ft',unit:'ea'},{key:'vent',label:'Standard Vents',unit:'ea'},{key:'slantback',label:'Slant Back Vents',unit:'ea'},{key:'turbo',label:'Turbo Vents',unit:'ea'},{key:'ridgevent',label:'Ridge Vent',unit:'LF'},{key:'stack2',label:'Stack Boot 2"',unit:'ea'},{key:'stack3',label:'Stack Boot 3"',unit:'ea'},{key:'stack4',label:'Stack Boot 4"',unit:'ea'},{key:'goose',label:'Goose Necks',unit:'ea'}],
+  ironshield:['starter','starterArmour','hipridge','icewater','underlay','nails','staples','valley','drip','stepfl','wallfl','gablefl','backpan4','backpan8','vent','slantback','turbo','ridgevent','stack2','stack3','stack4','goose'],label:'Eave Starter',unit:'bdl'},{key:'starterRakeEuro',label:'Rake/Valley Starter',unit:'bdl'},{key:'hipridge',label:'Hip & Ridge',unit:'bdl'},{key:'icewater',label:'Ice & Water Shield',unit:'roll'},{key:'underlay',label:'Synthetic Underlayment',unit:'roll'},{key:'nails',label:'1-3/8" Nails',unit:'box'},{key:'staples',label:'Staples',unit:'box'},{key:'valley',label:'W-Pan Valley Metal',unit:'pc'},{key:'drip',label:'Drip Edge',unit:'pc'},{key:'gravelstop',label:'Gravel Stop Flashing',unit:'pc'},{key:'stepfl',label:'Step Flashing',unit:'pc'},{key:'wallfl',label:'Wall Flashing',unit:'pc'},{key:'gablefl',label:'Gable Flashing',unit:'pc'},{key:'backpan4',label:'Backpan 4ft',unit:'ea'},{key:'backpan8',label:'Backpan 8ft',unit:'ea'},{key:'vent',label:'Standard Vents',unit:'ea'},{key:'slantback',label:'Slant Back Vents',unit:'ea'},{key:'turbo',label:'Turbo Vents',unit:'ea'},{key:'ridgevent',label:'Ridge Vent',unit:'LF'},{key:'stack2',label:'Stack Boot 2"',unit:'ea'},{key:'stack3',label:'Stack Boot 3"',unit:'ea'},{key:'stack4',label:'Stack Boot 4"',unit:'ea'},{key:'goose',label:'Goose Necks',unit:'ea'}],
+};
+
+// ── Underlayment & I&W alternatives per supplier/brand ───────────────────────
+// These are the non-manufacturer alternatives available at each supplier
+const ALT_PRODUCTS={
+  abc:{
+    icewater:{
+      'IKO':    [{label:'IKO StormShield 44"×61\'',       price:80.14},{label:'GAF WeatherWatch 36"×66.7\'', price:119.15},{label:'GAF StormGuard 2sq',price:133.53}],
+      'GAF':    [{label:'GAF WeatherWatch 36"×66.7\'',    price:119.15},{label:'GAF StormGuard 2sq',price:133.53},{label:'IKO StormShield 44"×61\'',price:80.14}],
+      'Owens Corning': [{label:'OC WeatherLock G 3\'×66.7\'',price:97.31},{label:'IKO StormShield 44"×61\'',price:80.14}],
+      'Malarkey':[{label:'Mal Arctic Seal 401 2sq',       price:125.93},{label:'IKO StormShield 44"×61\'',price:80.14}],
+    },
+    underlay:{
+      'IKO':    [{label:'IKO Stormtite 10sq',             price:80.14},{label:'Roofnado Sahara BU15 10sq',price:77.17},{label:'Mal Secure Start Lite 10sq',price:159.73}],
+      'GAF':    [{label:'GAF FeltBuster 10sq',            price:172.49},{label:'Roofnado Sahara BU15 10sq',price:77.17}],
+      'Owens Corning': [{label:'Roofnado Sahara BU15 10sq',price:77.17},{label:'Mal Secure Start Lite 10sq',price:159.73}],
+      'Malarkey':[{label:'Mal Secure Start Lite 10sq',    price:159.73},{label:'Roofnado Sahara BU15 10sq',price:77.17}],
+    }
+  },
+  qxo:{
+    icewater:{
+      'IKO':    [{label:'IKO Protecto 225 44"×61\'',      price:89.15},{label:'IKO StormShield 36"×65\'',price:83.55},{label:'Tri-Built 44" I&W',price:85.15}],
+      'Malarkey':[{label:'Mal Arctic Seal 401 39"×65\'',  price:115.15},{label:'Tri-Built 44" I&W',price:85.15}],
+      'BP':     [{label:'Tri-Built Eave 44" I&W',         price:85.15},{label:'Tri-Built Eave 36" I&W',price:77.00}],
+      'CertainTeed':[{label:'CT Winterguard 36"×65\'',    price:133.45},{label:'Tri-Built 44" I&W',price:85.15}],
+    },
+    underlay:{
+      'IKO':    [{label:'IKO Stormtite 10sq',             price:78.50},{label:'Tri-Built Syn 10sq',price:77.45}],
+      'Malarkey':[{label:'Mal Secure Start Lite 10sq',    price:152.25},{label:'Tri-Built Syn 10sq',price:77.45}],
+      'BP':     [{label:'Tri-Built Syn 10sq',             price:77.45},{label:'Tri-Built Syn 5sq',price:48.50}],
+      'CertainTeed':[{label:'CT Roof Runner 10sq',        price:132.60},{label:'Tri-Built Syn 10sq',price:77.45}],
+    }
+  },
+};
+
+// Brand label lookup
+const BRAND_LABELS={iko:'IKO',bp:'BP',gaf:'GAF',oc:'Owens Corning',mal:'Malarkey',ct:'CertainTeed',euro:'Euroshield',fw:'F-Wave',cedar:'Cedar'};
+
+// Default preferences stored per supplier+brand (saved to storage)
+let underlayPrefs={}; // key: `${supId}__${brandId}` => 'mfr' | 'cheapest'
+let icewaterPrefs={};
+
+function prefKey(supId,brandId,type){ return `${supId}__${brandId}__${type}`; }
+
+function buildAltSection(supId,brandId,brandLabel){
+  const altsIW=(ALT_PRODUCTS[supId]?.icewater?.[brandLabel]||[]).slice().sort((a,b)=>a.price-b.price);
+  const altsUL=(ALT_PRODUCTS[supId]?.underlay?.[brandLabel]||[]).slice().sort((a,b)=>a.price-b.price);
+  if(!altsIW.length&&!altsUL.length) return '';
+
+  const iwKey=prefKey(supId,brandId,'iw');
+  const ulKey=prefKey(supId,brandId,'ul');
+  const iwPref=icewaterPrefs[iwKey]||'mfr';
+  const ulPref=underlayPrefs[ulKey]||'mfr';
+
+  let html=`<div style="margin-top:1rem;padding:1rem;background:#f9f8f5;border-radius:10px;border:0.5px solid #eee">
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#888;margin-bottom:.75rem">
+      Underlayment & Ice & Water — Default Preference
+    </div>`;
+
+  if(altsIW.length){
+    const cheapestIW=altsIW[0];
+    html+=`<div style="margin-bottom:.75rem">
+      <div style="font-size:13px;font-weight:600;margin-bottom:6px">44" Ice & Water Shield</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button id="iwbtn-mfr-${supId}-${brandId}" onclick="setAltPref('${supId}','${brandId}','iw','mfr')"
+          style="padding:5px 14px;border-radius:20px;font-size:12px;cursor:pointer;border:0.5px solid ${iwPref==='mfr'?'#1a1a1a':'#ccc'};background:${iwPref==='mfr'?'#1a1a1a':'#fff'};color:${iwPref==='mfr'?'#fff':'#555'}">
+          Manufacturer specific
+        </button>
+        <button id="iwbtn-cheapest-${supId}-${brandId}" onclick="setAltPref('${supId}','${brandId}','iw','cheapest')"
+          style="padding:5px 14px;border-radius:20px;font-size:12px;cursor:pointer;border:0.5px solid ${iwPref==='cheapest'?'#2e7d32':'#ccc'};background:${iwPref==='cheapest'?'#2e7d32':'#fff'};color:${iwPref==='cheapest'?'#fff':'#555'}">
+          Cheapest alternative
+        </button>
+        <span style="font-size:12px;color:#888">
+          ${iwPref==='cheapest'?`Using: <strong>${cheapestIW.label}</strong> @ <strong>${cheapestIW.price.toFixed(2)}</strong>`:'Using manufacturer product'}
+        </span>
+      </div>
+      <div style="margin-top:6px;font-size:11px;color:#aaa">
+        Options at this supplier: ${altsIW.map(a=>`${a.label} (${a.price.toFixed(2)})`).join(' &nbsp;·&nbsp; ')}
+      </div>
+    </div>`;
+  }
+
+  if(altsUL.length){
+    const cheapestUL=altsUL[0];
+    html+=`<div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:6px">Synthetic Underlayment</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button id="ulbtn-mfr-${supId}-${brandId}" onclick="setAltPref('${supId}','${brandId}','ul','mfr')"
+          style="padding:5px 14px;border-radius:20px;font-size:12px;cursor:pointer;border:0.5px solid ${ulPref==='mfr'?'#1a1a1a':'#ccc'};background:${ulPref==='mfr'?'#1a1a1a':'#fff'};color:${ulPref==='mfr'?'#fff':'#555'}">
+          Manufacturer specific
+        </button>
+        <button id="ulbtn-cheapest-${supId}-${brandId}" onclick="setAltPref('${supId}','${brandId}','ul','cheapest')"
+          style="padding:5px 14px;border-radius:20px;font-size:12px;cursor:pointer;border:0.5px solid ${ulPref==='cheapest'?'#2e7d32':'#ccc'};background:${ulPref==='cheapest'?'#2e7d32':'#fff'};color:${ulPref==='cheapest'?'#fff':'#555'}">
+          Cheapest alternative
+        </button>
+        <span style="font-size:12px;color:#888">
+          ${ulPref==='cheapest'?`Using: <strong>${cheapestUL.label}</strong> @ <strong>${cheapestUL.price.toFixed(2)}</strong>`:'Using manufacturer product'}
+        </span>
+      </div>
+      <div style="margin-top:6px;font-size:11px;color:#aaa">
+        Options at this supplier: ${altsUL.map(a=>`${a.label} (${a.price.toFixed(2)})`).join(' &nbsp;·&nbsp; ')}
+      </div>
+    </div>`;
+  }
+
+  html+='</div>';
+  return html;
+}
+
+function setAltPref(supId,brandId,type,pref){
+  const key=prefKey(supId,brandId,type);
+  if(type==='iw') icewaterPrefs[key]=pref;
+  else underlayPrefs[key]=pref;
+
+  // Update button styles
+  const brandLabel=BRAND_LABELS[brandId]||brandId;
+  const alts=(type==='iw'?ALT_PRODUCTS[supId]?.icewater:ALT_PRODUCTS[supId]?.underlay)?.[brandLabel]||[];
+  const cheapest=alts.slice().sort((a,b)=>a.price-b.price)[0];
+  const prefix=type==='iw'?'iw':'ul';
+
+  const mfrBtn=document.getElementById(`${prefix}btn-mfr-${supId}-${brandId}`);
+  const chpBtn=document.getElementById(`${prefix}btn-cheapest-${supId}-${brandId}`);
+  if(mfrBtn){mfrBtn.style.background=pref==='mfr'?'#1a1a1a':'#fff';mfrBtn.style.color=pref==='mfr'?'#fff':'#555';mfrBtn.style.borderColor=pref==='mfr'?'#1a1a1a':'#ccc';}
+  if(chpBtn){chpBtn.style.background=pref==='cheapest'?'#2e7d32':'#fff';chpBtn.style.color=pref==='cheapest'?'#fff':'#555';chpBtn.style.borderColor=pref==='cheapest'?'#2e7d32':'#ccc';}
+
+  // Update price field in the table to reflect chosen alternative
+  const accKey=type==='iw'?'icewater':'underlay';
+  const priceEl=document.getElementById(fid(supId,brandId,accKey,'std'));
+  if(priceEl&&cheapest){
+    if(pref==='cheapest') priceEl.value=cheapest.price.toFixed(2);
+  }
+
+  setStatus('unsaved','Preferences updated — click Save All Prices to apply.');
+  toast(`✓ ${type==='iw'?'I&W':'Underlay'} set to ${pref==='mfr'?'manufacturer':'cheapest alternative'}`);
+}
+
+// Save/load prefs alongside prices
+const _origCollect=collectAll;
+function collectAll(){
+  const data=_origCollect();
+  data.__prefs={icewater:icewaterPrefs,underlay:underlayPrefs};
+  return data;
+}
+
+const _origLoad=loadAll;
+async function loadAll(){
+  await _origLoad();
+  try{
+    const r=await window.storage.get('supplier-pricing');
+    if(r){
+      const data=JSON.parse(r.value);
+      if(data.__prefs){
+        icewaterPrefs=data.__prefs.icewater||{};
+        underlayPrefs=data.__prefs.underlay||{};
+      }
+    }
+  }catch(e){}
+}
+
+
+function fid(sup,brand,key,type){return `${sup}__${brand}__${key}__${type}`;}
+
+function buildUI(){
+  const supTabs=document.getElementById('supTabs');
+  const supPanels=document.getElementById('supPanels');
+
+  SUPPLIERS.forEach((sup,si)=>{
+    // Supplier tab
+    const tab=document.createElement('button');
+    tab.className='sup-tab'+(si===0?' active':'');
+    tab.textContent=sup.label;
+    tab.onclick=()=>switchSup(sup.id);
+    supTabs.appendChild(tab);
+
+    // Supplier panel
+    const panel=document.createElement('div');
+    panel.className='sup-panel'+(si===0?' active':'');
+    panel.id='sp-'+sup.id;
+
+    // Brand tabs within supplier
+    const bTabs=document.createElement('div');bTabs.className='brand-tabs';bTabs.id='btabs-'+sup.id;
+    const bPanels=document.createElement('div');bPanels.id='bpanels-'+sup.id;
+
+    sup.brands.forEach((brand,bi)=>{
+      const bt=document.createElement('button');
+      bt.className='brand-tab'+(bi===0?' active':'');
+      bt.textContent=brand.label;
+      bt.onclick=()=>switchBrand(sup.id,brand.id);
+      bTabs.appendChild(bt);
+
+      const bp=document.createElement('div');
+      bp.className='brand-panel'+(bi===0?' active':'');
+      bp.id=`bp-${sup.id}-${brand.id}`;
+
+      // Build pricing table
+      const tbl=document.createElement('table');
+      tbl.className='price-tbl';
+      tbl.innerHTML=`<thead><tr>
+        <th>Item</th><th>Unit</th>
+        <th class="num">Standard Price</th>
+        <th class="num">Project Price</th>
+        <th>Project Pricing</th>
+        <th class="num">Savings</th>
+      </tr></thead>`;
+      const tbody=document.createElement('tbody');
+
+      // Field shingles section
+      const cr=document.createElement('tr');cr.className='cat-row';
+      cr.innerHTML='<td colspan="6">Field Shingles (per bundle)</td>';tbody.appendChild(cr);
+
+      brand.products.forEach(prod=>{
+        const key='prod__'+prod.replace(/[^a-z0-9]/gi,'').toLowerCase();
+        const stdId=fid(sup.id,brand.id,key,'std');
+        const prjId=fid(sup.id,brand.id,key,'prj');
+        const togId=fid(sup.id,brand.id,key,'tog');
+        const savId=fid(sup.id,brand.id,key,'sav');
+        const tr=document.createElement('tr');tr.id='row-'+stdId;
+        tr.innerHTML=`
+          <td style="font-weight:500">${prod}</td>
+          <td style="color:#aaa;font-size:12px">per bdl</td>
+          <td><input type="number" id="${stdId}" placeholder="0.00" min="0" step="0.01" oninput="updateSavings('${stdId}','${prjId}','${savId}')"></td>
+          <td><input type="number" id="${prjId}" placeholder="0.00" min="0" step="0.01" oninput="updateSavings('${stdId}','${prjId}','${savId}')"></td>
+          <td><label class="proj-toggle"><input type="checkbox" id="${togId}" onchange="toggleProject('${togId}','${prjId}','${tr.id}')"> <span style="font-size:12px">Project pricing</span></label></td>
+          <td><span id="${savId}" class="savings"></span></td>`;
+        tbody.appendChild(tr);
+      });
+
+      // Accessories section
+      const accs=BRAND_ACC[brand.id]||[];
+      if(accs.length){
+        const cr2=document.createElement('tr');cr2.className='cat-row';
+        cr2.innerHTML='<td colspan="6">Accessories</td>';tbody.appendChild(cr2);
+        accs.forEach(acc=>{
+          const stdId=fid(sup.id,brand.id,acc.key,'std');
+          const prjId=fid(sup.id,brand.id,acc.key,'prj');
+          const togId=fid(sup.id,brand.id,acc.key,'tog');
+          const savId=fid(sup.id,brand.id,acc.key,'sav');
+          const tr=document.createElement('tr');tr.id='row-'+stdId;
+          tr.innerHTML=`
+            <td>${acc.label}</td>
+            <td style="color:#aaa;font-size:12px">per ${acc.unit}</td>
+            <td><input type="number" id="${stdId}" placeholder="0.00" min="0" step="0.01" oninput="updateSavings('${stdId}','${prjId}','${savId}')"></td>
+            <td><input type="number" id="${prjId}" placeholder="0.00" min="0" step="0.01" oninput="updateSavings('${stdId}','${prjId}','${savId}')"></td>
+            <td><label class="proj-toggle"><input type="checkbox" id="${togId}" onchange="toggleProject('${togId}','${prjId}','${tr.id}')"> <span style="font-size:12px">Project pricing</span></label></td>
+            <td><span id="${savId}" class="savings"></span></td>`;
+          tbody.appendChild(tr);
+        });
+      }
+
+      tbl.appendChild(tbody);
+      bp.appendChild(tbl);
+
+      // Alt preference section
+      const brandLabel=BRAND_LABELS[brand.id]||brand.label;
+      const altHTML=buildAltSection(sup.id,brand.id,brandLabel);
+      if(altHTML){const altDiv=document.createElement('div');altDiv.innerHTML=altHTML;bp.appendChild(altDiv);}
+
+      // Quick-fill button
+      const qf=document.createElement('div');
+      qf.style.cssText='margin-top:.75rem;display:flex;gap:8px;align-items:center';
+      qf.innerHTML=`<button class="btn btn-outline btn-sm" onclick="activateAllProject('${sup.id}','${brand.id}')">Activate all project pricing</button>
+        <button class="btn btn-outline btn-sm" onclick="deactivateAllProject('${sup.id}','${brand.id}')">Clear project pricing</button>`;
+      bp.appendChild(qf);
+      bPanels.appendChild(bp);
+    });
+
+    panel.appendChild(bTabs);
+    panel.appendChild(bPanels);
+    supPanels.appendChild(panel);
+  });
+}
+
+function switchSup(id){
+  SUPPLIERS.forEach((s,i)=>document.querySelectorAll('.sup-tab')[i].classList.toggle('active',s.id===id));
+  document.querySelectorAll('.sup-panel').forEach(p=>p.classList.toggle('active',p.id==='sp-'+id));
+}
+function switchBrand(supId,brandId){
+  const sup=SUPPLIERS.find(s=>s.id===supId);
+  sup.brands.forEach((b,i)=>{
+    const tabs=document.querySelectorAll(`#btabs-${supId} .brand-tab`);
+    if(tabs[i]) tabs[i].classList.toggle('active',b.id===brandId);
+    const panel=document.getElementById(`bp-${supId}-${brandId}`);
+    document.querySelectorAll(`#bpanels-${supId} .brand-panel`).forEach(p=>p.classList.remove('active'));
+    if(panel) panel.classList.add('active');
+  });
+}
+
+function toggleProject(togId,prjId,rowId){
+  const on=document.getElementById(togId).checked;
+  const row=document.getElementById(rowId);
+  if(row) row.classList.toggle('proj-active',on);
+  const prjEl=document.getElementById(prjId);
+  if(prjEl){prjEl.disabled=!on;prjEl.style.opacity=on?'1':'0.4';}
+}
+function updateSavings(stdId,prjId,savId){
+  const std=parseFloat(document.getElementById(stdId)?.value)||0;
+  const prj=parseFloat(document.getElementById(prjId)?.value)||0;
+  const savEl=document.getElementById(savId);
+  if(!savEl)return;
+  if(std>0&&prj>0&&prj<std){
+    const pct=((std-prj)/std*100).toFixed(1);
+    savEl.textContent=`-${pct}%`;savEl.style.color='#2e7d32';
+  } else if(prj>=std&&prj>0){
+    savEl.textContent='↑ higher';savEl.style.color='#c0392b';
+  } else {savEl.textContent='';}
+}
+
+function activateAllProject(supId,brandId){
+  const sup=SUPPLIERS.find(s=>s.id===supId);
+  const brand=sup?.brands.find(b=>b.id===brandId);
+  if(!brand)return;
+  const allKeys=[...brand.products.map(p=>'prod__'+p.replace(/[^a-z0-9]/gi,'').toLowerCase()),
+    ...(BRAND_ACC[brandId]||[]).map(a=>a.key)];
+  allKeys.forEach(k=>{
+    const togId=fid(supId,brandId,k,'tog');
+    const prjId=fid(supId,brandId,k,'prj');
+    const togEl=document.getElementById(togId);
+    if(togEl&&!togEl.checked){togEl.checked=true;toggleProject(togId,prjId,'row-'+fid(supId,brandId,k,'std'));}
+  });
+}
+function deactivateAllProject(supId,brandId){
+  const sup=SUPPLIERS.find(s=>s.id===supId);
+  const brand=sup?.brands.find(b=>b.id===brandId);
+  if(!brand)return;
+  const allKeys=[...brand.products.map(p=>'prod__'+p.replace(/[^a-z0-9]/gi,'').toLowerCase()),
+    ...(BRAND_ACC[brandId]||[]).map(a=>a.key)];
+  allKeys.forEach(k=>{
+    const togId=fid(supId,brandId,k,'tog');
+    const prjId=fid(supId,brandId,k,'prj');
+    const togEl=document.getElementById(togId);
+    if(togEl&&togEl.checked){togEl.checked=false;toggleProject(togId,prjId,'row-'+fid(supId,brandId,k,'std'));}
+  });
+}
+
+// ── Collect all pricing data ─────────────────────────────────────────────────
+function collectAll(){
+  const data={};
+  SUPPLIERS.forEach(sup=>{
+    data[sup.id]={};
+    sup.brands.forEach(brand=>{
+      data[sup.id][brand.id]={products:{},accessories:{}};
+      brand.products.forEach(prod=>{
+        const key='prod__'+prod.replace(/[^a-z0-9]/gi,'').toLowerCase();
+        const std=parseFloat(document.getElementById(fid(sup.id,brand.id,key,'std'))?.value)||0;
+        const prj=parseFloat(document.getElementById(fid(sup.id,brand.id,key,'prj'))?.value)||0;
+        const tog=document.getElementById(fid(sup.id,brand.id,key,'tog'))?.checked||false;
+        data[sup.id][brand.id].products[prod]={std,prj,useProject:tog,effective:tog&&prj>0?prj:std};
+      });
+      (BRAND_ACC[brand.id]||[]).forEach(acc=>{
+        const std=parseFloat(document.getElementById(fid(sup.id,brand.id,acc.key,'std'))?.value)||0;
+        const prj=parseFloat(document.getElementById(fid(sup.id,brand.id,acc.key,'prj'))?.value)||0;
+        const tog=document.getElementById(fid(sup.id,brand.id,acc.key,'tog'))?.checked||false;
+        data[sup.id][brand.id].accessories[acc.key]={std,prj,useProject:tog,effective:tog&&prj>0?prj:std};
+      });
+    });
+  });
+  return data;
+}
+
+// ── Save to storage ──────────────────────────────────────────────────────────
+async function saveAll(){
+  const data=collectAll();
+  try{
+    await window.storage.set('supplier-pricing',JSON.stringify(data));
+    setStatus('saved','✓ All prices saved and available to estimator — '+new Date().toLocaleTimeString());
+    toast('✓ Prices saved to estimator');
+  }catch(e){toast('Save failed — try again');}
+}
+
+// ── Load from storage ────────────────────────────────────────────────────────
+async function loadAll(){
+  try{
+    const r=await window.storage.get('supplier-pricing');
+    if(!r)return;
+    const data=JSON.parse(r.value);
+    SUPPLIERS.forEach(sup=>{
+      if(!data[sup.id])return;
+      sup.brands.forEach(brand=>{
+        if(!data[sup.id][brand.id])return;
+        const bd=data[sup.id][brand.id];
+        brand.products.forEach(prod=>{
+          const key='prod__'+prod.replace(/[^a-z0-9]/gi,'').toLowerCase();
+          const pd=bd.products?.[prod];if(!pd)return;
+          const stdEl=document.getElementById(fid(sup.id,brand.id,key,'std'));
+          const prjEl=document.getElementById(fid(sup.id,brand.id,key,'prj'));
+          const togEl=document.getElementById(fid(sup.id,brand.id,key,'tog'));
+          if(stdEl&&pd.std) stdEl.value=pd.std.toFixed(2);
+          if(prjEl&&pd.prj) prjEl.value=pd.prj.toFixed(2);
+          if(togEl&&pd.useProject){togEl.checked=true;toggleProject(togEl.id,fid(sup.id,brand.id,key,'prj'),'row-'+fid(sup.id,brand.id,key,'std'));}
+          updateSavings(fid(sup.id,brand.id,key,'std'),fid(sup.id,brand.id,key,'prj'),fid(sup.id,brand.id,key,'sav'));
+        });
+        (BRAND_ACC[brand.id]||[]).forEach(acc=>{
+          const pd=bd.accessories?.[acc.key];if(!pd)return;
+          const stdEl=document.getElementById(fid(sup.id,brand.id,acc.key,'std'));
+          const prjEl=document.getElementById(fid(sup.id,brand.id,acc.key,'prj'));
+          const togEl=document.getElementById(fid(sup.id,brand.id,acc.key,'tog'));
+          if(stdEl&&pd.std) stdEl.value=pd.std.toFixed(2);
+          if(prjEl&&pd.prj) prjEl.value=pd.prj.toFixed(2);
+          if(togEl&&pd.useProject){togEl.checked=true;toggleProject(togEl.id,fid(sup.id,brand.id,acc.key,'prj'),'row-'+fid(sup.id,brand.id,acc.key,'std'));}
+          updateSavings(fid(sup.id,brand.id,acc.key,'std'),fid(sup.id,brand.id,acc.key,'prj'),fid(sup.id,brand.id,acc.key,'sav'));
+        });
+      });
+    });
+    setStatus('saved','✓ Prices loaded from storage — '+new Date().toLocaleTimeString());
+  }catch(e){setStatus('unsaved','Could not load saved prices.');}
+}
+
+// ── Compare panel ────────────────────────────────────────────────────────────
+function showCompare(){
+  const panel=document.getElementById('compare-panel');
+  panel.style.display=panel.style.display==='none'?'block':'none';
+  if(panel.style.display==='none')return;
+  const data=collectAll();
+  const body=document.getElementById('compare-body');
+  body.innerHTML='';
+
+  // Find brands available at multiple suppliers
+  const brandSupMap={};
+  SUPPLIERS.forEach(sup=>{
+    sup.brands.forEach(brand=>{
+      if(!brandSupMap[brand.id]) brandSupMap[brand.id]={label:brand.label,suppliers:[],products:brand.products};
+      brandSupMap[brand.id].suppliers.push(sup.id);
+    });
+  });
+
+  Object.entries(brandSupMap).forEach(([brandId,info])=>{
+    if(info.suppliers.length<2)return; // only show multi-supplier brands
+    const heading=document.createElement('h3');
+    heading.textContent=info.label;heading.style.marginTop='1rem';
+    body.appendChild(heading);
+
+    const tbl=document.createElement('table');tbl.className='compare-tbl';
+    const supHeaders=info.suppliers.map(sid=>SUPPLIERS.find(s=>s.id===sid)?.label||sid);
+    tbl.innerHTML=`<thead><tr><th>Product</th>${supHeaders.map(l=>`<th>${l}</th>`).join('')}</tr></thead>`;
+    const tbody=document.createElement('tbody');
+
+    info.products.forEach(prod=>{
+      const prices=info.suppliers.map(sid=>{
+        const key='prod__'+prod.replace(/[^a-z0-9]/gi,'').toLowerCase();
+        return data[sid]?.[brandId]?.products?.[prod]?.effective||0;
+      });
+      const minPrice=Math.min(...prices.filter(p=>p>0));
+      const tr=document.createElement('tr');
+      const cells=prices.map((p,i)=>{
+        if(p===0) return '<td style="color:#ccc">—</td>';
+        const isBest=p===minPrice;
+        const isWorst=p>minPrice&&prices.filter(x=>x>0).length>1;
+        return `<td class="${isBest?'best':isWorst?'worst':''}">${isBest?'★ ':''} $${p.toFixed(2)}</td>`;
+      });
+      tr.innerHTML=`<td>${prod}</td>${cells.join('')}`;
+      tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody);body.appendChild(tbl);
+  });
+
+  if(!body.innerHTML) body.innerHTML='<p style="color:#aaa;font-size:13px">Enter prices above to compare across suppliers.</p>';
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function setStatus(type,msg){const bar=document.getElementById('status-bar');bar.className='status-bar '+type;bar.textContent=msg;}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+async function clearAll(){if(!confirm('Clear all prices?'))return;try{await window.storage.delete('supplier-pricing');document.querySelectorAll('.price-tbl input').forEach(el=>el.value='');document.querySelectorAll('.price-tbl input[type=checkbox]').forEach(el=>el.checked=false);document.querySelectorAll('.savings').forEach(el=>el.textContent='');setStatus('unsaved','Prices cleared.');toast('Prices cleared');}catch(e){toast('Error clearing prices');}}
+
+// ── ABC Supply pre-filled prices ─────────────────────────────────────────────
+const ABC_PRICES={
+  // IKO at ABC
+  iko:{
+    products:{
+      'Cambridge':          {std:41.26},
+      'Dynasty':            {std:46.37},
+      'Nordic (Class 4)':   {std:57.29},
+      'Armourshake':        {std:64.41},
+      'Crowne Slate':       {std:0},   // not on ABC list
+      'Royal Estate':       {std:0},   // not on ABC list
+    },
+    accessories:{
+      'starter':            {std:62.52},  // Leading Edge Plus 123'
+      'starterArmour':      {std:75.33},  // Armourshake Starter 68.9'
+      'hipridge':           {std:67.05},  // H&R 12 36LF
+      'icewater':           {std:80.14},  // StormShield 44"x61'
+      'underlay':           {std:80.14},  // Stormtite 10sq roll
+    }
+  },
+  // GAF at ABC
+  gaf:{
+    products:{
+      'Timberline HDZ':     {std:42.12},
+      'Timberline UHDZ':    {std:56.97},
+      'Camelot II':         {std:0},
+      'Woodland':           {std:0},
+      'Slateline':          {std:0},
+      'Grand Sequoia AS':   {std:0},
+    },
+    accessories:{
+      'starter':            {std:64.89},  // WeatherBlocker 100'
+      'starterMatch':       {std:64.89},  // StarterMatch 60'
+      'hipridge':           {std:60.86},  // Timbertex 20'
+      'icewater':           {std:80.14},
+      'underlay':           {std:80.14},
+    }
+  },
+  // Owens Corning at ABC
+  oc:{
+    products:{
+      'Oakridge':           {std:41.74},
+      'Duration':           {std:46.40},
+      'Duration FLEX':      {std:74.10},
+    },
+    accessories:{
+      'starter':            {std:56.58},  // Starter Strip Plus 105'
+      'hipridge':           {std:63.91},  // ProEdge AR 33' (standard colours)
+      'icewater':           {std:80.14},
+      'underlay':           {std:80.14},
+    }
+  },
+  // Malarkey at ABC
+  mal:{
+    products:{
+      'Highlander AR':      {std:0},      // not on ABC list
+      'Vista AR':           {std:58.66},
+      'Legacy Scotchgard':  {std:59.75},
+    },
+    accessories:{
+      'starter':            {std:90.04},  // Smart Start 114.9'
+      'hipridge':           {std:124.93}, // EZ Ridge XT 20'
+      'icewater':           {std:80.14},
+      'underlay':           {std:80.14},
+    }
+  },
+};
+
+const QXO_PRICES={
+  iko:{
+    products:{
+      'Cambridge':          {std:43.05},
+      'Dynasty':            {std:47.55},
+      'Nordic (Class 4)':   {std:64.45},
+      'Armourshake':        {std:63.35},
+      'Crowne Slate':       {std:0},
+      'Royal Estate':       {std:0},
+    },
+    accessories:{
+      'starter':            {std:68.15},   // Leading Edge Plus 123'
+      'starterArmour':      {std:69.70},   // Armourshake Starter 69'
+      'hipridge':           {std:69.65},   // Hip & Ridge 12" 36.5'
+      'icewater':           {std:89.15},   // Protecto 225 44"x61'
+      'underlay':           {std:78.50},   // Stormtite 1000 sq ft
+    }
+  },
+  mal:{
+    products:{
+      'Highlander AR':      {std:0},       // not on QXO list
+      'Vista AR':           {std:58.70},   // 252 Vista NEXGEN
+      'Legacy Scotchgard':  {std:58.60},   // 273 Legacy SBS
+    },
+    accessories:{
+      'starter':            {std:72.80},   // 210 Smart Start 114'
+      'hipridge':           {std:108.65},  // 224 EZ Ridge 10" 20'
+      'icewater':           {std:115.15},  // 401 Arctic Seal 39"x65'
+      'underlay':           {std:152.25},  // 1029 Secure Start Lite 1000sqft
+    }
+  },
+  bp:{
+    products:{
+      'Mystique':           {std:43.05},
+      'Vanguard':           {std:0},       // not on QXO list
+    },
+    accessories:{
+      'starter':            {std:57.35},   // Tri Starter 105'
+      'hipridge':           {std:61.60},   // White Cap 29.6'
+      'icewater':           {std:85.15},   // Tri-Built 44" I&W
+      'underlay':           {std:77.45},   // Tri-Built Synthetic 1000sqft
+    }
+  },
+  ct:{
+    products:{
+      'Landmark':           {std:47.55},   // Landmark AR
+      'Northgate':          {std:0},       // not on QXO list
+    },
+    accessories:{
+      'starter':            {std:69.75},   // Swift Start 116'
+      'hipridge':           {std:60.55},   // Shadow Ridge 30'
+      'icewater':           {std:133.45},  // Winterguard Sanded 36"x65'
+      'underlay':           {std:132.60},  // Roof Runner 1000sqft
+    }
+  },
+};
+
+function prefillQXO(){
+  Object.entries(QXO_PRICES).forEach(([brandId,data])=>{
+    Object.entries(data.products||{}).forEach(([prod,prices])=>{
+      if(!prices.std) return;
+      const key='prod__'+prod.replace(/[^a-z0-9]/gi,'').toLowerCase();
+      const stdEl=document.getElementById(fid('qxo',brandId,key,'std'));
+      if(stdEl&&!stdEl.value) stdEl.value=prices.std.toFixed(2);
+    });
+    Object.entries(data.accessories||{}).forEach(([accKey,prices])=>{
+      if(!prices.std) return;
+      const stdEl=document.getElementById(fid('qxo',brandId,accKey,'std'));
+      if(stdEl&&!stdEl.value) stdEl.value=prices.std.toFixed(2);
+    });
+  });
+  setStatus('unsaved','QXO prices loaded — click Save All Prices to push to estimator.');
+  toast('✓ QXO prices pre-filled');
+}
+
+
+  Object.entries(ABC_PRICES).forEach(([brandId,data])=>{
+    // Products
+    Object.entries(data.products||{}).forEach(([prod,prices])=>{
+      if(!prices.std) return;
+      const key='prod__'+prod.replace(/[^a-z0-9]/gi,'').toLowerCase();
+      const stdEl=document.getElementById(fid('abc',brandId,key,'std'));
+      if(stdEl&&!stdEl.value) stdEl.value=prices.std.toFixed(2);
+    });
+    // Accessories
+    Object.entries(data.accessories||{}).forEach(([accKey,prices])=>{
+      if(!prices.std) return;
+      const stdEl=document.getElementById(fid('abc',brandId,accKey,'std'));
+      if(stdEl&&!stdEl.value) stdEl.value=prices.std.toFixed(2);
+    });
+  });
+  setStatus('unsaved','ABC prices loaded — review and click Save All Prices to push to estimator.');
+  toast('✓ ABC Supply prices pre-filled');
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+buildUI();
+loadAll().then(()=>{
+  // Only prefill if nothing was loaded from storage
+  const hasData=document.getElementById(fid('abc','iko','prod__cambridge','std'))?.value;
+  if(!hasData){ prefillABC(); prefillQXO(); }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Green Lit — Job Board</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;font-size:14px;color:#1a1a1a;background:#f0efe9;padding:1rem}
+.gl-header{background:#1a1a1a;color:#fff;border-radius:12px;padding:1rem 1.5rem;margin-bottom:1.25rem;display:flex;justify-content:space-between;align-items:center}
+.gl-logo{display:flex;align-items:center;gap:10px}
+.gl-dot{width:28px;height:28px;background:#22c55e;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.gl-name{font-size:17px;font-weight:700}
+.gl-tagline{font-size:11px;color:#888;margin-top:1px}
+.gl-module{font-size:12px;color:#22c55e;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#777;margin-bottom:.75rem}
+.card{background:#fff;border:0.5px solid #ddd;border-radius:12px;padding:1.25rem;margin-bottom:.875rem}
+label{font-size:12px;color:#666;display:block;margin-bottom:3px;margin-top:8px}
+label:first-of-type{margin-top:0}
+input,select,textarea{width:100%;padding:7px 10px;border:0.5px solid #ccc;border-radius:7px;font-size:13px;background:#fff;color:#1a1a1a;outline:none}
+input:focus,select:focus,textarea:focus{border-color:#555}
+textarea{resize:vertical;min-height:52px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
+
+/* Nav */
+.nav{display:flex;gap:6px;margin-bottom:1.25rem;border-bottom:1px solid #e0e0e0;padding-bottom:.75rem;flex-wrap:wrap}
+.nav-btn{padding:7px 18px;border:0.5px solid #ccc;border-radius:20px;font-size:13px;cursor:pointer;background:#fff;color:#555;font-weight:500}
+.nav-btn.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:1rem}
+.stat-card{background:#fff;border:0.5px solid #ddd;border-radius:10px;padding:.875rem 1rem}
+.stat-card .sv{font-size:22px;font-weight:700;margin-top:2px}
+.stat-card .sl{font-size:11px;color:#888}
+
+/* Kanban */
+.kanban{display:grid;grid-template-columns:repeat(9,minmax(190px,1fr));gap:8px;overflow-x:auto;padding-bottom:.75rem}
+.k-col{background:#f5f4f0;border-radius:10px;padding:.75rem;min-height:300px}
+.k-col-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.6rem;display:flex;justify-content:space-between;align-items:center}
+.k-card{background:#fff;border:0.5px solid #e0e0e0;border-radius:9px;padding:.875rem;margin-bottom:7px;cursor:pointer;transition:box-shadow .15s,border-color .15s}
+.k-card:hover{box-shadow:0 2px 10px rgba(0,0,0,.09);border-color:#aaa}
+.k-card.overdue{border-left:3px solid #ef4444}
+.k-card.due-soon{border-left:3px solid #f59e0b}
+.k-card.on-track{border-left:3px solid #22c55e}
+.k-name{font-weight:600;font-size:13px;margin-bottom:2px}
+.k-addr{font-size:11px;color:#888}
+.k-meta{font-size:11px;color:#aaa;margin-top:5px;display:flex;flex-wrap:wrap;gap:4px}
+.k-tag{background:#f0efe9;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:500;color:#555}
+.k-value{font-size:12px;font-weight:600;color:#15803d;margin-top:4px}
+.k-date{font-size:10px;color:#bbb;margin-top:3px}
+
+/* Stage colors */
+.s-scheduled{color:#1d4ed8}.s-matorder{color:#7c3aed}.s-matdelivered{color:#0891b2}
+.s-inprogress{color:#d97706}.s-inspection{color:#9333ea}.s-deficiency{color:#dc2626}
+.s-complete{color:#16a34a}.s-invoiced{color:#0d9488}.s-paid{color:#15803d}
+
+/* Job detail modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:flex;align-items:center;justify-content:center;padding:1rem}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:680px;max-height:92vh;overflow-y:auto;padding:1.5rem;position:relative}
+.modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:22px;cursor:pointer;color:#888}
+
+/* Stage stepper */
+.stepper{display:flex;overflow-x:auto;gap:0;margin-bottom:1rem}
+.step{flex:1;min-width:80px;padding:6px 4px;text-align:center;font-size:10px;font-weight:600;cursor:pointer;border:0.5px solid #ddd;background:#fff;transition:all .15s}
+.step:first-child{border-radius:7px 0 0 7px}
+.step:last-child{border-radius:0 7px 7px 0}
+.step.done{background:#f0fdf4;border-color:#86efac;color:#15803d}
+.step.active{background:#1a1a1a;border-color:#1a1a1a;color:#fff}
+.step:hover:not(.active){background:#f5f4f0}
+
+/* Checklist */
+.check-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid #f5f5f5;font-size:13px}
+.check-item:last-child{border:none}
+.check-item input[type=checkbox]{width:auto;cursor:pointer;width:16px;height:16px}
+.check-item.checked span{text-decoration:line-through;color:#aaa}
+
+/* Activity */
+.act-item{display:flex;gap:10px;padding:7px 0;border-bottom:0.5px solid #f5f5f5;font-size:13px}
+.act-item:last-child{border:none}
+.act-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0;margin-top:5px}
+.act-time{font-size:11px;color:#aaa;white-space:nowrap;min-width:80px;text-align:right}
+
+/* List table */
+.j-table{width:100%;border-collapse:collapse;font-size:13px}
+.j-table th{text-align:left;padding:7px 10px;border-bottom:1px solid #eee;font-size:11px;font-weight:600;color:#999;text-transform:uppercase;white-space:nowrap}
+.j-table td{padding:7px 10px;border-bottom:0.5px solid #f5f5f5;vertical-align:middle}
+.j-table tr:hover td{background:#fafafa;cursor:pointer}
+
+.stage-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.btn{border:none;border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;font-weight:500}
+.btn-dark{background:#1a1a1a;color:#fff}.btn-dark:hover{background:#333}
+.btn-green{background:#15803d;color:#fff}
+.btn-outline{background:#fff;color:#1a1a1a;border:0.5px solid #ccc}.btn-outline:hover{background:#f5f5f5}
+.btn-sm{padding:4px 10px;font-size:12px;border-radius:6px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:.75rem;align-items:center}
+.search-wrap{position:relative;flex:1;min-width:200px}
+.search-wrap input{padding-left:28px}
+.search-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:#aaa;font-size:12px}
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+.toast.show{opacity:1}
+.progress-bar{height:6px;background:#f0f0f0;border-radius:3px;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;background:#22c55e;border-radius:3px;transition:width .3s}
+.crew-badge{display:inline-flex;align-items:center;gap:5px;background:#f0efe9;border-radius:20px;padding:3px 10px;font-size:12px}
+</style>
+</head>
+<body>
+
+<div class="gl-header">
+  <div class="gl-logo">
+    <div class="gl-dot">🟢</div>
+    <div>
+      <div class="gl-name">Green Lit Software</div>
+      <div class="gl-tagline">Empowering Roofing Entrepreneurs</div>
+    </div>
+  </div>
+  <div class="gl-module">Project Tracking</div>
+</div>
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+  <div class="nav">
+    <button class="nav-btn active" id="nav-board" onclick="showTab('board')">📋 Job Board</button>
+    <button class="nav-btn" id="nav-list" onclick="showTab('list')">☰ List</button>
+    <button class="nav-btn" id="nav-crews" onclick="showTab('crews')">👷 Crews</button>
+    <button class="nav-btn" id="nav-new" onclick="showTab('new')">+ New Job</button>
+  </div>
+  <button class="btn btn-green" onclick="syncFromCRM()" style="font-size:12px;padding:6px 14px">↺ Sync from CRM</button>
+</div>
+
+<!-- STATS -->
+<div class="stats" id="stats-row"></div>
+
+<!-- BOARD -->
+<div id="tab-board">
+  <div class="filters">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="board-search" placeholder="Search jobs..." oninput="renderBoard()">
+    </div>
+    <select id="board-crew" onchange="renderBoard()" style="width:auto;font-size:12px;padding:5px 8px">
+      <option value="">All crews</option>
+    </select>
+  </div>
+  <div class="kanban" id="kanban"></div>
+</div>
+
+<!-- LIST -->
+<div id="tab-list" style="display:none">
+  <div class="card">
+    <div class="filters">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="list-search" placeholder="Search jobs..." oninput="renderList()">
+      </div>
+      <select id="list-stage" onchange="renderList()" style="width:auto;font-size:12px;padding:5px 8px">
+        <option value="">All stages</option>
+      </select>
+      <select id="list-crew" onchange="renderList()" style="width:auto;font-size:12px;padding:5px 8px">
+        <option value="">All crews</option>
+      </select>
+    </div>
+    <table class="j-table">
+      <thead><tr>
+        <th>Job</th><th>Customer</th><th>Address</th><th>Crew</th>
+        <th>Start date</th><th>Value</th><th>Stage</th><th>Progress</th><th>Actions</th>
+      </tr></thead>
+      <tbody id="list-body"></tbody>
+    </table>
+    <div id="list-empty" style="display:none;text-align:center;padding:2rem;color:#aaa;font-size:13px">No jobs found.</div>
+  </div>
+</div>
+
+<!-- CREWS -->
+<div id="tab-crews" style="display:none">
+  <div class="card">
+    <h2>Crews</h2>
+    <p style="font-size:12px;color:#888;margin-bottom:1rem">Add crews to assign to jobs. Each job gets one crew.</p>
+    <div class="g3" style="margin-bottom:1rem">
+      <div><label>Crew name</label><input id="crew-name" placeholder="e.g. Team Alpha"></div>
+      <div><label>Crew lead</label><input id="crew-lead" placeholder="Lead installer name"></div>
+      <div><label>Size (# of workers)</label><input id="crew-size" type="number" min="1" placeholder="e.g. 4"></div>
+    </div>
+    <div style="margin-bottom:1rem"><label>Notes</label><input id="crew-notes" placeholder="Specialties, equipment, notes..."></div>
+    <button class="btn btn-dark" onclick="addCrew()">Add Crew</button>
+    <div id="crew-list" style="margin-top:1rem"></div>
+  </div>
+</div>
+
+<!-- NEW JOB -->
+<div id="tab-new" style="display:none">
+  <div class="card">
+    <h2 id="job-form-title">New Job</h2>
+    <input type="hidden" id="edit-job-id">
+    <div class="g3">
+      <div><label>Customer name</label><input id="jf-customer" placeholder="Customer name"></div>
+      <div><label>Quote #</label><input id="jf-quote" placeholder="e.g. 2026-0001"></div>
+      <div><label>Job value ($)</label><input id="jf-value" type="number" min="0" placeholder="0"></div>
+    </div>
+    <div class="g3">
+      <div><label>Address</label><input id="jf-address" placeholder="Street address"></div>
+      <div><label>City</label><input id="jf-city" placeholder="City"></div>
+      <div><label>Roofing system</label><input id="jf-system" placeholder="e.g. IKO Dynasty"></div>
+    </div>
+    <div class="g4">
+      <div><label>Stage</label>
+        <select id="jf-stage">
+          <option value="scheduled">Scheduled</option>
+          <option value="matorder">Materials Ordered</option>
+          <option value="matdelivered">Materials Delivered</option>
+          <option value="inprogress">In Progress</option>
+          <option value="inspection">Inspection</option>
+          <option value="deficiency">Deficiency</option>
+          <option value="complete">Complete</option>
+          <option value="invoiced">Invoiced</option>
+          <option value="paid">Paid</option>
+        </select>
+      </div>
+      <div><label>Assigned crew</label>
+        <select id="jf-crew"><option value="">Unassigned</option></select>
+      </div>
+      <div><label>Start date</label><input id="jf-start" type="date"></div>
+      <div><label>Est. completion date</label><input id="jf-end" type="date"></div>
+    </div>
+    <div class="g2" style="margin-top:4px">
+      <div><label>Estimator</label><input id="jf-estimator" placeholder="Estimator name"></div>
+      <div><label>Project manager</label><input id="jf-pm" placeholder="PM name"></div>
+    </div>
+    <div style="margin-top:8px"><label>Scope of work / notes</label><textarea id="jf-notes" placeholder="Job details, special instructions..."></textarea></div>
+    <div style="display:flex;gap:8px;margin-top:1rem">
+      <button class="btn btn-dark" onclick="saveJob()" style="flex:1">Save Job</button>
+      <button class="btn btn-outline" onclick="showTab('board')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- JOB DETAIL MODAL -->
+<div class="modal-bg" id="job-modal" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────────────────
+let jobs = [];
+let crews = [];
+
+const STAGES = {
+  scheduled:    { label:'Scheduled',          color:'#1d4ed8', bg:'#dbeafe', order:0 },
+  matorder:     { label:'Materials Ordered',  color:'#7c3aed', bg:'#ede9fe', order:1 },
+  matdelivered: { label:'Materials Delivered',color:'#0891b2', bg:'#cffafe', order:2 },
+  inprogress:   { label:'In Progress',        color:'#d97706', bg:'#fef3c7', order:3 },
+  inspection:   { label:'Inspection',         color:'#9333ea', bg:'#f3e8ff', order:4 },
+  deficiency:   { label:'Deficiency',         color:'#dc2626', bg:'#fee2e2', order:5 },
+  complete:     { label:'Complete',           color:'#16a34a', bg:'#dcfce7', order:6 },
+  invoiced:     { label:'Invoiced',           color:'#0d9488', bg:'#ccfbf1', order:7 },
+  paid:         { label:'Paid',               color:'#15803d', bg:'#f0fdf4', order:8 },
+};
+
+const STAGE_KEYS = Object.keys(STAGES);
+
+const CHECKLISTS = {
+  scheduled:    ['Confirm start date with crew','Notify customer of start date','Review scope of work','Check permit requirements','Confirm material delivery window'],
+  matorder:     ['Submit material order to supplier','Confirm delivery address','Verify product colours and quantities','Get order confirmation number'],
+  matdelivered: ['Verify delivery matches order','Inspect materials for damage','Confirm staging location','Notify crew of delivery'],
+  inprogress:   ['Set up site protection','Complete tear-off','Install underlayment','Install field shingles','Install flashings and details'],
+  inspection:   ['Schedule inspection','Walk roof with inspector/PM','Document any deficiencies','Take completion photos'],
+  deficiency:   ['Document all deficiencies','Assign deficiency corrections to crew','Set correction deadline','Re-inspect after corrections'],
+  complete:     ['Final photo documentation','Magnet sweep of grounds','Remove all debris and materials','Customer walkthrough'],
+  invoiced:     ['Generate invoice from approved quote','Send invoice to customer','Confirm customer received invoice','Set payment due date'],
+  paid:         ['Confirm payment received','Record payment in financial system','Release holdback if applicable','File job documents'],
+};
+
+// ── Storage ───────────────────────────────────────────────────────────────────
+async function loadAll() {
+  try {
+    const jr = await window.storage.get('jobs-data');
+    if (jr) jobs = JSON.parse(jr.value);
+    const cr = await window.storage.get('crews-data');
+    if (cr) crews = JSON.parse(cr.value);
+  } catch(e) {}
+  populateCrewDropdowns();
+  populateStageDropdowns();
+  renderStats();
+  renderBoard();
+  renderList();
+  renderCrewList();
+}
+
+async function saveJobs() { try { await window.storage.set('jobs-data', JSON.stringify(jobs)); } catch(e) {} }
+async function saveCrews() { try { await window.storage.set('crews-data', JSON.stringify(crews)); } catch(e) {} }
+
+// ── Sync from CRM ─────────────────────────────────────────────────────────────
+async function syncFromCRM() {
+  try {
+    const r = await window.storage.get('crm-quotes');
+    if (!r) { toast('No CRM data found — save quotes in the CRM first.'); return; }
+    const quotes = JSON.parse(r.value);
+    const approved = quotes.filter(q => q.status === 'approved');
+    let added = 0;
+    approved.forEach(q => {
+      const exists = jobs.find(j => j.quoteNum === q.quoteNum);
+      if (!exists) {
+        jobs.unshift({
+          id: 'job-' + Date.now() + Math.random(),
+          quoteNum: q.quoteNum,
+          customer: q.customer || '',
+          address: q.address || '',
+          city: q.city || '',
+          system: q.systems || '',
+          value: q.value || 0,
+          estimator: q.estimator || '',
+          stage: 'scheduled',
+          crew: '',
+          pm: '',
+          startDate: '',
+          endDate: '',
+          notes: q.description || '',
+          checklist: {},
+          activity: [{ text: 'Job created from approved quote ' + q.quoteNum, time: new Date().toISOString() }],
+          matOrdered: false, matDelivered: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
+        added++;
+      }
+    });
+    await saveJobs();
+    renderStats(); renderBoard(); renderList();
+    toast(added > 0 ? `✓ ${added} job${added > 1 ? 's' : ''} synced from CRM` : 'All approved quotes already on board');
+  } catch(e) { toast('Sync failed: ' + e.message); }
+}
+
+// ── Crews ─────────────────────────────────────────────────────────────────────
+function addCrew() {
+  const name = sv('crew-name'), lead = sv('crew-lead'), size = sv('crew-size'), notes = sv('crew-notes');
+  if (!name) { alert('Please enter a crew name.'); return; }
+  crews.push({ id: 'crew-' + Date.now(), name, lead, size: parseInt(size) || 0, notes, createdAt: new Date().toISOString() });
+  saveCrews(); populateCrewDropdowns(); renderCrewList();
+  ['crew-name','crew-lead','crew-size','crew-notes'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  toast('✓ ' + name + ' added');
+}
+
+function renderCrewList() {
+  const div = document.getElementById('crew-list'); if (!div) return;
+  if (!crews.length) { div.innerHTML = '<p style="color:#aaa;font-size:13px">No crews added yet.</p>'; return; }
+  div.innerHTML = crews.map(c => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#f5f4f0;border-radius:8px;margin-bottom:6px">
+      <div>
+        <div style="font-weight:600">${c.name}</div>
+        <div style="font-size:12px;color:#888">Lead: ${c.lead || '—'} · ${c.size || '?'} workers${c.notes ? ' · ' + c.notes : ''}</div>
+        <div style="font-size:12px;color:#aaa;margin-top:2px">${jobs.filter(j => j.crew === c.id && !['complete','invoiced','paid'].includes(j.stage)).length} active jobs</div>
+      </div>
+      <button class="btn btn-outline btn-sm" style="color:#c0392b" onclick="removeCrew('${c.id}')">Remove</button>
+    </div>`).join('');
+}
+
+function removeCrew(id) {
+  if (!confirm('Remove this crew? Jobs assigned to them will become unassigned.')) return;
+  crews = crews.filter(c => c.id !== id);
+  jobs.forEach(j => { if (j.crew === id) j.crew = ''; });
+  saveCrews(); saveJobs(); populateCrewDropdowns(); renderCrewList(); renderBoard(); renderList();
+  toast('Crew removed');
+}
+
+function populateCrewDropdowns() {
+  ['jf-crew', 'board-crew', 'list-crew'].forEach(id => {
+    const el = document.getElementById(id); if (!el) return;
+    const cur = el.value;
+    el.innerHTML = '<option value="">' + (id === 'jf-crew' ? 'Unassigned' : 'All crews') + '</option>';
+    crews.forEach(c => { const o = document.createElement('option'); o.value = c.id; o.textContent = c.name + (c.lead ? ' (' + c.lead + ')' : ''); el.appendChild(o); });
+    el.value = cur;
+  });
+}
+
+function populateStageDropdowns() {
+  const el = document.getElementById('list-stage'); if (!el) return;
+  el.innerHTML = '<option value="">All stages</option>';
+  STAGE_KEYS.forEach(k => { const o = document.createElement('option'); o.value = k; o.textContent = STAGES[k].label; el.appendChild(o); });
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
+function renderStats() {
+  const active = jobs.filter(j => !['complete','invoiced','paid'].includes(j.stage));
+  const complete = jobs.filter(j => j.stage === 'complete').length;
+  const invoiced = jobs.filter(j => j.stage === 'invoiced').length;
+  const paid = jobs.filter(j => j.stage === 'paid');
+  const paidVal = paid.reduce((s,j) => s + (j.value||0), 0);
+  const deficiency = jobs.filter(j => j.stage === 'deficiency').length;
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-card"><div class="sl">Active jobs</div><div class="sv" style="color:#1d4ed8">${active.length}</div></div>
+    <div class="stat-card"><div class="sl">Complete</div><div class="sv" style="color:#16a34a">${complete}</div></div>
+    <div class="stat-card"><div class="sl">Awaiting invoice</div><div class="sv" style="color:#0d9488">${invoiced}</div></div>
+    <div class="stat-card"><div class="sl">Deficiencies</div><div class="sv" style="color:#dc2626">${deficiency}</div></div>
+    <div class="stat-card"><div class="sl">Revenue collected</div><div class="sv" style="color:#15803d">$${paidVal.toLocaleString()}</div></div>`;
+}
+
+// ── Kanban board ──────────────────────────────────────────────────────────────
+function renderBoard() {
+  const q = (document.getElementById('board-search')?.value || '').toLowerCase();
+  const crewF = document.getElementById('board-crew')?.value || '';
+  const board = document.getElementById('kanban'); board.innerHTML = '';
+
+  STAGE_KEYS.forEach(stageKey => {
+    const s = STAGES[stageKey];
+    let col = jobs.filter(j => j.stage === stageKey);
+    if (q) col = col.filter(j => [j.customer, j.address, j.city, j.quoteNum, j.system].filter(Boolean).join(' ').toLowerCase().includes(q));
+    if (crewF) col = col.filter(j => j.crew === crewF);
+
+    const div = document.createElement('div'); div.className = 'k-col';
+    div.innerHTML = `<div class="k-col-title" style="color:${s.color}">
+      <span>${s.label}</span>
+      <span style="background:#fff;border-radius:10px;padding:1px 7px;font-size:11px;color:#888">${col.length}</span>
+    </div>`;
+
+    col.forEach(j => {
+      const card = document.createElement('div');
+      const urgency = getUrgency(j);
+      card.className = 'k-card ' + urgency;
+      card.onclick = () => openJob(j.id);
+      const crewName = crews.find(c => c.id === j.crew)?.name || '';
+      const progress = getProgress(j);
+      card.innerHTML = `
+        <div class="k-name">${j.customer || '—'}</div>
+        <div class="k-addr">${j.address || ''}${j.city ? ', ' + j.city : ''}</div>
+        ${j.value ? `<div class="k-value">$${Number(j.value).toLocaleString()}</div>` : ''}
+        <div class="k-meta">
+          ${j.quoteNum ? `<span class="k-tag">${j.quoteNum}</span>` : ''}
+          ${crewName ? `<span class="k-tag">👷 ${crewName}</span>` : ''}
+          ${j.system ? `<span class="k-tag">${j.system.split(',')[0].trim()}</span>` : ''}
+        </div>
+        ${j.startDate ? `<div class="k-date">📅 ${fmtDate(j.startDate)}${j.endDate ? ' → ' + fmtDate(j.endDate) : ''}</div>` : ''}
+        <div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>`;
+      div.appendChild(card);
+    });
+
+    const hint = document.createElement('div');
+    hint.style.cssText = 'border:1px dashed #ddd;border-radius:6px;padding:7px;text-align:center;font-size:11px;color:#ccc;margin-top:4px;cursor:pointer';
+    hint.textContent = '+ Add job';
+    hint.onclick = () => { document.getElementById('jf-stage').value = stageKey; showTab('new'); };
+    div.appendChild(hint);
+    board.appendChild(div);
+  });
+}
+
+function getUrgency(j) {
+  if (!j.endDate) return '';
+  const days = daysBetween(new Date().toISOString(), j.endDate);
+  if (days < 0) return 'overdue';
+  if (days <= 3) return 'due-soon';
+  return 'on-track';
+}
+
+function getProgress(j) {
+  const order = STAGES[j.stage]?.order || 0;
+  return Math.round((order / (STAGE_KEYS.length - 1)) * 100);
+}
+
+// ── List view ─────────────────────────────────────────────────────────────────
+function renderList() {
+  const q = (document.getElementById('list-search')?.value || '').toLowerCase();
+  const stageF = document.getElementById('list-stage')?.value || '';
+  const crewF = document.getElementById('list-crew')?.value || '';
+  let list = jobs.filter(j => {
+    const mQ = !q || [j.customer, j.address, j.city, j.quoteNum].filter(Boolean).join(' ').toLowerCase().includes(q);
+    const mS = !stageF || j.stage === stageF;
+    const mC = !crewF || j.crew === crewF;
+    return mQ && mS && mC;
+  });
+  const tbody = document.getElementById('list-body');
+  const empty = document.getElementById('list-empty');
+  tbody.innerHTML = ''; empty.style.display = list.length ? 'none' : 'block';
+  list.forEach(j => {
+    const s = STAGES[j.stage] || STAGES.scheduled;
+    const crewName = crews.find(c => c.id === j.crew)?.name || '—';
+    const tr = document.createElement('tr');
+    tr.onclick = () => openJob(j.id);
+    tr.innerHTML = `
+      <td style="font-weight:600">${j.quoteNum || '—'}</td>
+      <td>${j.customer || '—'}</td>
+      <td style="font-size:12px;color:#888">${j.address || ''}${j.city ? ', ' + j.city : ''}</td>
+      <td><span class="crew-badge">👷 ${crewName}</span></td>
+      <td style="font-size:12px;white-space:nowrap">${j.startDate ? fmtDate(j.startDate) : '—'}</td>
+      <td style="font-weight:600;color:#15803d">${j.value ? '$' + Number(j.value).toLocaleString() : '—'}</td>
+      <td><span class="stage-badge" style="background:${s.bg};color:${s.color}">${s.label}</span></td>
+      <td style="min-width:80px">
+        <div class="progress-bar" style="margin-top:0"><div class="progress-fill" style="width:${getProgress(j)}%"></div></div>
+        <div style="font-size:10px;color:#aaa;margin-top:2px">${getProgress(j)}%</div>
+      </td>
+      <td onclick="event.stopPropagation()" style="white-space:nowrap">
+        <button class="btn btn-outline btn-sm" onclick="openJob('${j.id}')">View</button>
+        <button class="btn btn-outline btn-sm" style="margin-left:4px;color:#c0392b" onclick="deleteJob('${j.id}')">✕</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// ── Job CRUD ──────────────────────────────────────────────────────────────────
+function saveJob() {
+  const id = sv('edit-job-id');
+  const job = {
+    id: id || 'job-' + Date.now(),
+    customer: sv('jf-customer'), quoteNum: sv('jf-quote'),
+    value: parseFloat(sv('jf-value')) || 0,
+    address: sv('jf-address'), city: sv('jf-city'),
+    system: sv('jf-system'), stage: sv('jf-stage'),
+    crew: sv('jf-crew'), pm: sv('jf-pm'),
+    estimator: sv('jf-estimator'),
+    startDate: sv('jf-start'), endDate: sv('jf-end'),
+    notes: sv('jf-notes'),
+    checklist: id ? jobs.find(j => j.id === id)?.checklist || {} : {},
+    activity: id ? jobs.find(j => j.id === id)?.activity || [] : [{ text: 'Job created', time: new Date().toISOString() }],
+    createdAt: id ? jobs.find(j => j.id === id)?.createdAt || new Date().toISOString() : new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  if (!job.customer && !job.quoteNum) { alert('Please enter a customer name or quote number.'); return; }
+  if (id) { const idx = jobs.findIndex(j => j.id === id); if (idx >= 0) jobs[idx] = job; }
+  else jobs.unshift(job);
+  saveJobs(); renderStats(); renderBoard(); renderList(); showTab('board');
+  toast(id ? 'Job updated' : '✓ Job saved'); clearJobForm();
+}
+
+function clearJobForm() {
+  document.getElementById('edit-job-id').value = '';
+  document.getElementById('job-form-title').textContent = 'New Job';
+  ['jf-customer','jf-quote','jf-value','jf-address','jf-city','jf-system','jf-pm','jf-estimator','jf-start','jf-end','jf-notes'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  document.getElementById('jf-stage').value = 'scheduled';
+  document.getElementById('jf-crew').value = '';
+}
+
+async function deleteJob(id) {
+  if (!confirm('Remove this job from the board?')) return;
+  jobs = jobs.filter(j => j.id !== id);
+  await saveJobs(); renderStats(); renderBoard(); renderList();
+  toast('Job removed');
+}
+
+// ── Job detail modal ──────────────────────────────────────────────────────────
+function openJob(id) {
+  const j = jobs.find(x => x.id === id); if (!j) return;
+  const s = STAGES[j.stage] || STAGES.scheduled;
+  const crewName = crews.find(c => c.id === j.crew)?.name || 'Unassigned';
+  const checks = CHECKLISTS[j.stage] || [];
+  const jChecklist = j.checklist || {};
+  const doneCount = checks.filter(c => jChecklist[c]).length;
+
+  document.getElementById('modal-content').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
+      <div>
+        <div style="font-size:18px;font-weight:700">${j.customer || 'Job'}</div>
+        <div style="font-size:12px;color:#888;margin-top:2px">${j.quoteNum ? 'Quote ' + j.quoteNum + ' · ' : ''}${j.address || ''}${j.city ? ', ' + j.city : ''}</div>
+      </div>
+      <span class="stage-badge" style="background:${s.bg};color:${s.color};font-size:13px">${s.label}</span>
+    </div>
+
+    <!-- Stage stepper -->
+    <div class="stepper" style="margin-bottom:1rem">
+      ${STAGE_KEYS.map(k => {
+        const ks = STAGES[k];
+        const isDone = ks.order < s.order;
+        const isActive = k === j.stage;
+        return `<div class="step ${isDone ? 'done' : ''} ${isActive ? 'active' : ''}"
+          onclick="advanceStage('${j.id}','${k}')" title="${ks.label}">
+          ${isDone ? '✓' : ''} ${ks.label.split(' ')[0]}
+        </div>`;
+      }).join('')}
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;margin-bottom:1rem">
+      <div><span style="color:#888">Crew</span><br><strong>${crewName}</strong></div>
+      <div><span style="color:#888">Job value</span><br><strong style="color:#15803d">${j.value ? '$' + Number(j.value).toLocaleString() : '—'}</strong></div>
+      <div><span style="color:#888">Start date</span><br><strong>${j.startDate ? fmtDate(j.startDate) : '—'}</strong></div>
+      <div><span style="color:#888">Est. completion</span><br><strong>${j.endDate ? fmtDate(j.endDate) : '—'}</strong></div>
+      <div><span style="color:#888">Estimator</span><br><strong>${j.estimator || '—'}</strong></div>
+      <div><span style="color:#888">Project manager</span><br><strong>${j.pm || '—'}</strong></div>
+      <div><span style="color:#888">System</span><br><strong>${j.system || '—'}</strong></div>
+      <div><span style="color:#888">Progress</span><br>
+        <div class="progress-bar" style="margin-top:4px"><div class="progress-fill" style="width:${getProgress(j)}%"></div></div>
+        <span style="font-size:11px;color:#aaa">${getProgress(j)}% complete</span>
+      </div>
+    </div>
+
+    ${j.notes ? `<div style="background:#f5f4f0;border-radius:8px;padding:.75rem;font-size:13px;margin-bottom:1rem;color:#555">${j.notes}</div>` : ''}
+
+    <!-- Reassign crew -->
+    <div style="margin-bottom:1rem">
+      <label style="margin-top:0">Assign crew</label>
+      <select onchange="updateJobCrew('${j.id}',this.value)" style="margin-top:4px">
+        <option value="">Unassigned</option>
+        ${crews.map(c => `<option value="${c.id}" ${j.crew === c.id ? 'selected' : ''}>${c.name}${c.lead ? ' (' + c.lead + ')' : ''}</option>`).join('')}
+      </select>
+    </div>
+
+    <!-- Stage checklist -->
+    <div style="margin-bottom:1rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <label style="margin:0;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#aaa">${s.label} Checklist</label>
+        <span style="font-size:12px;color:${doneCount === checks.length && checks.length > 0 ? '#15803d' : '#888'}">${doneCount}/${checks.length} done</span>
+      </div>
+      ${checks.map(c => `
+        <div class="check-item ${jChecklist[c] ? 'checked' : ''}">
+          <input type="checkbox" ${jChecklist[c] ? 'checked' : ''} onchange="toggleCheck('${j.id}','${c.replace(/'/g,"\\'")}',this.checked)">
+          <span>${c}</span>
+        </div>`).join('')}
+    </div>
+
+    <!-- Activity log -->
+    <div style="margin-bottom:1rem">
+      <label style="margin-top:0">Add note</label>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <input type="text" id="job-note-input" placeholder="e.g. Materials delivered, crew started, inspection passed...">
+        <button class="btn btn-dark btn-sm" onclick="addJobNote('${j.id}')">Add</button>
+      </div>
+    </div>
+
+    ${(j.activity || []).length ? `
+    <div style="margin-bottom:1rem">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#aaa;margin-bottom:6px">Activity Log</div>
+      ${[...(j.activity || [])].reverse().map(a => `
+        <div class="act-item">
+          <div class="act-dot"></div>
+          <div style="flex:1">${a.text}</div>
+          <div class="act-time">${fmtDate(a.time)}</div>
+        </div>`).join('')}
+    </div>` : ''}
+
+    <div style="display:flex;gap:8px;margin-top:1.25rem">
+      <button class="btn btn-dark" style="flex:1" onclick="editJob('${j.id}');closeModal()">Edit Job</button>
+      ${j.stage === 'complete' ? `<button class="btn btn-green" onclick="advanceStage('${j.id}','invoiced')">→ Create Invoice</button>` : ''}
+      <button class="btn btn-outline" onclick="closeModal()">Close</button>
+    </div>`;
+
+  document.getElementById('job-modal').style.display = 'flex';
+}
+
+function advanceStage(id, stage) {
+  const j = jobs.find(x => x.id === id); if (!j) return;
+  j.stage = stage; j.updatedAt = new Date().toISOString();
+  j.activity = j.activity || [];
+  j.activity.push({ text: 'Stage → ' + STAGES[stage].label, time: new Date().toISOString() });
+  saveJobs(); renderStats(); renderBoard(); renderList();
+  openJob(id); toast('Stage → ' + STAGES[stage].label);
+}
+
+function updateJobCrew(id, crewId) {
+  const j = jobs.find(x => x.id === id); if (!j) return;
+  const name = crews.find(c => c.id === crewId)?.name || 'Unassigned';
+  j.crew = crewId; j.updatedAt = new Date().toISOString();
+  j.activity = j.activity || [];
+  j.activity.push({ text: 'Crew assigned: ' + name, time: new Date().toISOString() });
+  saveJobs(); renderBoard(); renderList(); toast('Crew assigned: ' + name);
+}
+
+function toggleCheck(id, item, checked) {
+  const j = jobs.find(x => x.id === id); if (!j) return;
+  j.checklist = j.checklist || {};
+  j.checklist[item] = checked;
+  j.updatedAt = new Date().toISOString();
+  saveJobs(); openJob(id);
+}
+
+function addJobNote(id) {
+  const input = document.getElementById('job-note-input');
+  const text = input?.value.trim(); if (!text) return;
+  const j = jobs.find(x => x.id === id); if (!j) return;
+  j.activity = j.activity || [];
+  j.activity.push({ text, time: new Date().toISOString() });
+  j.updatedAt = new Date().toISOString();
+  saveJobs(); input.value = ''; openJob(id); toast('Note added');
+}
+
+function editJob(id) {
+  const j = jobs.find(x => x.id === id); if (!j) return;
+  document.getElementById('edit-job-id').value = j.id;
+  document.getElementById('job-form-title').textContent = 'Edit Job';
+  document.getElementById('jf-customer').value = j.customer || '';
+  document.getElementById('jf-quote').value = j.quoteNum || '';
+  document.getElementById('jf-value').value = j.value || '';
+  document.getElementById('jf-address').value = j.address || '';
+  document.getElementById('jf-city').value = j.city || '';
+  document.getElementById('jf-system').value = j.system || '';
+  document.getElementById('jf-stage').value = j.stage || 'scheduled';
+  document.getElementById('jf-crew').value = j.crew || '';
+  document.getElementById('jf-pm').value = j.pm || '';
+  document.getElementById('jf-estimator').value = j.estimator || '';
+  document.getElementById('jf-start').value = j.startDate || '';
+  document.getElementById('jf-end').value = j.endDate || '';
+  document.getElementById('jf-notes').value = j.notes || '';
+  showTab('new');
+}
+
+function closeModal() { document.getElementById('job-modal').style.display = 'none'; }
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function showTab(name) {
+  ['board','list','crews','new'].forEach(t => {
+    document.getElementById('tab-' + t).style.display = t === name ? 'block' : 'none';
+    document.getElementById('nav-' + t)?.classList.toggle('active', t === name);
+  });
+  if (name === 'new' && !document.getElementById('edit-job-id').value) clearJobForm();
+}
+function sv(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+function fmtDate(iso) { if (!iso) return '—'; return new Date(iso).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' }); }
+function daysBetween(a, b) { return Math.round((new Date(b) - new Date(a)) / 86400000); }
+function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); }
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadAll();
+</script>
+</body>
+</html>

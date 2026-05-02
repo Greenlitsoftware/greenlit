@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Green Lit — Communications</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;font-size:14px;color:#1a1a1a;background:#f0efe9;padding:1rem}
+.gl-header{background:#1a1a1a;color:#fff;border-radius:12px;padding:1rem 1.5rem;margin-bottom:1.25rem;display:flex;justify-content:space-between;align-items:center}
+.gl-logo{display:flex;align-items:center;gap:10px}
+.gl-dot{width:28px;height:28px;background:#22c55e;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.gl-name{font-size:17px;font-weight:700}
+.gl-tagline{font-size:11px;color:#888;margin-top:1px}
+.gl-module{font-size:12px;color:#22c55e;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#777;margin-bottom:.75rem}
+.card{background:#fff;border:0.5px solid #ddd;border-radius:12px;padding:1.25rem;margin-bottom:.875rem}
+label{font-size:12px;color:#666;display:block;margin-bottom:3px;margin-top:8px}
+label:first-of-type{margin-top:0}
+input,select,textarea{width:100%;padding:7px 10px;border:0.5px solid #ccc;border-radius:7px;font-size:13px;background:#fff;color:#1a1a1a;outline:none}
+input:focus,select:focus,textarea:focus{border-color:#555}
+textarea{resize:vertical;min-height:80px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+
+/* Nav */
+.nav{display:flex;gap:6px;margin-bottom:1.25rem;border-bottom:1px solid #e0e0e0;padding-bottom:.75rem;flex-wrap:wrap}
+.nav-btn{padding:7px 18px;border:0.5px solid #ccc;border-radius:20px;font-size:13px;cursor:pointer;background:#fff;color:#555;font-weight:500}
+.nav-btn.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1rem}
+.stat-card{background:#fff;border:0.5px solid #ddd;border-radius:10px;padding:.875rem 1rem}
+.stat-card .sv{font-size:22px;font-weight:700;margin-top:2px}
+.stat-card .sl{font-size:11px;color:#888}
+
+/* Communication type icons */
+.comm-icon{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;font-size:15px;flex-shrink:0}
+.icon-call{background:#dbeafe;color:#1d4ed8}
+.icon-email{background:#fef3c7;color:#92400e}
+.icon-sms{background:#dcfce7;color:#15803d}
+.icon-inperson{background:#ede9fe;color:#6d28d9}
+.icon-sitevisit{background:#cffafe;color:#0e7490}
+.icon-voicemail{background:#fee2e2;color:#dc2626}
+
+/* Timeline */
+.timeline{position:relative;padding-left:40px}
+.timeline::before{content:'';position:absolute;left:15px;top:0;bottom:0;width:2px;background:#f0f0f0}
+.tl-item{position:relative;margin-bottom:1rem}
+.tl-dot{position:absolute;left:-31px;top:4px;width:14px;height:14px;border-radius:50%;background:#22c55e;border:2px solid #fff;box-shadow:0 0 0 2px #22c55e}
+.tl-dot.reminder{background:#f59e0b;box-shadow:0 0 0 2px #f59e0b}
+.tl-dot.overdue{background:#ef4444;box-shadow:0 0 0 2px #ef4444}
+.tl-card{background:#fff;border:0.5px solid #e8e8e8;border-radius:10px;padding:.875rem;transition:box-shadow .15s}
+.tl-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.07)}
+.tl-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px}
+.tl-type{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.tl-time{font-size:11px;color:#aaa}
+.tl-body{font-size:13px;color:#444;line-height:1.6}
+.tl-staff{font-size:11px;color:#888;margin-top:4px}
+.tl-outcome{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;margin-top:5px}
+.outcome-positive{background:#dcfce7;color:#15803d}
+.outcome-negative{background:#fee2e2;color:#991b1b}
+.outcome-neutral{background:#f5f4f0;color:#666}
+.outcome-followup{background:#fef3c7;color:#92400e}
+
+/* Reminder badge */
+.reminder-badge{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;margin-bottom:6px;font-size:13px;border:0.5px solid}
+.reminder-overdue{background:#fff5f5;border-color:#fecaca;color:#991b1b}
+.reminder-today{background:#fffbeb;border-color:#fde68a;color:#92400e}
+.reminder-upcoming{background:#f0fdf4;border-color:#86efac;color:#15803d}
+
+/* Customer list */
+.cust-row{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:8px;margin-bottom:5px;cursor:pointer;background:#fff;border:0.5px solid #eee;transition:all .15s}
+.cust-row:hover{border-color:#aaa;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.cust-row.selected{border-color:#1a1a1a;background:#f5f4f0}
+.cust-name{font-weight:600;font-size:13px}
+.cust-meta{font-size:11px;color:#888;margin-top:2px}
+.cust-badge{font-size:11px;padding:2px 7px;border-radius:10px;font-weight:600}
+
+/* Template cards */
+.tmpl-card{background:#f5f4f0;border-radius:10px;padding:1rem;margin-bottom:.75rem;border:0.5px solid #e8e8e8;cursor:pointer;transition:all .15s}
+.tmpl-card:hover{border-color:#1a1a1a;background:#f0efe9}
+.tmpl-title{font-weight:600;font-size:13px;margin-bottom:3px}
+.tmpl-type{font-size:11px;color:#888;margin-bottom:8px}
+.tmpl-body{font-size:12px;color:#555;line-height:1.6;white-space:pre-wrap}
+
+/* Search */
+.search-wrap{position:relative;flex:1;min-width:180px}
+.search-wrap input{padding-left:28px}
+.search-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:#aaa;font-size:12px}
+
+.btn{border:none;border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;font-weight:500}
+.btn-dark{background:#1a1a1a;color:#fff}.btn-dark:hover{background:#333}
+.btn-green{background:#15803d;color:#fff}
+.btn-outline{background:#fff;color:#1a1a1a;border:0.5px solid #ccc}.btn-outline:hover{background:#f5f5f5}
+.btn-sm{padding:4px 10px;font-size:12px;border-radius:6px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:.75rem;align-items:center}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid #ccc;border-top-color:#1a1a1a;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+.toast.show{opacity:1}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:flex;align-items:center;justify-content:center;padding:1rem}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:600px;max-height:92vh;overflow-y:auto;padding:1.5rem;position:relative}
+.modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:22px;cursor:pointer;color:#888}
+.split{display:grid;grid-template-columns:280px 1fr;gap:1rem;min-height:600px}
+.left-panel{border-right:0.5px solid #eee;padding-right:1rem;overflow-y:auto;max-height:75vh}
+.right-panel{overflow-y:auto;max-height:75vh}
+</style>
+</head>
+<body>
+
+<div class="gl-header">
+  <div class="gl-logo">
+    <div class="gl-dot">🟢</div>
+    <div>
+      <div class="gl-name">Green Lit Software</div>
+      <div class="gl-tagline">Empowering Roofing Entrepreneurs</div>
+    </div>
+  </div>
+  <div class="gl-module">Customer Communications</div>
+</div>
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+  <div class="nav">
+    <button class="nav-btn active" id="nav-hub" onclick="showTab('hub')">📋 Hub</button>
+    <button class="nav-btn" id="nav-log" onclick="showTab('log')">+ Log Communication</button>
+    <button class="nav-btn" id="nav-reminders" onclick="showTab('reminders')">🔔 Reminders</button>
+    <button class="nav-btn" id="nav-templates" onclick="showTab('templates')">✉ Templates</button>
+  </div>
+  <button class="btn btn-dark" onclick="syncCustomers()" style="font-size:12px;padding:6px 14px">↺ Sync customers</button>
+</div>
+
+<!-- STATS -->
+<div class="stats" id="stats-row"></div>
+
+<!-- HUB -->
+<div id="tab-hub">
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="split">
+      <!-- Customer list -->
+      <div class="left-panel" style="padding:1rem">
+        <div style="margin-bottom:.75rem">
+          <div class="search-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="cust-search" placeholder="Search customers..." oninput="renderCustomerList()">
+          </div>
+        </div>
+        <div id="cust-list"></div>
+      </div>
+      <!-- Communication timeline -->
+      <div class="right-panel" style="padding:1rem">
+        <div id="timeline-header" style="margin-bottom:1rem">
+          <div style="color:#aaa;font-size:13px;text-align:center;padding:2rem">Select a customer to view their communication history.</div>
+        </div>
+        <div id="timeline-content"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LOG COMMUNICATION -->
+<div id="tab-log" style="display:none">
+  <div class="card">
+    <h2>Log a Communication</h2>
+
+    <!-- AI assist -->
+    <div style="background:#f5f4f0;border-radius:8px;padding:1rem;margin-bottom:1rem">
+      <div style="font-size:12px;font-weight:600;color:#555;margin-bottom:6px">🤖 AI Quick Log — paste notes and let Claude extract the details</div>
+      <textarea id="ai-notes" rows="3" placeholder="e.g. Called John Smith re: IKO Dynasty quote. He's interested but wants to compare with one other company. Told him we'd follow up Friday. Good lead."></textarea>
+      <button class="btn btn-dark btn-sm" onclick="aiExtractLog()" id="ai-btn" style="margin-top:8px">Extract with AI</button>
+    </div>
+
+    <div class="g3">
+      <div><label>Customer</label>
+        <select id="lf-customer">
+          <option value="">— Select customer —</option>
+        </select>
+      </div>
+      <div><label>Communication type</label>
+        <select id="lf-type">
+          <option value="call">📞 Phone call</option>
+          <option value="email">📧 Email</option>
+          <option value="sms">💬 Text / SMS</option>
+          <option value="inperson">🤝 In person</option>
+          <option value="sitevisit">🏠 Site visit</option>
+          <option value="voicemail">📱 Voicemail left</option>
+        </select>
+      </div>
+      <div><label>Direction</label>
+        <select id="lf-direction">
+          <option value="outbound">Outbound (we contacted them)</option>
+          <option value="inbound">Inbound (they contacted us)</option>
+        </select>
+      </div>
+    </div>
+    <div class="g3">
+      <div><label>Date & time</label><input id="lf-date" type="datetime-local"></div>
+      <div><label>Staff member</label><input id="lf-staff" placeholder="Who made/took the contact?"></div>
+      <div><label>Outcome</label>
+        <select id="lf-outcome">
+          <option value="positive">✅ Positive — moving forward</option>
+          <option value="neutral">➡ Neutral — no decision yet</option>
+          <option value="followup">🔔 Needs follow-up</option>
+          <option value="negative">❌ Not interested / lost</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:8px"><label>Notes</label>
+      <textarea id="lf-notes" placeholder="What was discussed? Key points, customer concerns, next steps..."></textarea>
+    </div>
+
+    <!-- Follow-up reminder -->
+    <div style="margin-top:1rem;padding:1rem;background:#fffbeb;border:0.5px solid #fde68a;border-radius:8px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <input type="checkbox" id="lf-reminder" style="width:auto;cursor:pointer" onchange="toggleReminderSection()">
+        <label for="lf-reminder" style="margin:0;font-size:13px;font-weight:600;color:#92400e;cursor:pointer">🔔 Set follow-up reminder</label>
+      </div>
+      <div id="reminder-section" style="display:none">
+        <div class="g2">
+          <div><label>Follow up after (days with no response)</label>
+            <select id="lf-reminder-days">
+              <option value="1">1 day</option>
+              <option value="2">2 days</option>
+              <option value="3" selected>3 days</option>
+              <option value="5">5 days</option>
+              <option value="7">7 days</option>
+              <option value="14">14 days</option>
+              <option value="30">30 days</option>
+            </select>
+          </div>
+          <div><label>Reminder note</label>
+            <input id="lf-reminder-note" placeholder="e.g. Follow up on Dynasty quote">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:1rem">
+      <button class="btn btn-dark" onclick="saveLog()" style="flex:1">Save Communication Log</button>
+      <button class="btn btn-outline" onclick="showTab('hub')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- REMINDERS -->
+<div id="tab-reminders" style="display:none">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <h2 style="margin:0">Follow-up Reminders</h2>
+      <select id="reminder-filter" onchange="renderReminders()" style="width:auto;font-size:12px;padding:5px 8px">
+        <option value="all">All reminders</option>
+        <option value="overdue">Overdue</option>
+        <option value="today">Due today</option>
+        <option value="upcoming">Upcoming</option>
+        <option value="done">Completed</option>
+      </select>
+    </div>
+    <div id="reminders-list"></div>
+  </div>
+</div>
+
+<!-- TEMPLATES -->
+<div id="tab-templates" style="display:none">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <h2 style="margin:0">Message Templates</h2>
+      <button class="btn btn-dark btn-sm" onclick="openTemplateModal()">+ New Template</button>
+    </div>
+    <p style="font-size:12px;color:#888;margin-bottom:1rem">Click any template to preview and copy. Use <strong>{{name}}</strong>, <strong>{{address}}</strong>, <strong>{{quoteNum}}</strong>, <strong>{{system}}</strong>, <strong>{{startDate}}</strong>, <strong>{{company}}</strong> as placeholders.</p>
+    <div id="templates-list"></div>
+  </div>
+</div>
+
+<!-- TEMPLATE MODAL -->
+<div class="modal-bg" id="tmpl-modal" style="display:none" onclick="if(event.target===this)closeTmplModal()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeTmplModal()">×</button>
+    <div id="tmpl-modal-content"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────────────────
+let comms = [];       // all communication logs
+let customers = [];   // from CRM
+let reminders = [];   // follow-up reminders
+let templates = [];   // message templates
+let selectedCustomerId = null;
+
+const COMM_TYPES = {
+  call:      { label:'Phone call',    icon:'📞', cls:'icon-call' },
+  email:     { label:'Email',         icon:'📧', cls:'icon-email' },
+  sms:       { label:'Text / SMS',    icon:'💬', cls:'icon-sms' },
+  inperson:  { label:'In person',     icon:'🤝', cls:'icon-inperson' },
+  sitevisit: { label:'Site visit',    icon:'🏠', cls:'icon-sitevisit' },
+  voicemail: { label:'Voicemail',     icon:'📱', cls:'icon-voicemail' },
+};
+
+const OUTCOMES = {
+  positive: { label:'Positive',     cls:'outcome-positive' },
+  neutral:  { label:'Neutral',      cls:'outcome-neutral' },
+  followup: { label:'Follow-up needed', cls:'outcome-followup' },
+  negative: { label:'Not interested', cls:'outcome-negative' },
+};
+
+const DEFAULT_TEMPLATES = [
+  {
+    id:'tmpl-1', name:'Quote Follow-Up (No Response)',
+    type:'email', category:'Sales',
+    subject:'Following up on your roofing quote — {{quoteNum}}',
+    body:`Hi {{name}},
+
+I wanted to follow up on the roofing quote we prepared for {{address}}. We provided a proposal for a {{system}} roofing system and wanted to make sure you received everything and answer any questions you might have.
+
+We're currently scheduling jobs for the coming weeks and would love to get your project on the calendar.
+
+Please don't hesitate to reach out — I'm happy to walk through the quote in detail or adjust anything to better fit your needs.
+
+Looking forward to hearing from you.
+
+{{company}}`
+  },
+  {
+    id:'tmpl-2', name:'Job Start Notification',
+    type:'sms', category:'Operations',
+    subject:'',
+    body:`Hi {{name}}, this is {{company}}. Just a heads up that your roofing crew is scheduled to begin work at {{address}} on {{startDate}}. They'll arrive between 7:00–8:00 AM. Please ensure vehicles are out of the driveway. Call us anytime with questions!`
+  },
+  {
+    id:'tmpl-3', name:'Job Completion Notice',
+    type:'email', category:'Operations',
+    subject:'Your roofing project is complete — {{address}}',
+    body:`Hi {{name}},
+
+Great news — your roofing project at {{address}} has been completed today!
+
+Our crew has completed a magnet sweep of the property, removed all debris, and cleaned up the site. Your new {{system}} roof comes with a manufacturer warranty and our {{company}} workmanship warranty.
+
+We'll be sending your final invoice shortly. In the meantime, please don't hesitate to reach out with any questions or if you'd like to do a final walkthrough.
+
+Thank you for choosing {{company}}. We truly appreciate your business!
+
+{{company}}`
+  },
+  {
+    id:'tmpl-4', name:'Payment Reminder',
+    type:'email', category:'Finance',
+    subject:'Invoice reminder — {{quoteNum}}',
+    body:`Hi {{name}},
+
+This is a friendly reminder that your invoice for roofing services at {{address}} is due for payment.
+
+If you have any questions about the invoice or would like to arrange a payment plan, please give us a call — we're happy to help.
+
+Thank you for your prompt attention to this matter.
+
+{{company}}`
+  },
+  {
+    id:'tmpl-5', name:'Appointment Confirmation',
+    type:'sms', category:'Sales',
+    subject:'',
+    body:`Hi {{name}}, confirming your roofing estimate appointment at {{address}} on {{startDate}}. Our estimator will arrive between the scheduled window. Reply CONFIRM to confirm or call us to reschedule. — {{company}}`
+  },
+  {
+    id:'tmpl-6', name:'Weather Delay Notice',
+    type:'sms', category:'Operations',
+    subject:'',
+    body:`Hi {{name}}, unfortunately we need to delay your roofing project at {{address}} due to weather conditions. Safety is our top priority. We'll be in touch within 24 hours to reschedule. We apologize for any inconvenience. — {{company}}`
+  },
+];
+
+// ── Storage ───────────────────────────────────────────────────────────────────
+async function loadAll() {
+  try {
+    const cr = await window.storage.get('crm-customers');
+    if (cr) customers = JSON.parse(cr.value);
+    const co = await window.storage.get('comms-data');
+    if (co) comms = JSON.parse(co.value);
+    const re = await window.storage.get('reminders-data');
+    if (re) reminders = JSON.parse(re.value);
+    const te = await window.storage.get('templates-data');
+    if (te) templates = JSON.parse(te.value);
+    else templates = [...DEFAULT_TEMPLATES];
+  } catch(e) {}
+  if (!templates.length) templates = [...DEFAULT_TEMPLATES];
+  populateCustomerDropdown();
+  renderCustomerList();
+  renderStats();
+  renderReminders();
+  renderTemplates();
+  setDefaultDateTime();
+  checkOverdueReminders();
+}
+
+async function saveComms() { try { await window.storage.set('comms-data', JSON.stringify(comms)); } catch(e) {} }
+async function saveReminders() { try { await window.storage.set('reminders-data', JSON.stringify(reminders)); } catch(e) {} }
+async function saveTemplates() { try { await window.storage.set('templates-data', JSON.stringify(templates)); } catch(e) {} }
+
+async function syncCustomers() {
+  try {
+    const cr = await window.storage.get('crm-customers');
+    if (cr) { customers = JSON.parse(cr.value); populateCustomerDropdown(); renderCustomerList(); toast('✓ Customers synced'); }
+    else toast('No CRM customers found — add customers in the CRM first.');
+  } catch(e) { toast('Sync failed'); }
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
+function renderStats() {
+  const today = new Date().toDateString();
+  const todayComms = comms.filter(c => new Date(c.date).toDateString() === today).length;
+  const overdueR = reminders.filter(r => !r.done && new Date(r.dueDate) < new Date()).length;
+  const pendingFollowup = comms.filter(c => c.outcome === 'followup').length;
+  const totalCustomers = [...new Set(comms.map(c => c.customerId))].length;
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-card"><div class="sl">Total logs</div><div class="sv">${comms.length}</div></div>
+    <div class="stat-card"><div class="sl">Today's contacts</div><div class="sv" style="color:#1d4ed8">${todayComms}</div></div>
+    <div class="stat-card"><div class="sl">Overdue reminders</div><div class="sv" style="color:#dc2626">${overdueR}</div></div>
+    <div class="stat-card"><div class="sl">Awaiting follow-up</div><div class="sv" style="color:#d97706">${pendingFollowup}</div></div>`;
+}
+
+// ── Customer list ─────────────────────────────────────────────────────────────
+function renderCustomerList() {
+  const q = (document.getElementById('cust-search')?.value || '').toLowerCase();
+  const div = document.getElementById('cust-list');
+
+  // Build customer list with comm counts
+  const custWithComms = customers.map(c => {
+    const custComms = comms.filter(x => x.customerId === c.id);
+    const lastComm = custComms.sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+    const overdueR = reminders.filter(r => r.customerId === c.id && !r.done && new Date(r.dueDate) < new Date()).length;
+    return { ...c, commCount: custComms.length, lastComm, overdueR };
+  }).filter(c => {
+    if (!q) return true;
+    return [c.first, c.last, c.phone, c.city].filter(Boolean).join(' ').toLowerCase().includes(q);
+  }).sort((a, b) => {
+    // Sort by most recent comm, then overdue
+    if (a.overdueR !== b.overdueR) return b.overdueR - a.overdueR;
+    if (!a.lastComm && !b.lastComm) return 0;
+    if (!a.lastComm) return 1;
+    if (!b.lastComm) return -1;
+    return new Date(b.lastComm.date) - new Date(a.lastComm.date);
+  });
+
+  // Also show customers with comms but not in CRM
+  const orphanIds = [...new Set(comms.map(c => c.customerId))].filter(id => !customers.find(c => c.id === id));
+
+  if (!custWithComms.length && !orphanIds.length) {
+    div.innerHTML = '<div style="color:#aaa;font-size:13px;padding:1rem 0">No customers yet. Sync from CRM or log a communication manually.</div>';
+    return;
+  }
+
+  div.innerHTML = custWithComms.map(c => `
+    <div class="cust-row ${selectedCustomerId === c.id ? 'selected' : ''}" onclick="selectCustomer('${c.id}')">
+      <div style="flex:1">
+        <div class="cust-name">${c.first || ''} ${c.last || ''}</div>
+        <div class="cust-meta">${c.city || ''} · ${c.commCount} log${c.commCount !== 1 ? 's' : ''}${c.lastComm ? ' · ' + timeAgo(c.lastComm.date) : ''}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+        ${c.overdueR > 0 ? `<span class="cust-badge" style="background:#fee2e2;color:#991b1b">🔔 ${c.overdueR} overdue</span>` : ''}
+        ${c.commCount > 0 ? `<span class="cust-badge" style="background:#f0efe9;color:#666">${COMM_TYPES[c.lastComm?.type]?.icon || '📋'}</span>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+function selectCustomer(id) {
+  selectedCustomerId = id;
+  renderCustomerList();
+  renderTimeline(id);
+}
+
+function renderTimeline(customerId) {
+  const cust = customers.find(c => c.id === customerId);
+  const custComms = comms.filter(c => c.customerId === customerId).sort((a, b) => new Date(b.date) - new Date(a.date));
+  const custReminders = reminders.filter(r => r.customerId === customerId && !r.done);
+
+  const header = document.getElementById('timeline-header');
+  const content = document.getElementById('timeline-content');
+
+  header.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem">
+      <div>
+        <div style="font-size:16px;font-weight:700">${cust ? (cust.first + ' ' + cust.last) : 'Customer'}</div>
+        <div style="font-size:12px;color:#888;margin-top:2px">${cust?.phone || ''} ${cust?.email ? '· ' + cust.email : ''} ${cust?.city ? '· ' + cust.city : ''}</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-dark btn-sm" onclick="quickLog('${customerId}')">+ Log contact</button>
+      </div>
+    </div>
+    ${custReminders.length ? `
+    <div style="margin-bottom:.75rem">
+      ${custReminders.map(r => `
+        <div class="reminder-badge ${new Date(r.dueDate) < new Date() ? 'reminder-overdue' : 'reminder-upcoming'}">
+          🔔 <strong>${r.note}</strong> — due ${fmtDate(r.dueDate)}
+          <button onclick="markReminderDone('${r.id}')" style="margin-left:auto;background:none;border:0.5px solid currentColor;border-radius:5px;padding:1px 8px;font-size:11px;cursor:pointer">Done</button>
+        </div>`).join('')}
+    </div>` : ''}`;
+
+  if (!custComms.length) {
+    content.innerHTML = '<div style="color:#aaa;font-size:13px;text-align:center;padding:2rem">No communications logged yet.</div>';
+    return;
+  }
+
+  content.innerHTML = `<div class="timeline">${custComms.map(c => {
+    const type = COMM_TYPES[c.type] || COMM_TYPES.call;
+    const outcome = OUTCOMES[c.outcome] || OUTCOMES.neutral;
+    return `<div class="tl-item">
+      <div class="tl-dot ${c.outcome === 'followup' ? 'reminder' : c.outcome === 'negative' ? 'overdue' : ''}"></div>
+      <div class="tl-card">
+        <div class="tl-header">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="comm-icon ${type.cls}">${type.icon}</span>
+            <div>
+              <div class="tl-type" style="color:${type.cls.includes('call') ? '#1d4ed8' : type.cls.includes('email') ? '#92400e' : type.cls.includes('sms') ? '#15803d' : '#6d28d9'}">${type.label} · ${c.direction === 'inbound' ? 'Inbound' : 'Outbound'}</div>
+              <div class="tl-time">${fmtDateTime(c.date)}</div>
+            </div>
+          </div>
+          <button onclick="deleteComm('${c.id}')" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:16px;padding:0" title="Delete">×</button>
+        </div>
+        ${c.notes ? `<div class="tl-body">${c.notes}</div>` : ''}
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+          <span class="tl-outcome ${outcome.cls}">${outcome.label}</span>
+          ${c.staff ? `<span class="tl-staff">👤 ${c.staff}</span>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ── Log communication ─────────────────────────────────────────────────────────
+function saveLog() {
+  const customerId = sv('lf-customer');
+  if (!customerId) { alert('Please select a customer.'); return; }
+  const hasReminder = document.getElementById('lf-reminder').checked;
+  const comm = {
+    id: 'comm-' + Date.now(),
+    customerId,
+    type: sv('lf-type'),
+    direction: sv('lf-direction'),
+    date: sv('lf-date') || new Date().toISOString(),
+    staff: sv('lf-staff'),
+    outcome: sv('lf-outcome'),
+    notes: sv('lf-notes'),
+    createdAt: new Date().toISOString(),
+  };
+  if (!comm.notes && !comm.type) { alert('Please add some details.'); return; }
+  comms.unshift(comm);
+  // Add reminder if checked
+  if (hasReminder) {
+    const days = parseInt(sv('lf-reminder-days')) || 3;
+    const dueDate = new Date(comm.date);
+    dueDate.setDate(dueDate.getDate() + days);
+    reminders.unshift({
+      id: 'rem-' + Date.now(),
+      customerId,
+      commId: comm.id,
+      note: sv('lf-reminder-note') || 'Follow up with customer',
+      dueDate: dueDate.toISOString().split('T')[0],
+      days,
+      done: false,
+      createdAt: new Date().toISOString(),
+    });
+    saveReminders();
+  }
+  saveComms(); renderStats(); renderCustomerList(); renderReminders();
+  if (selectedCustomerId === customerId) renderTimeline(customerId);
+  clearLogForm(); showTab('hub'); selectCustomer(customerId);
+  toast('✓ Communication logged');
+}
+
+function quickLog(customerId) {
+  document.getElementById('lf-customer').value = customerId;
+  showTab('log');
+}
+
+function clearLogForm() {
+  ['lf-staff','lf-notes','lf-reminder-note'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  document.getElementById('lf-type').value = 'call';
+  document.getElementById('lf-direction').value = 'outbound';
+  document.getElementById('lf-outcome').value = 'neutral';
+  document.getElementById('lf-reminder').checked = false;
+  document.getElementById('reminder-section').style.display = 'none';
+  document.getElementById('ai-notes').value = '';
+  setDefaultDateTime();
+}
+
+function toggleReminderSection() {
+  document.getElementById('reminder-section').style.display =
+    document.getElementById('lf-reminder').checked ? 'block' : 'none';
+}
+
+async function deleteComm(id) {
+  if (!confirm('Delete this log entry?')) return;
+  comms = comms.filter(c => c.id !== id);
+  await saveComms(); renderStats(); renderCustomerList();
+  if (selectedCustomerId) renderTimeline(selectedCustomerId);
+  toast('Log deleted');
+}
+
+// ── AI Extract ────────────────────────────────────────────────────────────────
+async function aiExtractLog() {
+  const notes = sv('ai-notes');
+  if (!notes) { alert('Please enter some notes first.'); return; }
+  const btn = document.getElementById('ai-btn');
+  btn.innerHTML = '<span class="spinner"></span>Analyzing...'; btn.disabled = true;
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514', max_tokens: 500,
+        messages: [{ role: 'user', content: `Extract communication log details from these notes and return ONLY a JSON object:
+{
+  "type": "call|email|sms|inperson|sitevisit|voicemail",
+  "direction": "inbound|outbound",
+  "outcome": "positive|neutral|followup|negative",
+  "notes": "clean summary of what happened",
+  "staff": "name of staff member if mentioned or null",
+  "needsFollowup": true/false,
+  "followupNote": "what to follow up on or null"
+}
+
+Notes: ${notes}` }]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content?.map(c => c.text || '').join('');
+    const parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
+    // Apply to form
+    if (parsed.type) document.getElementById('lf-type').value = parsed.type;
+    if (parsed.direction) document.getElementById('lf-direction').value = parsed.direction;
+    if (parsed.outcome) document.getElementById('lf-outcome').value = parsed.outcome;
+    if (parsed.notes) document.getElementById('lf-notes').value = parsed.notes;
+    if (parsed.staff) document.getElementById('lf-staff').value = parsed.staff;
+    if (parsed.needsFollowup) {
+      document.getElementById('lf-reminder').checked = true;
+      toggleReminderSection();
+      if (parsed.followupNote) document.getElementById('lf-reminder-note').value = parsed.followupNote;
+    }
+    toast('✓ Details extracted — review and save');
+  } catch(e) {
+    toast('Could not extract details — fill in manually');
+  }
+  btn.innerHTML = 'Extract with AI'; btn.disabled = false;
+}
+
+// ── Reminders ─────────────────────────────────────────────────────────────────
+function renderReminders() {
+  const filter = sv('reminder-filter') || 'all';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayStr = today.toDateString();
+
+  let list = reminders.filter(r => {
+    const due = new Date(r.dueDate); due.setHours(0,0,0,0);
+    if (filter === 'overdue') return !r.done && due < today;
+    if (filter === 'today') return !r.done && due.toDateString() === todayStr;
+    if (filter === 'upcoming') return !r.done && due > today;
+    if (filter === 'done') return r.done;
+    return true;
+  }).sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+
+  const div = document.getElementById('reminders-list');
+  if (!list.length) { div.innerHTML = '<div style="color:#aaa;font-size:13px;text-align:center;padding:2rem">No reminders in this category.</div>'; return; }
+
+  div.innerHTML = list.map(r => {
+    const cust = customers.find(c => c.id === r.customerId);
+    const due = new Date(r.dueDate); due.setHours(0,0,0,0);
+    const isOverdue = !r.done && due < today;
+    const isToday = !r.done && due.toDateString() === todayStr;
+    const cls = r.done ? 'reminder-upcoming' : isOverdue ? 'reminder-overdue' : isToday ? 'reminder-today' : 'reminder-upcoming';
+    return `
+      <div class="reminder-badge ${cls}" style="margin-bottom:8px;${r.done ? 'opacity:.5' : ''}">
+        <div style="flex:1">
+          <div style="font-weight:600">${r.note}</div>
+          <div style="font-size:11px;margin-top:2px">
+            ${cust ? (cust.first + ' ' + cust.last) : 'Unknown customer'} ·
+            Due: ${fmtDate(r.dueDate)}${isOverdue ? ' <strong>(Overdue)</strong>' : ''}
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          ${!r.done ? `
+            <button onclick="markReminderDone('${r.id}')" class="btn btn-sm" style="background:#15803d;color:#fff;border:none">✓ Done</button>
+            <button onclick="selectCustomer('${r.customerId}');showTab('hub')" class="btn btn-outline btn-sm">View</button>` :
+            `<span style="font-size:11px;color:#aaa">Completed ${fmtDate(r.doneAt)}</span>`}
+          <button onclick="deleteReminder('${r.id}')" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:16px;padding:0">×</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function markReminderDone(id) {
+  const r = reminders.find(x => x.id === id); if (!r) return;
+  r.done = true; r.doneAt = new Date().toISOString();
+  await saveReminders(); renderReminders(); renderStats();
+  if (selectedCustomerId) renderTimeline(selectedCustomerId);
+  toast('✓ Reminder marked done');
+}
+
+async function deleteReminder(id) {
+  reminders = reminders.filter(r => r.id !== id);
+  await saveReminders(); renderReminders();
+}
+
+function checkOverdueReminders() {
+  const overdue = reminders.filter(r => !r.done && new Date(r.dueDate) < new Date()).length;
+  if (overdue > 0) {
+    const btn = document.getElementById('nav-reminders');
+    if (btn) btn.textContent = `🔔 Reminders (${overdue})`;
+  }
+}
+
+// ── Templates ─────────────────────────────────────────────────────────────────
+function renderTemplates() {
+  const div = document.getElementById('templates-list');
+  const categories = [...new Set(templates.map(t => t.category))];
+  div.innerHTML = categories.map(cat => `
+    <div style="margin-bottom:1.25rem">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#aaa;margin-bottom:.5rem">${cat}</div>
+      ${templates.filter(t => t.category === cat).map(t => `
+        <div class="tmpl-card" onclick="previewTemplate('${t.id}')">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+              <div class="tmpl-title">${t.name}</div>
+              <div class="tmpl-type">${t.type === 'email' ? '📧 Email' : t.type === 'sms' ? '💬 SMS' : '📋 General'}</div>
+            </div>
+            <div style="display:flex;gap:6px">
+              <button onclick="event.stopPropagation();previewTemplate('${t.id}')" class="btn btn-outline btn-sm">Preview</button>
+              <button onclick="event.stopPropagation();deleteTemplate('${t.id}')" class="btn btn-outline btn-sm" style="color:#c0392b">✕</button>
+            </div>
+          </div>
+          <div class="tmpl-body" style="max-height:60px;overflow:hidden;position:relative">${t.body}
+            <div style="position:absolute;bottom:0;left:0;right:0;height:20px;background:linear-gradient(transparent,#f5f4f0)"></div>
+          </div>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+function previewTemplate(id) {
+  const t = templates.find(x => x.id === id); if (!t) return;
+  const modal = document.getElementById('tmpl-modal');
+  document.getElementById('tmpl-modal-content').innerHTML = `
+    <div style="font-size:17px;font-weight:700;margin-bottom:.25rem">${t.name}</div>
+    <div style="font-size:12px;color:#888;margin-bottom:1rem">${t.type === 'email' ? '📧 Email' : '💬 SMS'} · ${t.category}</div>
+    ${t.subject ? `<div style="background:#f5f4f0;border-radius:7px;padding:8px 12px;font-size:13px;margin-bottom:.75rem"><strong>Subject:</strong> ${t.subject}</div>` : ''}
+    <div style="background:#f9f9f9;border:0.5px solid #eee;border-radius:8px;padding:1rem;font-size:13px;line-height:1.8;white-space:pre-wrap;margin-bottom:1rem">${t.body}</div>
+    <div style="font-size:11px;color:#aaa;margin-bottom:1rem">Placeholders: {{name}} {{address}} {{quoteNum}} {{system}} {{startDate}} {{company}}</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-dark" onclick="copyTemplate('${id}')" style="flex:1">📋 Copy to clipboard</button>
+      <button class="btn btn-outline" onclick="closeTmplModal()">Close</button>
+    </div>`;
+  modal.style.display = 'flex';
+}
+
+function copyTemplate(id) {
+  const t = templates.find(x => x.id === id); if (!t) return;
+  const text = (t.subject ? 'Subject: ' + t.subject + '\n\n' : '') + t.body;
+  navigator.clipboard.writeText(text).then(() => toast('✓ Copied to clipboard')).catch(() => toast('Copy failed'));
+}
+
+function openTemplateModal() {
+  document.getElementById('tmpl-modal-content').innerHTML = `
+    <div style="font-size:17px;font-weight:700;margin-bottom:1rem">New Template</div>
+    <div class="g2">
+      <div><label style="margin-top:0">Template name</label><input id="new-tmpl-name" placeholder="e.g. Storm Damage Follow-up"></div>
+      <div><label style="margin-top:0">Category</label>
+        <select id="new-tmpl-cat"><option>Sales</option><option>Operations</option><option>Finance</option><option>General</option></select>
+      </div>
+    </div>
+    <div class="g2" style="margin-top:8px">
+      <div><label>Type</label>
+        <select id="new-tmpl-type"><option value="email">Email</option><option value="sms">SMS</option><option value="general">General</option></select>
+      </div>
+      <div><label>Subject (email only)</label><input id="new-tmpl-subject" placeholder="Email subject line"></div>
+    </div>
+    <div style="margin-top:8px"><label>Message body</label>
+      <textarea id="new-tmpl-body" rows="8" placeholder="Use {{name}}, {{address}}, {{quoteNum}}, {{system}}, {{startDate}}, {{company}} as placeholders..."></textarea>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:1rem">
+      <button class="btn btn-dark" onclick="saveNewTemplate()" style="flex:1">Save Template</button>
+      <button class="btn btn-outline" onclick="closeTmplModal()">Cancel</button>
+    </div>`;
+  document.getElementById('tmpl-modal').style.display = 'flex';
+}
+
+function saveNewTemplate() {
+  const name = document.getElementById('new-tmpl-name')?.value.trim();
+  const body = document.getElementById('new-tmpl-body')?.value.trim();
+  if (!name || !body) { alert('Please fill in name and body.'); return; }
+  templates.push({
+    id: 'tmpl-' + Date.now(),
+    name, category: document.getElementById('new-tmpl-cat')?.value,
+    type: document.getElementById('new-tmpl-type')?.value,
+    subject: document.getElementById('new-tmpl-subject')?.value || '',
+    body,
+  });
+  saveTemplates(); renderTemplates(); closeTmplModal(); toast('✓ Template saved');
+}
+
+async function deleteTemplate(id) {
+  if (!confirm('Delete this template?')) return;
+  templates = templates.filter(t => t.id !== id);
+  await saveTemplates(); renderTemplates(); toast('Template deleted');
+}
+
+function closeTmplModal() { document.getElementById('tmpl-modal').style.display = 'none'; }
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function populateCustomerDropdown() {
+  const sel = document.getElementById('lf-customer');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">— Select customer —</option>';
+  customers.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c.id;
+    o.textContent = (c.first + ' ' + c.last).trim() + (c.city ? ' — ' + c.city : '');
+    sel.appendChild(o);
+  });
+  sel.value = cur;
+}
+
+function setDefaultDateTime() {
+  const el = document.getElementById('lf-date');
+  if (el) el.value = new Date().toISOString().slice(0, 16);
+}
+
+function showTab(name) {
+  ['hub','log','reminders','templates'].forEach(t => {
+    document.getElementById('tab-' + t).style.display = t === name ? 'block' : 'none';
+    document.getElementById('nav-' + t)?.classList.toggle('active', t === name);
+  });
+  if (name === 'log') { setDefaultDateTime(); }
+  if (name === 'reminders') renderReminders();
+}
+
+function sv(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+function fmtDate(iso) { if (!iso) return '—'; return new Date(iso).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' }); }
+function fmtDateTime(iso) { if (!iso) return '—'; return new Date(iso).toLocaleString('en-CA', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); }
+function timeAgo(iso) {
+  if (!iso) return '';
+  const days = Math.floor((Date.now() - new Date(iso)) / 86400000);
+  if (days === 0) return 'today';
+  if (days === 1) return 'yesterday';
+  if (days < 7) return days + 'd ago';
+  if (days < 30) return Math.floor(days/7) + 'w ago';
+  return Math.floor(days/30) + 'mo ago';
+}
+function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); }
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadAll();
+</script>
+</body>
+</html>

@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Roofing Labour Work Order</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;font-size:14px;color:#1a1a1a;background:#f0efe9;padding:1rem}
+.gl-header{background:#1a1a1a;color:#fff;border-radius:12px;padding:1rem 1.5rem;margin-bottom:1.25rem;display:flex;justify-content:space-between;align-items:center}
+.gl-logo{display:flex;align-items:center;gap:10px}
+.gl-dot{width:28px;height:28px;background:#22c55e;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.gl-name{font-size:17px;font-weight:700;letter-spacing:-.01em}
+.gl-tagline{font-size:11px;color:#888;margin-top:1px}
+.gl-module{font-size:12px;color:#22c55e;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+h1{font-size:19px;font-weight:600;margin-bottom:.25rem}
+.subtitle{font-size:12px;color:#888;margin-bottom:1.25rem}
+h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#777;margin-bottom:.75rem}
+.card{background:#fff;border:0.5px solid #ddd;border-radius:12px;padding:1.25rem;margin-bottom:.875rem}
+label{font-size:12px;color:#666;display:block;margin-bottom:3px;margin-top:10px}
+label:first-of-type{margin-top:0}
+input,select,textarea{width:100%;padding:7px 10px;border:0.5px solid #ccc;border-radius:7px;font-size:13px;background:#fff;color:#1a1a1a;outline:none}
+input:focus,select:focus,textarea:focus{border-color:#555}
+input[readonly]{background:#f5f5f5;color:#666}
+textarea{resize:vertical;min-height:56px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
+.toggle-row{display:flex;align-items:center;gap:8px;margin-top:8px}
+.toggle-row input[type=checkbox]{width:auto;cursor:pointer}
+.toggle-row label{margin:0;font-size:13px;color:#444;cursor:pointer;margin-top:0}
+.multi-check{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.multi-check label{display:flex;align-items:center;gap:5px;font-size:13px;color:#444;margin:0;cursor:pointer;background:#f5f4f0;padding:4px 10px;border-radius:20px;border:0.5px solid #e0e0e0}
+.multi-check input[type=checkbox]{width:auto;margin:0}
+.section-note{font-size:12px;color:#aaa;margin-top:4px;font-style:italic}
+.btn-row{display:flex;gap:8px;margin-top:.5rem}
+.btn{border:none;border-radius:8px;padding:10px 18px;font-size:14px;cursor:pointer;font-weight:500}
+.btn-dark{background:#1a1a1a;color:#fff}
+.btn-dark:hover{background:#333}
+.btn-outline{background:#fff;color:#1a1a1a;border:0.5px solid #ccc}
+.btn-outline:hover{background:#f5f5f5}
+.btn-green{background:#2e7d32;color:#fff}
+.btn-green:hover{background:#1b5e20}
+.wo-num{font-size:22px;font-weight:700;color:#1a1a1a}
+.signoff-line{border-bottom:0.5px solid #333;width:100%;margin-top:2rem;margin-bottom:.25rem}
+.signoff-label{font-size:11px;color:#888}
+.saved-list{margin-top:.5rem}
+.saved-item{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#f5f4f0;border-radius:8px;margin-bottom:6px;font-size:13px}
+.saved-item button{background:none;border:0.5px solid #ccc;border-radius:6px;padding:3px 10px;font-size:12px;cursor:pointer}
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+.toast.show{opacity:1}
+@media print{
+  body{background:#fff;padding:0}
+  .no-print{display:none!important}
+  .card{border:none;padding:.5rem 0;margin-bottom:.5rem;page-break-inside:avoid}
+  h1{font-size:16px}
+  .signoff-line{margin-top:1rem}
+}
+</style>
+</head>
+<body>
+
+<div class="gl-header">
+  <div class="gl-logo">
+    <div class="gl-dot">🟢</div>
+    <div>
+      <div class="gl-name">Green Lit Software</div>
+      <div class="gl-tagline">Empowering Roofing Entrepreneurs</div>
+    </div>
+  </div>
+  <div class="gl-module">Labour Work Order</div>
+</div>
+<div class="no-print" style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
+  <div style="display:flex;gap:8px">
+    <button class="btn btn-outline" onclick="loadSaved()">📂 Saved WOs</button>
+    <button class="btn btn-outline" onclick="window.print()">🖨 Print / PDF</button>
+    <button class="btn btn-dark" onclick="saveWO()">💾 Save Work Order</button>
+  </div>
+</div>
+
+<!-- SAVED LIST -->
+<div id="saved-panel" class="card no-print" style="display:none">
+  <h2 style="margin-bottom:.5rem">Saved Work Orders</h2>
+  <div id="saved-list"><em style="color:#aaa;font-size:13px">No saved work orders yet.</em></div>
+</div>
+
+<!-- 1. JOB INFO -->
+<div class="card">
+  <h2>1. Job Information</h2>
+  <div class="g2">
+    <div><label>Work Order #</label><input id="wo-num" placeholder="Auto from quote #" readonly></div>
+    <div><label>Date Issued</label><input id="wo-date" type="date"></div>
+  </div>
+  <div class="g2">
+    <div><label>Project name / Customer</label><input id="wo-customer" placeholder="Customer name"></div>
+    <div><label>Job address</label><input id="wo-address" placeholder="Street address"></div>
+  </div>
+  <div class="g3">
+    <div><label>City</label><input id="wo-city" placeholder="City"></div>
+    <div><label>Project type</label>
+      <select id="wo-projtype">
+        <option>Full Reroof</option><option>Partial Reroof</option>
+        <option>New Construction</option><option>Insurance Claim</option><option>Repair / Service</option>
+      </select>
+    </div>
+    <div><label>Building type</label>
+      <select id="wo-bldgtype">
+        <option>Single Family</option><option>Duplex</option><option>Townhouse</option>
+        <option>Condo / Multi-Family</option><option>Commercial Sloped</option>
+      </select>
+    </div>
+  </div>
+  <div style="margin-top:10px"><label>Roofing system selected</label><input id="wo-product" readonly style="font-weight:600"></div>
+</div>
+
+<!-- 2. SUBCONTRACTOR -->
+<div class="card">
+  <h2>2. Subcontractor Info</h2>
+  <div class="g3">
+    <div><label>Company name</label><input id="sub-company" placeholder="Company name"></div>
+    <div><label>Contact name</label><input id="sub-contact" placeholder="Contact name"></div>
+    <div><label>Phone</label><input id="sub-phone" placeholder="(780) 000-0000"></div>
+  </div>
+</div>
+
+<!-- 3. SCHEDULE -->
+<div class="card">
+  <h2>3. Schedule</h2>
+  <div class="g3">
+    <div><label>Start date</label><input id="sch-start" type="date"></div>
+    <div><label>Start flexibility</label>
+      <select id="sch-flex">
+        <option>Fixed Date</option><option>Flexible (Weather Dependent)</option>
+      </select>
+    </div>
+    <div><label>Completion requirement</label>
+      <select id="sch-completion">
+        <option>1 Day</option><option>2–3 Days</option>
+        <option>By Deadline</option><option>Continuous Until Complete</option>
+      </select>
+    </div>
+  </div>
+  <div id="deadline-wrap" style="display:none;margin-top:8px">
+    <label>Deadline date</label><input type="date" id="sch-deadline">
+  </div>
+</div>
+
+<!-- 4. SCOPE OF WORK -->
+<div class="card">
+  <h2>4. Scope of Work</h2>
+
+  <h2 style="color:#aaa;margin-top:.5rem">Tear-Off</h2>
+  <div class="g2">
+    <div><label>Tear-off required</label>
+      <select id="sw-tearoff">
+        <option>No Tear-Off</option><option>1 Layer</option>
+        <option>2 Layers</option><option>Spot Tear-Off</option>
+      </select>
+    </div>
+    <div><label>Disposal</label>
+      <select id="sw-disposal">
+        <option>Supplied by Contractor (bin onsite)</option>
+        <option>Sub Haul Away</option><option>Leave On Site</option>
+      </select>
+    </div>
+  </div>
+
+  <h2 style="color:#aaa;margin-top:1rem">Decking</h2>
+  <div class="g2">
+    <div>
+      <label>Deck inspection required</label>
+      <select id="sw-deckinsp"><option>Yes</option><option>No</option></select>
+    </div>
+    <div>
+      <label>Decking replacement rate applies</label>
+      <select id="sw-deckrate"><option>Yes</option><option>No</option></select>
+    </div>
+  </div>
+
+  <h2 style="color:#aaa;margin-top:1rem">Installation</h2>
+  <div class="g2">
+    <div><label>Roofing system</label>
+      <select id="sw-system">
+        <option>Architectural Asphalt</option>
+        <option>Designer Asphalt (Grand Sequoia, etc.)</option>
+        <option>F-Wave Synthetic</option>
+        <option>Euroshield Rubber</option>
+        <option>Cedar</option>
+      </select>
+    </div>
+    <div><label>Primary underlayment</label>
+      <select id="sw-underlay">
+        <option>Synthetic</option><option>Self-Adhered (full)</option>
+      </select>
+    </div>
+  </div>
+  <div style="margin-top:8px"><label>Ice &amp; water coverage</label>
+    <select id="sw-icewater">
+      <option>Eaves Only</option><option>Eaves + Valleys</option>
+      <option>Full Coverage</option><option>Custom Layout</option>
+    </select>
+  </div>
+
+  <h2 style="color:#aaa;margin-top:1rem">Flashing</h2>
+  <div><label>Valley type</label>
+    <select id="sw-valley">
+      <option>W Valley</option><option>Open Metal Valley</option>
+      <option>Closed Cut</option><option>California Valley</option>
+    </select>
+  </div>
+  <div style="margin-top:8px"><label>Flashing included</label>
+    <div class="multi-check" id="mc-flashing">
+      <label><input type="checkbox" value="Step Flashing"> Step Flashing</label>
+      <label><input type="checkbox" value="Apron Flashing"> Apron Flashing</label>
+      <label><input type="checkbox" value="Chimney Flashing"> Chimney Flashing</label>
+      <label><input type="checkbox" value="Parapet Tie-In"> Parapet Tie-In</label>
+      <label><input type="checkbox" value="Wall Flashing"> Wall Flashing</label>
+      <label><input type="checkbox" value="Skylight Flashing"> Skylight Flashing</label>
+    </div>
+  </div>
+
+  <h2 style="color:#aaa;margin-top:1rem">Ventilation</h2>
+  <div class="g2">
+    <div><label>Vent type</label>
+      <select id="sw-venttype">
+        <option>Box Vents</option><option>Ridge Vent</option>
+        <option>Off-Ridge Vent</option><option>Slant Back Vent</option><option>None</option>
+      </select>
+    </div>
+    <div><label>Intake</label>
+      <select id="sw-intake">
+        <option>Existing</option><option>Add Vented Soffit</option>
+        <option>Add SmartVent</option><option>None</option>
+      </select>
+    </div>
+  </div>
+
+  <h2 style="color:#aaa;margin-top:1rem">Accessories</h2>
+  <div class="g2">
+    <div><label>Starter</label>
+      <select id="sw-starter">
+        <option>Manufacturer Starter</option><option>Cut 3-Tab</option>
+        <option>System-Specific (F-Wave, Designer)</option>
+      </select>
+    </div>
+    <div><label>Ridge cap</label>
+      <select id="sw-ridge">
+        <option>Standard Ridge</option><option>High Profile Ridge</option>
+        <option>Manufacturer Specific</option><option>Metal Ridge</option>
+      </select>
+    </div>
+  </div>
+  <div style="margin-top:8px"><label>Penetrations</label>
+    <div class="multi-check" id="mc-penetrations">
+      <label><input type="checkbox" value="Pipe Boots"> Pipe Boots</label>
+      <label><input type="checkbox" value="Furnace Vents"> Furnace Vents</label>
+      <label><input type="checkbox" value="Goosenecks"> Goosenecks</label>
+      <label><input type="checkbox" value="B-Vents"> B-Vents</label>
+      <label><input type="checkbox" value="Custom Flashing"> Custom Flashing</label>
+    </div>
+  </div>
+</div>
+
+<!-- 5. QUANTITIES -->
+<div class="card">
+  <h2>5. Quantities</h2>
+  <div class="g3">
+    <div><label>Total squares</label><input id="q-squares" type="number" min="0" placeholder="0.00"></div>
+    <div><label>Eaves (LF)</label><input id="q-eaves" type="number" min="0" placeholder="0"></div>
+    <div><label>Rakes (LF)</label><input id="q-rakes" type="number" min="0" placeholder="0"></div>
+  </div>
+  <div class="g3" style="margin-top:4px">
+    <div><label>Valleys (LF)</label><input id="q-valleys" type="number" min="0" placeholder="0"></div>
+    <div><label>Ridge / Hips (LF)</label><input id="q-ridge" type="number" min="0" placeholder="0"></div>
+    <div><label>Penetrations (#)</label><input id="q-penetrations" type="number" min="0" placeholder="0"></div>
+  </div>
+</div>
+
+<!-- 6. PRICING -->
+<div class="card">
+  <h2>6. Pricing</h2>
+  <div><label>Primary pay structure</label>
+    <select id="pr-structure" onchange="togglePricing()">
+      <option>Per Square (Install Only)</option>
+      <option>Per Square (Tear-Off + Install)</option>
+      <option>Split Rate (Tear-Off + Install Separate)</option>
+    </select>
+  </div>
+  <div class="g2" style="margin-top:8px">
+    <div><label>Install $/square</label><input id="pr-install" type="number" min="0" step="0.01" placeholder="0.00"></div>
+    <div id="pr-tearoff-wrap"><label>Tear-Off $/square</label><input id="pr-tearoff" type="number" min="0" step="0.01" placeholder="0.00"></div>
+  </div>
+  <h2 style="color:#aaa;margin-top:1rem">Extras</h2>
+  <div class="g4">
+    <div><label>Valleys $/LF</label><input id="pr-valleys" type="number" min="0" step="0.01" placeholder="0.00"></div>
+    <div><label>Ridge $/LF</label><input id="pr-ridgelf" type="number" min="0" step="0.01" placeholder="0.00"></div>
+    <div><label>Steep charge</label><input id="pr-steep" type="number" min="0" step="0.01" placeholder="0.00"></div>
+    <div><label>Height charge</label><input id="pr-height" type="number" min="0" step="0.01" placeholder="0.00"></div>
+  </div>
+  <div class="g2" style="margin-top:4px">
+    <div><label>Decking $/sheet</label><input id="pr-decking" type="number" min="0" step="0.01" placeholder="0.00"></div>
+    <div><label>Flashing $/LF or each</label><input id="pr-flashing" type="number" min="0" step="0.01" placeholder="0.00"></div>
+  </div>
+</div>
+
+<!-- 7. MATERIALS RESPONSIBILITY -->
+<div class="card">
+  <h2>7. Materials Responsibility</h2>
+  <div><label>Materials supplied by</label>
+    <select id="mr-supplier">
+      <option>Contractor</option><option>Subcontractor (partial)</option>
+    </select>
+  </div>
+  <div style="margin-top:8px"><label>Sub supplies</label>
+    <div class="multi-check" id="mc-subsupplies">
+      <label><input type="checkbox" value="Nails"> Nails</label>
+      <label><input type="checkbox" value="Sealant"> Sealant</label>
+      <label><input type="checkbox" value="Flashing"> Flashing</label>
+      <label><input type="checkbox" value="Tools Only"> Tools Only</label>
+    </div>
+  </div>
+</div>
+
+<!-- 8. WORKMANSHIP -->
+<div class="card">
+  <h2>8. Workmanship Requirements</h2>
+  <div class="g3">
+    <div><label>Install standard</label>
+      <select id="wm-standard">
+        <option>Manufacturer Spec Required</option>
+        <option>Enhanced Spec (company standard)</option>
+      </select>
+    </div>
+    <div><label>Fastening pattern</label>
+      <select id="wm-nails">
+        <option>4 Nail</option><option>5 Nail</option>
+        <option>6 Nail</option><option>Manufacturer Required</option>
+      </select>
+    </div>
+    <div><label>Inspection required</label>
+      <div class="multi-check" style="margin-top:6px" id="mc-inspection">
+        <label><input type="checkbox" value="Mid-Roof"> Mid-Roof</label>
+        <label><input type="checkbox" value="Final"> Final</label>
+        <label><input type="checkbox" value="Photo Documentation"> Photo Docs</label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 9. SAFETY -->
+<div class="card">
+  <h2>9. Safety</h2>
+  <div class="g3">
+    <div><label>Fall protection required</label>
+      <select id="sf-fall"><option>Yes</option><option>No</option></select>
+    </div>
+    <div style="grid-column:span 2">
+      <label>Safety compliance</label>
+      <div class="multi-check" style="margin-top:6px">
+        <label><input type="checkbox" checked disabled> WCB Active</label>
+        <label><input type="checkbox" checked disabled> Harness / Anchors</label>
+        <label><input type="checkbox" value="Guardrails"> Guardrails (if required)</label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 10. CLEANUP -->
+<div class="card">
+  <h2>10. Cleanup</h2>
+  <div class="g2">
+    <div><label>Daily cleanup required</label>
+      <select id="cl-daily"><option>Yes</option><option>No</option></select>
+    </div>
+    <div><label>Final cleanup includes</label>
+      <div class="multi-check" style="margin-top:6px" id="mc-cleanup">
+        <label><input type="checkbox" value="Magnet Sweep" checked> Magnet Sweep</label>
+        <label><input type="checkbox" value="Debris Removal" checked> Debris Removal</label>
+        <label><input type="checkbox" value="Gutter Clean-Out"> Gutter Clean-Out</label>
+        <label><input type="checkbox" value="Yard Protection"> Yard Protection</label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 11-13 -->
+<div class="card">
+  <h2>11. Damage & Liability</h2>
+  <p style="font-size:13px;color:#555;line-height:1.6">Subcontractor is responsible for: property damage, landscaping damage, and interior leaks during work. All damages must be reported immediately and remedied at subcontractor's expense.</p>
+</div>
+
+<div class="card">
+  <h2>12. Change Orders</h2>
+  <p style="font-size:13px;color:#555;line-height:1.6">No extras without written approval. Subcontractor must submit photos and measurements with any change order request before proceeding.</p>
+  <div style="margin-top:10px"><label>Additional notes</label><textarea id="co-notes" placeholder="Any site-specific change order notes..."></textarea></div>
+</div>
+
+<div class="card">
+  <h2>13. Payment Terms</h2>
+  <div class="g3">
+    <div><label>Payment type</label>
+      <select id="pay-type">
+        <option>On Completion</option><option>Progress Draw</option><option>Weekly</option>
+      </select>
+    </div>
+    <div><label>Holdback</label>
+      <select id="pay-holdback" onchange="toggleHoldback()">
+        <option>None</option><option>10%</option><option>Custom</option>
+      </select>
+    </div>
+    <div id="holdback-custom-wrap" style="display:none">
+      <label>Custom holdback %</label>
+      <input type="number" id="pay-holdback-custom" min="0" max="50" placeholder="e.g. 15">
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>14. Warranty</h2>
+  <div><label>Workmanship warranty</label>
+    <select id="wa-warranty">
+      <option>1 Year</option><option>2 Year</option><option>5 Year</option>
+    </select>
+  </div>
+</div>
+
+<div class="card">
+  <h2>15. Deficiencies</h2>
+  <div class="g2">
+    <div><label>Must be corrected within (days)</label>
+      <input id="def-days" type="number" min="1" placeholder="e.g. 7">
+    </div>
+    <div style="display:flex;align-items:flex-end;padding-bottom:2px">
+      <p style="font-size:13px;color:#888">Failure to correct will result in a backcharge.</p>
+    </div>
+  </div>
+</div>
+
+<!-- 16. SIGN-OFF -->
+<div class="card">
+  <h2>16. Sign-Off</h2>
+  <div class="g3">
+    <div>
+      <div class="signoff-line"></div>
+      <div class="signoff-label">Contractor Signature &amp; Date</div>
+    </div>
+    <div>
+      <div class="signoff-line"></div>
+      <div class="signoff-label">Subcontractor Signature &amp; Date</div>
+    </div>
+    <div>
+      <div class="signoff-line"></div>
+      <div class="signoff-label">Project Manager / Estimator</div>
+    </div>
+  </div>
+</div>
+
+<div class="btn-row no-print">
+  <button class="btn btn-dark" onclick="saveWO()" style="flex:1">💾 Save Work Order</button>
+  <button class="btn btn-outline" onclick="window.print()" style="flex:1">🖨 Print / PDF</button>
+  <button class="btn btn-outline" onclick="clearWO()" style="flex:1">🗑 Clear Form</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function v(id){const el=document.getElementById(id);return el?el.value.trim():'';}
+function set(id,val){const el=document.getElementById(id);if(el)el.value=val;}
+function getMulti(id){return [...document.querySelectorAll(`#${id} input[type=checkbox]:checked`)].map(c=>c.value);}
+function setMulti(id,vals=[]){document.querySelectorAll(`#${id} input[type=checkbox]`).forEach(c=>{c.checked=vals.includes(c.value);});}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+// ── UI toggles ───────────────────────────────────────────────────────────────
+document.getElementById('sch-completion').addEventListener('change',function(){
+  document.getElementById('deadline-wrap').style.display=this.value==='By Deadline'?'block':'none';
+});
+function togglePricing(){
+  const v=document.getElementById('pr-structure').value;
+  document.getElementById('pr-tearoff-wrap').style.display=v.includes('Tear-Off')||v.includes('Split')?'block':'none';
+}
+function toggleHoldback(){
+  document.getElementById('holdback-custom-wrap').style.display=
+    document.getElementById('pay-holdback').value==='Custom'?'block':'none';
+}
+togglePricing();
+
+// ── Auto-fill from URL params (passed from estimator) ─────────────────────────
+function autoFill(){
+  const p=new URLSearchParams(window.location.search);
+  if(p.get('customer'))  set('wo-customer', p.get('customer'));
+  if(p.get('address'))   set('wo-address',  p.get('address'));
+  if(p.get('city'))      set('wo-city',     p.get('city'));
+  if(p.get('quote'))     set('wo-num',      p.get('quote'));
+  if(p.get('product'))   set('wo-product',  p.get('product'));
+  if(p.get('squares'))   set('q-squares',   p.get('squares'));
+  if(p.get('eaves'))     set('q-eaves',     p.get('eaves'));
+  if(p.get('rakes'))     set('q-rakes',     p.get('rakes'));
+  if(p.get('valleys'))   set('q-valleys',   p.get('valleys'));
+  if(p.get('ridge'))     set('q-ridge',     p.get('ridge'));
+  if(p.get('date'))      set('wo-date',     p.get('date'));
+
+  // Also try storage
+  const stored=localStorage.getItem('wo-autofill');
+  if(stored){
+    try{
+      const d=JSON.parse(stored);
+      if(d.customer&&!p.get('customer'))  set('wo-customer', d.customer);
+      if(d.address&&!p.get('address'))    set('wo-address',  d.address);
+      if(d.city&&!p.get('city'))          set('wo-city',     d.city);
+      if(d.quote&&!p.get('quote'))        set('wo-num',      d.quote);
+      if(d.product&&!p.get('product'))    set('wo-product',  d.product);
+      if(d.squares&&!p.get('squares'))    set('q-squares',   d.squares);
+      if(d.eaves&&!p.get('eaves'))        set('q-eaves',     d.eaves);
+      if(d.rakes&&!p.get('rakes'))        set('q-rakes',     d.rakes);
+      if(d.valleys&&!p.get('valleys'))    set('q-valleys',   d.valleys);
+      if(d.ridge&&!p.get('ridge'))        set('q-ridge',     d.ridge);
+      if(d.date&&!p.get('date'))          set('wo-date',     d.date);
+    }catch(e){}
+  }
+  if(!v('wo-date')) set('wo-date', new Date().toISOString().split('T')[0]);
+}
+autoFill();
+
+// ── Collect all form data ────────────────────────────────────────────────────
+function collectWO(){
+  return {
+    woNum:     v('wo-num'),    date:     v('wo-date'),
+    customer:  v('wo-customer'),address: v('wo-address'), city: v('wo-city'),
+    projType:  v('wo-projtype'), bldgType: v('wo-bldgtype'), product: v('wo-product'),
+    subCompany:v('sub-company'), subContact:v('sub-contact'), subPhone:v('sub-phone'),
+    schStart:  v('sch-start'), schFlex:v('sch-flex'), schCompletion:v('sch-completion'), schDeadline:v('sch-deadline'),
+    tearoff:   v('sw-tearoff'), disposal:v('sw-disposal'),
+    deckInsp:  v('sw-deckinsp'), deckRate:v('sw-deckrate'),
+    system:    v('sw-system'), underlay:v('sw-underlay'), icewater:v('sw-icewater'),
+    valley:    v('sw-valley'), flashing:getMulti('mc-flashing'), penetrations:getMulti('mc-penetrations'),
+    ventType:  v('sw-venttype'), intake:v('sw-intake'),
+    starter:   v('sw-starter'), ridgeCap:v('sw-ridge'),
+    qSquares:  v('q-squares'), qEaves:v('q-eaves'), qRakes:v('q-rakes'),
+    qValleys:  v('q-valleys'), qRidge:v('q-ridge'), qPenetrations:v('q-penetrations'),
+    prStructure:v('pr-structure'), prInstall:v('pr-install'), prTearoff:v('pr-tearoff'),
+    prValleys: v('pr-valleys'), prRidgeLF:v('pr-ridgelf'), prSteep:v('pr-steep'),
+    prHeight:  v('pr-height'), prDecking:v('pr-decking'), prFlashing:v('pr-flashing'),
+    mrSupplier:v('mr-supplier'), mrSub:getMulti('mc-subsupplies'),
+    wmStandard:v('wm-standard'), wmNails:v('wm-nails'), wmInspection:getMulti('mc-inspection'),
+    sfFall:    v('sf-fall'),
+    clDaily:   v('cl-daily'), clCleanup:getMulti('mc-cleanup'),
+    coNotes:   v('co-notes'),
+    payType:   v('pay-type'), payHoldback:v('pay-holdback'), payHoldbackCustom:v('pay-holdback-custom'),
+    waWarranty:v('wa-warranty'), defDays:v('def-days'),
+    savedAt:   new Date().toLocaleString(),
+  };
+}
+
+// ── Populate form ─────────────────────────────────────────────────────────────
+function populateWO(d){
+  set('wo-num',d.woNum);set('wo-date',d.date);set('wo-customer',d.customer);
+  set('wo-address',d.address);set('wo-city',d.city);set('wo-projtype',d.projType);
+  set('wo-bldgtype',d.bldgType);set('wo-product',d.product);
+  set('sub-company',d.subCompany);set('sub-contact',d.subContact);set('sub-phone',d.subPhone);
+  set('sch-start',d.schStart);set('sch-flex',d.schFlex);set('sch-completion',d.schCompletion);set('sch-deadline',d.schDeadline);
+  set('sw-tearoff',d.tearoff);set('sw-disposal',d.disposal);
+  set('sw-deckinsp',d.deckInsp);set('sw-deckrate',d.deckRate);
+  set('sw-system',d.system);set('sw-underlay',d.underlay);set('sw-icewater',d.icewater);
+  set('sw-valley',d.valley);setMulti('mc-flashing',d.flashing);setMulti('mc-penetrations',d.penetrations);
+  set('sw-venttype',d.ventType);set('sw-intake',d.intake);
+  set('sw-starter',d.starter);set('sw-ridge',d.ridgeCap);
+  set('q-squares',d.qSquares);set('q-eaves',d.qEaves);set('q-rakes',d.qRakes);
+  set('q-valleys',d.qValleys);set('q-ridge',d.qRidge);set('q-penetrations',d.qPenetrations);
+  set('pr-structure',d.prStructure);set('pr-install',d.prInstall);set('pr-tearoff',d.prTearoff);
+  set('pr-valleys',d.prValleys);set('pr-ridgelf',d.prRidgeLF);set('pr-steep',d.prSteep);
+  set('pr-height',d.prHeight);set('pr-decking',d.prDecking);set('pr-flashing',d.prFlashing);
+  set('mr-supplier',d.mrSupplier);setMulti('mc-subsupplies',d.mrSub);
+  set('wm-standard',d.wmStandard);set('wm-nails',d.wmNails);setMulti('mc-inspection',d.wmInspection);
+  set('sf-fall',d.sfFall);
+  set('cl-daily',d.clDaily);setMulti('mc-cleanup',d.clCleanup);
+  set('co-notes',d.coNotes);
+  set('pay-type',d.payType);set('pay-holdback',d.payHoldback);set('pay-holdback-custom',d.payHoldbackCustom);
+  set('wa-warranty',d.waWarranty);set('def-days',d.defDays);
+  togglePricing();toggleHoldback();
+}
+
+// ── Save ──────────────────────────────────────────────────────────────────────
+async function saveWO(){
+  const data=collectWO();
+  const key='wo:'+(data.woNum||Date.now());
+  try{
+    await window.storage.set(key, JSON.stringify(data));
+    toast('✓ Work order saved');
+  }catch(e){toast('Save failed — try again');}
+}
+
+// ── Load saved ────────────────────────────────────────────────────────────────
+async function loadSaved(){
+  const panel=document.getElementById('saved-panel');
+  panel.style.display=panel.style.display==='none'?'block':'none';
+  if(panel.style.display==='none') return;
+  const list=document.getElementById('saved-list');
+  list.innerHTML='<em style="color:#aaa;font-size:13px">Loading...</em>';
+  try{
+    const keys=await window.storage.list('wo:');
+    if(!keys||!keys.keys||!keys.keys.length){
+      list.innerHTML='<em style="color:#aaa;font-size:13px">No saved work orders yet.</em>';return;
+    }
+    list.innerHTML='';
+    for(const k of keys.keys){
+      try{
+        const r=await window.storage.get(k);
+        if(!r) continue;
+        const d=JSON.parse(r.value);
+        const row=document.createElement('div');
+        row.className='saved-item';
+        row.innerHTML=`
+          <div>
+            <strong>${d.woNum||'No #'}</strong> — ${d.customer||'No customer'}
+            <span style="color:#aaa;font-size:11px;margin-left:8px">${d.savedAt||''}</span>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button onclick="loadWO('${k}')">Load</button>
+            <button onclick="deleteWO('${k}',this)" style="color:#c0392b">Delete</button>
+          </div>`;
+        list.appendChild(row);
+      }catch(e){}
+    }
+  }catch(e){list.innerHTML='<em style="color:#c0392b;font-size:13px">Could not load saved work orders.</em>';}
+}
+
+async function loadWO(key){
+  try{
+    const r=await window.storage.get(key);
+    if(r){populateWO(JSON.parse(r.value));document.getElementById('saved-panel').style.display='none';toast('✓ Work order loaded');window.scrollTo({top:0,behavior:'smooth'});}
+  }catch(e){toast('Could not load work order');}
+}
+
+async function deleteWO(key,btn){
+  try{
+    await window.storage.delete(key);
+    btn.closest('.saved-item').remove();
+    toast('Deleted');
+  }catch(e){toast('Could not delete');}
+}
+
+function clearWO(){
+  if(!confirm('Clear all fields?')) return;
+  document.querySelectorAll('input:not([readonly]),select,textarea').forEach(el=>{
+    if(el.type==='checkbox') el.checked=false;
+    else el.value='';
+  });
+  autoFill();
+  toast('Form cleared');
+}
+</script>
+</body>
+</html>

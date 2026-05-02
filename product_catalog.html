@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product Catalog</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;font-size:14px;color:#1a1a1a;background:#f0efe9;padding:1rem}
+.gl-header{background:#1a1a1a;color:#fff;border-radius:12px;padding:1rem 1.5rem;margin-bottom:1.25rem;display:flex;justify-content:space-between;align-items:center}
+.gl-logo{display:flex;align-items:center;gap:10px}
+.gl-dot{width:28px;height:28px;background:#22c55e;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.gl-name{font-size:17px;font-weight:700;letter-spacing:-.01em}
+.gl-tagline{font-size:11px;color:#888;margin-top:1px}
+.gl-module{font-size:12px;color:#22c55e;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+h1{font-size:19px;font-weight:600;margin-bottom:.25rem}
+.subtitle{font-size:12px;color:#888;margin-bottom:1.25rem}
+h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#777;margin-bottom:.75rem}
+.card{background:#fff;border:0.5px solid #ddd;border-radius:12px;padding:1.25rem;margin-bottom:.875rem}
+input,select{padding:7px 10px;border:0.5px solid #ccc;border-radius:7px;font-size:13px;background:#fff;color:#1a1a1a;outline:none}
+input:focus,select:focus{border-color:#555}
+.search-bar{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
+.search-bar input[type=text]{flex:1;min-width:200px}
+.sup-filter{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1rem}
+.sup-chip{padding:4px 12px;border:0.5px solid #ccc;border-radius:20px;font-size:12px;cursor:pointer;background:#fff;color:#555}
+.sup-chip.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.cat-chip{padding:4px 12px;border:0.5px solid #ccc;border-radius:20px;font-size:12px;cursor:pointer;background:#fff;color:#555}
+.cat-chip.active{background:#555;color:#fff;border-color:#555}
+
+/* Product grid */
+.prod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;max-height:60vh;overflow-y:auto;padding-right:4px}
+.prod-card{background:#fafafa;border:0.5px solid #e8e8e8;border-radius:10px;padding:.875rem;display:flex;flex-direction:column;gap:6px;transition:border-color .15s}
+.prod-card:hover{border-color:#aaa}
+.prod-card.in-cart{border-color:#2e7d32;background:#f0faf0}
+.prod-name{font-size:13px;font-weight:500;color:#1a1a1a;line-height:1.4}
+.prod-meta{font-size:11px;color:#888}
+.prod-price{font-size:14px;font-weight:600;color:#1a1a1a}
+.prod-footer{display:flex;gap:6px;align-items:center;margin-top:4px}
+.prod-footer input{width:60px;text-align:center;padding:4px 6px;font-size:12px}
+.prod-footer button{flex:1;padding:5px 10px;border:none;border-radius:7px;font-size:12px;cursor:pointer;font-weight:500}
+.btn-add{background:#1a1a1a;color:#fff}
+.btn-add:hover{background:#333}
+.btn-added{background:#2e7d32;color:#fff}
+.btn-remove{background:#fff;color:#c0392b;border:0.5px solid #f5c6c6!important}
+
+/* Cart / quote items */
+.cart-item{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#f5f4f0;border-radius:8px;margin-bottom:5px;font-size:13px}
+.cart-item .ci-name{flex:1;font-weight:500}
+.cart-item .ci-meta{font-size:11px;color:#888;margin-top:2px}
+.cart-item .ci-price{font-weight:600;margin:0 12px;white-space:nowrap}
+.cart-item .ci-remove{background:none;border:none;cursor:pointer;color:#c0392b;font-size:16px;padding:0}
+.cart-total{display:flex;justify-content:space-between;align-items:center;padding:.75rem 1rem;background:#1a1a1a;color:#fff;border-radius:8px;font-size:15px;font-weight:600;margin-top:.75rem}
+
+.empty{text-align:center;color:#aaa;font-size:13px;padding:2rem}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:#f0efe9;color:#666;margin-left:4px}
+.badge.abc{background:#dbeafe;color:#1d4ed8}
+.badge.qxo{background:#dcfce7;color:#15803d}
+.badge.roofmart{background:#fce7f3;color:#9d174d}
+.badge.proline{background:#fef3c7;color:#92400e}
+.badge.euroshield{background:#ede9fe;color:#6d28d9}
+
+.btn{border:none;border-radius:8px;padding:9px 16px;font-size:13px;cursor:pointer;font-weight:500}
+.btn-dark{background:#1a1a1a;color:#fff}.btn-dark:hover{background:#333}
+.btn-outline{background:#fff;color:#1a1a1a;border:0.5px solid #ccc}.btn-outline:hover{background:#f5f5f5}
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+.toast.show{opacity:1}
+.no-results{text-align:center;padding:2rem;color:#aaa;font-size:13px}
+</style>
+</head>
+<body>
+
+<div class="gl-header">
+  <div class="gl-logo">
+    <div class="gl-dot">🟢</div>
+    <div>
+      <div class="gl-name">Green Lit Software</div>
+      <div class="gl-tagline">Empowering Roofing Entrepreneurs</div>
+    </div>
+  </div>
+  <div class="gl-module">Product Catalog</div>
+</div>
+<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
+  <div style="display:flex;gap:8px">
+    <button class="btn btn-outline" onclick="clearCart()">🗑 Clear Quote Items</button>
+    <button class="btn btn-dark" onclick="saveCart()">💾 Save to Quote</button>
+  </div>
+</div>
+
+<!-- ACTIVE QUOTE ITEMS -->
+<div class="card" id="cart-card">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+    <h2 style="margin:0">Quote Add-Ons <span id="cart-count" class="badge"></span></h2>
+    <button class="btn btn-outline" style="font-size:12px;padding:4px 12px" onclick="toggleCart()">▾ Toggle</button>
+  </div>
+  <div id="cart-body">
+    <div class="empty" id="cart-empty">No items added yet. Search below and add items to the quote.</div>
+    <div id="cart-items"></div>
+    <div id="cart-total" style="display:none"></div>
+  </div>
+</div>
+
+<!-- SEARCH & FILTER -->
+<div class="card">
+  <h2>Search Products</h2>
+  <div class="search-bar">
+    <input type="text" id="search-input" placeholder="Search by product name, SKU, or type..." oninput="filterProducts()">
+    <select id="sort-select" onchange="filterProducts()">
+      <option value="name">Sort: Name A–Z</option>
+      <option value="price-asc">Sort: Price Low–High</option>
+      <option value="price-desc">Sort: Price High–Low</option>
+    </select>
+  </div>
+
+  <div style="margin-bottom:.5rem">
+    <div style="font-size:11px;color:#aaa;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Supplier</div>
+    <div class="sup-filter" id="sup-filters"></div>
+  </div>
+  <div style="margin-bottom:1rem">
+    <div style="font-size:11px;color:#aaa;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Category</div>
+    <div class="sup-filter" id="cat-filters"></div>
+  </div>
+
+  <div id="result-count" style="font-size:12px;color:#888;margin-bottom:.75rem"></div>
+  <div class="prod-grid" id="prod-grid"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Full product catalog ──────────────────────────────────────────────────────
+const CATALOG=[
+  // ── ABC Supply — Vents ──
+  {sku:'17LO750BK',   name:'Lomanco 750 Roof Vent Black',          sup:'abc', cat:'Vents',     price:29.95,  unit:'each'},
+  {sku:'17LO750GEK',  name:'Lomanco 750GES Roof Vent Black',       sup:'abc', cat:'Vents',     price:39.22,  unit:'each'},
+  {sku:'17LO770BZ',   name:'Lomanco 770 Roof Vent Weathered Bronze',sup:'abc',cat:'Vents',     price:87.32,  unit:'each'},
+  {sku:'17LOBI12BK',  name:'Lomanco BIB-12 Whirlybird Black',      sup:'abc', cat:'Vents',     price:161.84, unit:'each'},
+  {sku:'17LOBI12BR',  name:'Lomanco BIB-12 Whirlybird Brown',      sup:'abc', cat:'Vents',     price:161.84, unit:'each'},
+  {sku:'17LOBI14BK',  name:'Lomanco BIB-14 Whirlybird Black',      sup:'abc', cat:'Vents',     price:155.15, unit:'each'},
+  {sku:'17LOBI14BR',  name:'Lomanco BIB-14 Whirlybird Brown',      sup:'abc', cat:'Vents',     price:155.15, unit:'each'},
+  {sku:'17LOP60PBK',  name:'Lomanco P60 Pro Plastic Roof Vent Black',sup:'abc',cat:'Vents',   price:17.08,  unit:'each'},
+  {sku:'17LOP60PBR',  name:'Lomanco P60 Pro Plastic Roof Vent Brown',sup:'abc',cat:'Vents',   price:17.08,  unit:'each'},
+  {sku:'17LOP60PGR',  name:'Lomanco P60 Pro Plastic Roof Vent Grey', sup:'abc',cat:'Vents',   price:16.12,  unit:'each'},
+  {sku:'17LO2000CU',  name:'Lomanco 2000 Power Vent Custom Color',  sup:'abc', cat:'Vents',    price:449.12, unit:'each'},
+  {sku:'17LODA4VNT',  name:'Lomanco DA-4 Deck-Air Intake Vent',     sup:'abc', cat:'Vents',    price:56.93,  unit:'each'},
+  {sku:'17LOOR94OV',  name:'Lomanco LOR9-4 9" Omni Ridge Vent 4\'', sup:'abc', cat:'Vents',   price:31.74,  unit:'each'},
+  {sku:'17LOLOR30G',  name:'Lomanco LOR30 Lo Omni Roll Ridgevent',  sup:'abc', cat:'Vents',    price:216.16, unit:'each'},
+  {sku:'17GART65BL',  name:'GAF RT-65 Roof Louver Black',           sup:'abc', cat:'Vents',    price:16.44,  unit:'each'},
+  {sku:'17GART65BR',  name:'GAF RT-65 Roof Louver Brown',           sup:'abc', cat:'Vents',    price:16.44,  unit:'each'},
+  {sku:'17GART65GR',  name:'GAF RT-65 Roof Louver Gray',            sup:'abc', cat:'Vents',    price:16.44,  unit:'each'},
+  {sku:'17GACSCA',    name:'GAF 12" Cobra Snow Country 4\' Adv',    sup:'abc', cat:'Vents',    price:21.74,  unit:'each'},
+  {sku:'17GACSCA9',   name:'GAF 9" Cobra Snow Country 4\' Adv',     sup:'abc', cat:'Vents',    price:24.24,  unit:'each'},
+  {sku:'17GACSCR4',   name:'GAF Cobra Snow Country 4\' Ridge 11.5"',sup:'abc', cat:'Vents',   price:24.24,  unit:'each'},
+
+  // ── ABC Supply — Ice & Water ──
+  {sku:'11IKSS225',   name:'IKO StormShield I&W 44"×61\' 2.25sq',  sup:'abc', cat:'Ice & Water', price:80.14, unit:'roll'},
+  {sku:'11IKSS2',     name:'IKO StormShield I&W 36"×65\' 2sq',     sup:'abc', cat:'Ice & Water', price:79.00, unit:'roll'},
+  {sku:'11GAWW2',     name:'GAF WeatherWatch 36"×66.7\' 2sq',      sup:'abc', cat:'Ice & Water', price:119.15,unit:'roll'},
+  {sku:'11GASG2',     name:'GAF StormGuard 2sq',                    sup:'abc', cat:'Ice & Water', price:133.53,unit:'roll'},
+  {sku:'11OCWLG2',    name:'OC WeatherLock G 3\'×66.7\'',           sup:'abc', cat:'Ice & Water', price:97.31, unit:'roll'},
+  {sku:'11ML4012',    name:'Malarkey Arctic Seal 401 I&W 2sq',      sup:'abc', cat:'Ice & Water', price:125.93,unit:'roll'},
+
+  // ── ABC Supply — Underlayment ──
+  {sku:'11IKSTSUL1',  name:'IKO Stormtite Syn Underlayment 10sq',   sup:'abc', cat:'Underlayment',price:80.14, unit:'roll'},
+  {sku:'05GADA54',    name:'GAF Deck-Armor 54"×222\' 10sq',         sup:'abc', cat:'Underlayment',price:351.84,unit:'roll'},
+  {sku:'05GAFBSR10',  name:'GAF FeltBuster Synthetic 10sq',         sup:'abc', cat:'Underlayment',price:172.49,unit:'roll'},
+  {sku:'05SERSAB15',  name:'Roofnado Sahara AnchorDeck BU15 10sq',  sup:'abc', cat:'Underlayment',price:77.17, unit:'roll'},
+  {sku:'05SERSAB10',  name:'Roofnado Sahara Breathable Syn 10sq',   sup:'abc', cat:'Underlayment',price:148.83,unit:'roll'},
+  {sku:'05MLSP1029',  name:'Malarkey Secure Start Lite Syn 10sq',   sup:'abc', cat:'Underlayment',price:159.73,unit:'roll'},
+  {sku:'05MLSYUN10',  name:'Malarkey 1030 Secure Start Synth 10sq', sup:'abc', cat:'Underlayment',price:214.08,unit:'roll'},
+
+  // ── ABC Supply — Pipe Flashings ──
+  {sku:'08GATSB12G',  name:'GAF TPO Split Pipe Boot 1"–2" Gray',    sup:'abc', cat:'Pipe Flashing',price:64.88,unit:'each'},
+  {sku:'08GATSB12W',  name:'GAF TPO Split Pipe Boot 1"–2" White',   sup:'abc', cat:'Pipe Flashing',price:64.88,unit:'each'},
+  {sku:'08GATSB35G',  name:'GAF TPO Split Pipe Boot 3"–5" Gray',    sup:'abc', cat:'Pipe Flashing',price:45.94,unit:'each'},
+  {sku:'08GATSB35W',  name:'GAF TPO Split Pipe Boot 3"–5" White',   sup:'abc', cat:'Pipe Flashing',price:45.94,unit:'each'},
+  {sku:'08GATSB68G',  name:'GAF TPO Split Pipe Boot 6"–8" Gray',    sup:'abc', cat:'Pipe Flashing',price:48.88,unit:'each'},
+  {sku:'08GATVB16G',  name:'GAF TPO Vent Boot 1"–6" Gray',          sup:'abc', cat:'Pipe Flashing',price:40.67,unit:'each'},
+  {sku:'08GATVB16W',  name:'GAF TPO Vent Boot 1"–6" White',         sup:'abc', cat:'Pipe Flashing',price:40.67,unit:'each'},
+
+  // ── ABC Supply — Metal Flashing ──
+  {sku:'78FSFLGHC',   name:'Forma Steel FormaLoc Gable w/Hem 24ga', sup:'abc', cat:'Flashing',   price:21.13, unit:'each'},
+  {sku:'78FSFLLEC',   name:'Forma Steel FormaLoc Locking Eave 24ga',sup:'abc', cat:'Flashing',   price:26.48, unit:'each'},
+  {sku:'78FSFLRC',    name:'Forma Steel FormaLoc Ridge 24ga',        sup:'abc', cat:'Flashing',   price:53.62, unit:'each'},
+  {sku:'78FSFLSWC',   name:'Forma Steel FormaLoc Side Wall 24ga',    sup:'abc', cat:'Flashing',   price:17.81, unit:'each'},
+  {sku:'78FSFLVCC',   name:'Forma Steel FormaLoc Valley Cleat 24ga', sup:'abc', cat:'Flashing',   price:9.47,  unit:'each'},
+
+  // ── ABC Supply — Fasteners ──
+  {sku:'15FS101PGP',  name:'Forma Steel Panhead Screw Galv 250/bg #10×1"', sup:'abc',cat:'Fasteners',price:16.65,unit:'box'},
+  {sku:'15FS14125P',  name:'Forma Steel Metal to Wood Screw 250/bg #14×1.25"',sup:'abc',cat:'Fasteners',price:34.41,unit:'box'},
+
+  // ── ABC Supply — Sealants ──
+  {sku:'30CHF1110',   name:'Chem Novalink FP F1110 Black 10.1oz',   sup:'abc', cat:'Sealants',   price:7.43,  unit:'each'},
+  {sku:'30CHM1127K',  name:'Chem-Link M-1 F1270 Black 10oz',        sup:'abc', cat:'Sealants',   price:12.82, unit:'each'},
+  {sku:'30CHM1127G',  name:'Chem-Link M-1 F1270 Grey 10oz',         sup:'abc', cat:'Sealants',   price:12.82, unit:'each'},
+  {sku:'30CHM11270',  name:'Chem-Link M-1 F1270 White 10oz',        sup:'abc', cat:'Sealants',   price:12.82, unit:'each'},
+  {sku:'08GAFSCG',    name:'GAF FlexSeal Caulk Grade 10oz',          sup:'abc', cat:'Sealants',   price:11.96, unit:'each'},
+
+  // ── ABC Supply — Accessories ──
+  {sku:'11IK850095',  name:'IKO Aquabarrier VP Tape 4"×100\'',      sup:'abc', cat:'Accessories', price:51.47, unit:'each'},
+  {sku:'11IKGSRSTP',  name:'IKO GoldSeam Roof Sealing Tape',        sup:'abc', cat:'Accessories', price:51.84, unit:'each'},
+  {sku:'09IKSDB44',   name:'IKO SBS Deckbase 44"',                  sup:'abc', cat:'Accessories', price:80.14, unit:'roll'},
+  {sku:'16IK870013',  name:'IKO Standard Asphalt Primer 18.9L',     sup:'abc', cat:'Accessories', price:51.44, unit:'each'},
+  {sku:'16IKSP482',   name:'IKO Spray Primer 482g',                 sup:'abc', cat:'Accessories', price:19.41, unit:'each'},
+
+  // ── QXO — Ice & Water ──
+  {sku:'QXO-IKO-IW1', name:'IKO Protecto 225 I&W 44"×61\'',        sup:'qxo',  cat:'Ice & Water', price:89.15, unit:'roll'},
+  {sku:'QXO-IKO-IW2', name:'IKO StormShield I&W 36"×65\'',         sup:'qxo',  cat:'Ice & Water', price:83.55, unit:'roll'},
+  {sku:'QXO-TRIB-44', name:'Tri-Built Eave 44" I&W 44"×61\'',      sup:'qxo',  cat:'Ice & Water', price:85.15, unit:'roll'},
+  {sku:'QXO-TRIB-36', name:'Tri-Built Eave 36" I&W 36"×65\'',      sup:'qxo',  cat:'Ice & Water', price:77.00, unit:'roll'},
+  {sku:'QXO-MAL-IW',  name:'Malarkey Arctic Seal 401 39"×65\'',    sup:'qxo',  cat:'Ice & Water', price:115.15,unit:'roll'},
+  {sku:'QXO-CT-IW',   name:'CT Winterguard Sanded I&W 36"×65\'',   sup:'qxo',  cat:'Ice & Water', price:133.45,unit:'roll'},
+
+  // ── QXO — Underlayment ──
+  {sku:'QXO-IKO-UL',  name:'IKO Stormtite Syn Underlayment 1000sqft',sup:'qxo',cat:'Underlayment',price:78.50,unit:'roll'},
+  {sku:'QXO-MAL-UL',  name:'Malarkey 1029 Secure Start Lite 1000sqft',sup:'qxo',cat:'Underlayment',price:152.25,unit:'roll'},
+  {sku:'QXO-TRIB-UL', name:'Tri-Built Synthetic Underlayment 1000sqft',sup:'qxo',cat:'Underlayment',price:77.45,unit:'roll'},
+  {sku:'QXO-TRIB-5SQ',name:'Tri-Built Synthetic Underlayment 5sq',  sup:'qxo',  cat:'Underlayment',price:48.50,unit:'roll'},
+  {sku:'QXO-CT-UL',   name:'CertainTeed Roof Runner Syn 1000sqft',  sup:'qxo',  cat:'Underlayment',price:132.60,unit:'roll'},
+  {sku:'QXO-TIT30',   name:'Titanium PSU-30 36"×72\'',              sup:'qxo',  cat:'Underlayment',price:166.75,unit:'roll'},
+  {sku:'QXO-HAL15',   name:'HAL #15 Plain Felt 36" 432sqft',        sup:'qxo',  cat:'Underlayment',price:44.85,unit:'roll'},
+
+  // ── QXO — IKO Accessories ──
+  {sku:'QXO-IKO-HR',  name:'IKO Ultra Hip & Ridge 20\'/box',        sup:'qxo',  cat:'Hip & Ridge', price:110.15,unit:'bdl'},
+  {sku:'QXO-IKO-SDB', name:'IKO SBS Deckbase 44"×59\'',             sup:'qxo',  cat:'Accessories', price:87.75, unit:'roll'},
+
+  // ── QXO — Malarkey accessories ──
+  {sku:'QXO-MAL-EZR', name:'Malarkey 224 EZ Ridge 10" Scotchgard 20\'',sup:'qxo',cat:'Hip & Ridge',price:108.65,unit:'bdl'},
+  {sku:'QXO-MAL-RFX', name:'Malarkey 227 Ridgeflex 12" SBS H&R 30.9\'',sup:'qxo',cat:'Hip & Ridge',price:66.05,unit:'bdl'},
+  {sku:'QXO-MAL-WSS', name:'Malarkey 212 Windsor Starter 69\'',     sup:'qxo',  cat:'Starter',     price:88.60, unit:'bdl'},
+  {sku:'QXO-MAL-SS',  name:'Malarkey 210 Smart Start 114\'',        sup:'qxo',  cat:'Starter',     price:72.80, unit:'bdl'},
+];
+
+const SUPPLIERS_META={
+  abc:     {label:'ABC Supply',      class:'abc'},
+  qxo:     {label:'QXO',             class:'qxo'},
+  roofmart:{label:'RoofMart',        class:'roofmart'},
+  proline: {label:'Proline',         class:'proline'},
+  euroshield:{label:'Euroshield',    class:'euroshield'},
+};
+
+const CATEGORIES=[...new Set(CATALOG.map(p=>p.cat))].sort();
+const SUPPLIERS=[...new Set(CATALOG.map(p=>p.sup))];
+
+// ── Common scope of work templates by category ────────────────────────────────
+const SCOPE_TEMPLATES={
+  'Vents':['Install per manufacturer spec','Cut opening and install with sealant','Remove existing vent and replace','Install with ice & water around base','Flash and seal all penetrations'],
+  'Ice & Water':['Apply to eaves per local code','Apply to eaves and valleys','Full roof coverage','Apply second row at eaves','Apply at all penetrations and transitions'],
+  'Underlayment':['Install per manufacturer spec, overlap 6"','Install full roof, lap 4" horizontal / 6" vertical','Install as secondary layer over self-adhered','Install with cap nails at 12" o.c.'],
+  'Pipe Flashing':['Install with sealant at base and collar','Remove and replace existing boot','Install and seal with polyurethane caulk','Flash and counterflash per spec'],
+  'Flashing':['Install and seal all laps','Integrate with existing flashing system','Step flash and counterflash at wall','Install with hemmed edge at drip','Solder or caulk all joints'],
+  'Hip & Ridge':['Install per manufacturer spec','Apply sealant under each shingle','Double-layer at ridge peak','Install with 6" exposure'],
+  'Starter':['Install flush with eave edge','Install with 1/4" overhang','Apply at eaves and rakes','Align with drip edge'],
+  'Fasteners':['Install per manufacturer fastening schedule','Use 6-nail pattern','Ring shank nails required','Follow local wind uplift requirements'],
+  'Sealants':['Apply around all penetrations','Seal laps and transitions','Caulk under shingle tabs at hips','Apply to all exposed nail heads'],
+  'Accessories':['Install per manufacturer instructions','Coordinate with roofing system installation','Follow local building code requirements'],
+};
+
+const DEFAULT_SCOPES=['Install per manufacturer spec','Coordinate with roofing crew','See attached detail drawing','Custom — see notes below'];
+
+let activeSupFilter='all';
+let activeCatFilter='all';
+let cart=[]; // {sku, name, sup, price, unit, qty, labourEnabled, labourType, labourRate, labourFixed, scope, scopeNotes}
+
+// ── Build filters ─────────────────────────────────────────────────────────────
+function buildFilters(){
+  const supDiv=document.getElementById('sup-filters');
+  const catDiv=document.getElementById('cat-filters');
+
+  // All chip
+  const allChip=document.createElement('button');
+  allChip.className='sup-chip active';allChip.id='sup-all';allChip.textContent='All suppliers';
+  allChip.onclick=()=>setSupFilter('all');supDiv.appendChild(allChip);
+
+  SUPPLIERS.forEach(sid=>{
+    const m=SUPPLIERS_META[sid]||{label:sid,class:''};
+    const chip=document.createElement('button');
+    chip.className='sup-chip';chip.id='sup-'+sid;
+    chip.innerHTML=`${m.label}<span class="badge ${m.class}" style="margin-left:4px">${CATALOG.filter(p=>p.sup===sid).length}</span>`;
+    chip.onclick=()=>setSupFilter(sid);supDiv.appendChild(chip);
+  });
+
+  const allCat=document.createElement('button');
+  allCat.className='cat-chip active';allCat.id='cat-all';allCat.textContent='All categories';
+  allCat.onclick=()=>setCatFilter('all');catDiv.appendChild(allCat);
+
+  CATEGORIES.forEach(cat=>{
+    const chip=document.createElement('button');
+    chip.className='cat-chip';chip.id='cat-'+cat.replace(/\s/g,'-');chip.textContent=cat;
+    chip.onclick=()=>setCatFilter(cat);catDiv.appendChild(chip);
+  });
+}
+
+function setSupFilter(val){
+  activeSupFilter=val;
+  document.querySelectorAll('.sup-chip').forEach(c=>c.classList.remove('active'));
+  document.getElementById('sup-'+val)?.classList.add('active');
+  filterProducts();
+}
+function setCatFilter(val){
+  activeCatFilter=val;
+  document.querySelectorAll('.cat-chip').forEach(c=>c.classList.remove('active'));
+  const id='cat-'+(val==='all'?'all':val.replace(/\s/g,'-'));
+  document.getElementById(id)?.classList.add('active');
+  filterProducts();
+}
+
+// ── Filter & render products ──────────────────────────────────────────────────
+function filterProducts(){
+  const q=document.getElementById('search-input').value.toLowerCase().trim();
+  const sort=document.getElementById('sort-select').value;
+
+  let results=CATALOG.filter(p=>{
+    const matchSup=activeSupFilter==='all'||p.sup===activeSupFilter;
+    const matchCat=activeCatFilter==='all'||p.cat===activeCatFilter;
+    const matchQ=!q||p.name.toLowerCase().includes(q)||p.sku.toLowerCase().includes(q)||p.cat.toLowerCase().includes(q);
+    return matchSup&&matchCat&&matchQ;
+  });
+
+  if(sort==='price-asc') results.sort((a,b)=>a.price-b.price);
+  else if(sort==='price-desc') results.sort((a,b)=>b.price-a.price);
+  else results.sort((a,b)=>a.name.localeCompare(b.name));
+
+  document.getElementById('result-count').textContent=`${results.length} product${results.length!==1?'s':''} found`;
+
+  const grid=document.getElementById('prod-grid');
+  grid.innerHTML='';
+
+  if(!results.length){
+    grid.innerHTML='<div class="no-results">No products match your search.<br>Try a different keyword or supplier.</div>';
+    return;
+  }
+
+  results.forEach(p=>{
+    const inCart=cart.find(c=>c.sku===p.sku);
+    const m=SUPPLIERS_META[p.sup]||{label:p.sup,class:''};
+    const card=document.createElement('div');
+    card.className='prod-card'+(inCart?' in-cart':'');
+    card.id='pc-'+p.sku;
+    card.innerHTML=`
+      <div>
+        <div class="prod-name">${p.name}</div>
+        <div class="prod-meta">
+          <span class="badge ${m.class}">${m.label}</span>
+          <span class="badge" style="margin-left:4px">${p.cat}</span>
+          <span style="margin-left:6px;font-size:11px;color:#bbb">${p.sku}</span>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="prod-price">$${p.price.toFixed(2)} <span style="font-size:11px;font-weight:400;color:#888">/ ${p.unit}</span></div>
+        ${inCart?`<span style="font-size:11px;color:#2e7d32;font-weight:600">✓ In quote (qty: ${inCart.qty})</span>`:''}
+      </div>
+      <div class="prod-footer">
+        <input type="number" id="qty-${p.sku}" value="${inCart?inCart.qty:1}" min="1" step="1">
+        ${inCart
+          ?`<button class="prod-footer btn-added" onclick="removeFromCart('${p.sku}')">✓ Added — Remove</button>`
+          :`<button class="prod-footer btn-add" onclick="addToCart('${p.sku}')">+ Add to Quote</button>`
+        }
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+// ── Cart operations ───────────────────────────────────────────────────────────
+function addToCart(sku){
+  const p=CATALOG.find(x=>x.sku===sku);if(!p)return;
+  const qty=parseInt(document.getElementById('qty-'+sku)?.value)||1;
+  const existing=cart.find(c=>c.sku===sku);
+  if(existing){existing.qty=qty;}
+  else cart.push({
+    sku:p.sku,name:p.name,sup:p.sup,cat:p.cat,price:p.price,unit:p.unit,qty,
+    labourEnabled:false,labourType:'perunit',labourRate:0,labourFixed:0,
+    scope:'',scopeNotes:''
+  });
+  renderCart();filterProducts();
+  toast(`✓ ${p.name} added to quote`);
+}
+
+function labourCost(item){
+  if(!item.labourEnabled) return 0;
+  if(item.labourType==='fixed') return item.labourFixed||0;
+  return (item.labourRate||0)*item.qty;
+}
+
+function updateCartItem(sku,field,value){
+  const item=cart.find(c=>c.sku===sku);
+  if(!item) return;
+  item[field]=value;
+  if(field==='labourEnabled'||field==='labourType') renderCart();
+  else{
+    // Live-update totals without full re-render
+    const sub=item.price*item.qty;
+    const lab=labourCost(item);
+    const subEl=document.getElementById('ci-sub-'+sku);
+    const labEl=document.getElementById('ci-lab-'+sku);
+    if(subEl) subEl.textContent='
+  cart=cart.filter(c=>c.sku!==sku);
+  renderCart();filterProducts();
+  toast('Removed from quote');
+}
+
+function renderCart(){
+  const itemsDiv=document.getElementById('cart-items');
+  const emptyDiv=document.getElementById('cart-empty');
+  const totalDiv=document.getElementById('cart-total');
+  const countBadge=document.getElementById('cart-count');
+
+  countBadge.textContent=cart.length?`${cart.length} item${cart.length!==1?'s':''}`:'' ;
+
+  if(!cart.length){
+    emptyDiv.style.display='block';itemsDiv.innerHTML='';totalDiv.style.display='none';return;
+  }
+  emptyDiv.style.display='none';
+  itemsDiv.innerHTML='';
+
+  let total=0;
+  cart.forEach(item=>{
+    const subtotal=item.price*item.qty;total+=subtotal;
+    const m=SUPPLIERS_META[item.sup]||{label:item.sup,class:''};
+    const div=document.createElement('div');div.className='cart-item';
+    div.innerHTML=`
+      <div style="flex:1">
+        <div class="ci-name">${item.name}</div>
+        <div class="ci-meta"><span class="badge ${m.class}">${m.label}</span> &nbsp; qty: <strong>${item.qty}</strong> × $${item.price.toFixed(2)} / ${item.unit}</div>
+      </div>
+      <div class="ci-price">$${subtotal.toFixed(2)}</div>
+      <button class="ci-remove" onclick="removeFromCart('${item.sku}')" title="Remove">×</button>`;
+    itemsDiv.appendChild(div);
+  });
+
+  totalDiv.style.display='flex';
+  totalDiv.className='cart-total';
+  totalDiv.innerHTML=`<span>Quote Add-Ons Total</span><span>$${total.toFixed(2)}</span>`;
+}
+
+function toggleCart(){
+  const body=document.getElementById('cart-body');
+  body.style.display=body.style.display==='none'?'block':'none';
+}
+
+// ── Save / Load cart ──────────────────────────────────────────────────────────
+async function saveCart(){
+  try{
+    await window.storage.set('catalog-cart',JSON.stringify(cart));
+    toast('✓ Quote add-ons saved');
+  }catch(e){toast('Save failed');}
+}
+
+async function loadCart(){
+  try{
+    const r=await window.storage.get('catalog-cart');
+    if(r){cart=JSON.parse(r.value);renderCart();}
+  }catch(e){}
+}
+
+async function clearCart(){
+  if(!confirm('Remove all add-on items from the quote?'))return;
+  cart=[];
+  try{await window.storage.delete('catalog-cart');}catch(e){}
+  renderCart();filterProducts();
+  toast('Quote add-ons cleared');
+}
+
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+buildFilters();
+filterProducts();
+loadCart();
+</script>
+</body>
+</html>
++sub.toFixed(2);
+    if(labEl) labEl.textContent=lab>0?'+ 
+  cart=cart.filter(c=>c.sku!==sku);
+  renderCart();filterProducts();
+  toast('Removed from quote');
+}
+
+function renderCart(){
+  const itemsDiv=document.getElementById('cart-items');
+  const emptyDiv=document.getElementById('cart-empty');
+  const totalDiv=document.getElementById('cart-total');
+  const countBadge=document.getElementById('cart-count');
+
+  countBadge.textContent=cart.length?`${cart.length} item${cart.length!==1?'s':''}`:'' ;
+
+  if(!cart.length){
+    emptyDiv.style.display='block';itemsDiv.innerHTML='';totalDiv.style.display='none';return;
+  }
+  emptyDiv.style.display='none';
+  itemsDiv.innerHTML='';
+
+  let total=0;
+  cart.forEach(item=>{
+    const subtotal=item.price*item.qty;total+=subtotal;
+    const m=SUPPLIERS_META[item.sup]||{label:item.sup,class:''};
+    const div=document.createElement('div');div.className='cart-item';
+    div.innerHTML=`
+      <div style="flex:1">
+        <div class="ci-name">${item.name}</div>
+        <div class="ci-meta"><span class="badge ${m.class}">${m.label}</span> &nbsp; qty: <strong>${item.qty}</strong> × $${item.price.toFixed(2)} / ${item.unit}</div>
+      </div>
+      <div class="ci-price">$${subtotal.toFixed(2)}</div>
+      <button class="ci-remove" onclick="removeFromCart('${item.sku}')" title="Remove">×</button>`;
+    itemsDiv.appendChild(div);
+  });
+
+  totalDiv.style.display='flex';
+  totalDiv.className='cart-total';
+  totalDiv.innerHTML=`<span>Quote Add-Ons Total</span><span>$${total.toFixed(2)}</span>`;
+}
+
+function toggleCart(){
+  const body=document.getElementById('cart-body');
+  body.style.display=body.style.display==='none'?'block':'none';
+}
+
+// ── Save / Load cart ──────────────────────────────────────────────────────────
+async function saveCart(){
+  try{
+    await window.storage.set('catalog-cart',JSON.stringify(cart));
+    toast('✓ Quote add-ons saved');
+  }catch(e){toast('Save failed');}
+}
+
+async function loadCart(){
+  try{
+    const r=await window.storage.get('catalog-cart');
+    if(r){cart=JSON.parse(r.value);renderCart();}
+  }catch(e){}
+}
+
+async function clearCart(){
+  if(!confirm('Remove all add-on items from the quote?'))return;
+  cart=[];
+  try{await window.storage.delete('catalog-cart');}catch(e){}
+  renderCart();filterProducts();
+  toast('Quote add-ons cleared');
+}
+
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+buildFilters();
+filterProducts();
+loadCart();
+</script>
+</body>
+</html>
++lab.toFixed(2)+' labour':'';
+    updateCartTotal();
+  }
+}
+
+function updateCartTotal(){
+  let matTotal=0,labTotal=0;
+  cart.forEach(item=>{matTotal+=item.price*item.qty;labTotal+=labourCost(item);});
+  const totalDiv=document.getElementById('cart-total');
+  if(totalDiv) totalDiv.innerHTML=`
+    <div>
+      <div>Materials Total</div>
+      ${labTotal>0?`<div style="font-size:12px;font-weight:400;opacity:.8;margin-top:2px">Labour Total: ${labTotal.toFixed(2)}</div>`:''}
+    </div>
+    <div style="text-align:right">
+      <div>${matTotal.toFixed(2)}</div>
+      ${labTotal>0?`<div style="font-size:13px;font-weight:400;opacity:.8">Grand: ${(matTotal+labTotal).toFixed(2)}</div>`:''}
+    </div>`;
+}
+
+function renderCart(){
+  const itemsDiv=document.getElementById('cart-items');
+  const emptyDiv=document.getElementById('cart-empty');
+  const totalDiv=document.getElementById('cart-total');
+  const countBadge=document.getElementById('cart-count');
+
+  countBadge.textContent=cart.length?`${cart.length} item${cart.length!==1?'s':''}`:'' ;
+
+  if(!cart.length){
+    emptyDiv.style.display='block';itemsDiv.innerHTML='';totalDiv.style.display='none';return;
+  }
+  emptyDiv.style.display='none';
+  itemsDiv.innerHTML='';
+
+  let matTotal=0,labTotal=0;
+  cart.forEach(item=>{
+    const sub=item.price*item.qty;
+    const lab=labourCost(item);
+    matTotal+=sub;labTotal+=lab;
+    const m=SUPPLIERS_META[item.sup]||{label:item.sup,class:''};
+    const scopeOpts=(SCOPE_TEMPLATES[item.cat]||DEFAULT_SCOPES);
+    const isFixed=item.labourType==='fixed';
+
+    const div=document.createElement('div');
+    div.style.cssText='background:#f5f4f0;border-radius:10px;margin-bottom:8px;overflow:hidden';
+
+    // Main row
+    const main=document.createElement('div');
+    main.className='cart-item';
+    main.style.cssText='background:transparent;border-radius:0;margin:0;padding:10px 12px';
+    main.innerHTML=`
+      <div style="flex:1">
+        <div class="ci-name">${item.name}</div>
+        <div class="ci-meta">
+          <span class="badge ${m.class}">${m.label}</span>
+          qty: <strong>${item.qty}</strong> × ${item.price.toFixed(2)} / ${item.unit}
+          ${lab>0?`<span style="color:#2e7d32;font-weight:600;margin-left:6px" id="ci-lab-${item.sku}">+ ${lab.toFixed(2)} labour</span>`:`<span id="ci-lab-${item.sku}"></span>`}
+        </div>
+      </div>
+      <div class="ci-price" id="ci-sub-${item.sku}">${sub.toFixed(2)}</div>
+      <button class="ci-remove" onclick="removeFromCart('${item.sku}')" title="Remove">×</button>`;
+    div.appendChild(main);
+
+    // Labour + scope panel
+    const detail=document.createElement('div');
+    detail.style.cssText='padding:10px 12px;border-top:0.5px solid #e8e8e8;background:#fff;border-radius:0 0 10px 10px';
+    detail.innerHTML=`
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#444;cursor:pointer;margin:0">
+          <input type="checkbox" ${item.labourEnabled?'checked':''} onchange="updateCartItem('${item.sku}','labourEnabled',this.checked)" style="width:auto">
+          <strong>Labour required</strong>
+        </label>
+        ${item.labourEnabled?`
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <select onchange="updateCartItem('${item.sku}','labourType',this.value)" style="font-size:12px;padding:4px 8px;width:auto">
+            <option value="perunit" ${!isFixed?'selected':''}>Per unit rate</option>
+            <option value="fixed" ${isFixed?'selected':''}>Fixed amount</option>
+          </select>
+          ${isFixed
+            ?`<span style="font-size:12px;color:#666">$<input type="number" value="${item.labourFixed||0}" min="0" step="0.01" style="width:80px;font-size:12px;padding:4px 6px" oninput="updateCartItem('${item.sku}','labourFixed',parseFloat(this.value)||0)"> total</span>`
+            :`<span style="font-size:12px;color:#666">$<input type="number" value="${item.labourRate||0}" min="0" step="0.01" style="width:70px;font-size:12px;padding:4px 6px" oninput="updateCartItem('${item.sku}','labourRate',parseFloat(this.value)||0)"> / ${item.unit} × ${item.qty} = <strong>${((item.labourRate||0)*item.qty).toFixed(2)}</strong></span>`
+          }
+        </div>`:''}
+      </div>
+      <div style="margin-top:8px">
+        <div style="font-size:11px;color:#aaa;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Scope of work for installers</div>
+        <select onchange="applyScopeTemplate('${item.sku}',this.value)" style="font-size:12px;padding:5px 8px;width:100%;margin-bottom:6px">
+          <option value="">— Select a scope template —</option>
+          ${scopeOpts.map(s=>`<option value="${s}" ${item.scope===s?'selected':''}>${s}</option>`).join('')}
+          <option value="__custom__">Custom — type below</option>
+        </select>
+        <textarea oninput="updateCartItem('${item.sku}','scopeNotes',this.value)"
+          placeholder="Add installer notes, special instructions, or details..."
+          style="width:100%;font-size:12px;padding:6px 8px;border:0.5px solid #ddd;border-radius:7px;resize:vertical;min-height:52px;outline:none">${item.scopeNotes||''}</textarea>
+      </div>`;
+    div.appendChild(detail);
+    itemsDiv.appendChild(div);
+  });
+
+  totalDiv.style.display='flex';
+  totalDiv.className='cart-total';
+  totalDiv.innerHTML=`
+    <div>
+      <div>Materials Total</div>
+      ${labTotal>0?`<div style="font-size:12px;font-weight:400;opacity:.8;margin-top:2px">Labour Total: ${labTotal.toFixed(2)}</div>`:''}
+    </div>
+    <div style="text-align:right">
+      <div>${matTotal.toFixed(2)}</div>
+      ${labTotal>0?`<div style="font-size:13px;font-weight:400;opacity:.8">Grand: ${(matTotal+labTotal).toFixed(2)}</div>`:''}
+    </div>`;
+}
+
+function applyScopeTemplate(sku,val){
+  const item=cart.find(c=>c.sku===sku);if(!item)return;
+  if(val==='__custom__'||val===''){item.scope='';return;}
+  item.scope=val;
+  item.scopeNotes=val;
+  // Update textarea
+  const textareas=document.querySelectorAll(`#cart-items textarea`);
+  textareas.forEach(ta=>{if(ta.getAttribute('oninput')?.includes(sku)) ta.value=val;});
+}
+  cart=cart.filter(c=>c.sku!==sku);
+  renderCart();filterProducts();
+  toast('Removed from quote');
+}
+
+function renderCart(){
+  const itemsDiv=document.getElementById('cart-items');
+  const emptyDiv=document.getElementById('cart-empty');
+  const totalDiv=document.getElementById('cart-total');
+  const countBadge=document.getElementById('cart-count');
+
+  countBadge.textContent=cart.length?`${cart.length} item${cart.length!==1?'s':''}`:'' ;
+
+  if(!cart.length){
+    emptyDiv.style.display='block';itemsDiv.innerHTML='';totalDiv.style.display='none';return;
+  }
+  emptyDiv.style.display='none';
+  itemsDiv.innerHTML='';
+
+  let total=0;
+  cart.forEach(item=>{
+    const subtotal=item.price*item.qty;total+=subtotal;
+    const m=SUPPLIERS_META[item.sup]||{label:item.sup,class:''};
+    const div=document.createElement('div');div.className='cart-item';
+    div.innerHTML=`
+      <div style="flex:1">
+        <div class="ci-name">${item.name}</div>
+        <div class="ci-meta"><span class="badge ${m.class}">${m.label}</span> &nbsp; qty: <strong>${item.qty}</strong> × $${item.price.toFixed(2)} / ${item.unit}</div>
+      </div>
+      <div class="ci-price">$${subtotal.toFixed(2)}</div>
+      <button class="ci-remove" onclick="removeFromCart('${item.sku}')" title="Remove">×</button>`;
+    itemsDiv.appendChild(div);
+  });
+
+  totalDiv.style.display='flex';
+  totalDiv.className='cart-total';
+  totalDiv.innerHTML=`<span>Quote Add-Ons Total</span><span>$${total.toFixed(2)}</span>`;
+}
+
+function toggleCart(){
+  const body=document.getElementById('cart-body');
+  body.style.display=body.style.display==='none'?'block':'none';
+}
+
+// ── Save / Load cart ──────────────────────────────────────────────────────────
+async function saveCart(){
+  try{
+    await window.storage.set('catalog-cart',JSON.stringify(cart));
+    toast('✓ Quote add-ons saved');
+  }catch(e){toast('Save failed');}
+}
+
+async function loadCart(){
+  try{
+    const r=await window.storage.get('catalog-cart');
+    if(r){cart=JSON.parse(r.value);renderCart();}
+  }catch(e){}
+}
+
+async function clearCart(){
+  if(!confirm('Remove all add-on items from the quote?'))return;
+  cart=[];
+  try{await window.storage.delete('catalog-cart');}catch(e){}
+  renderCart();filterProducts();
+  toast('Quote add-ons cleared');
+}
+
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+buildFilters();
+filterProducts();
+loadCart();
+</script>
+</body>
+</html>

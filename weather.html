@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Green Lit — Weather</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;font-size:14px;color:#1a1a1a;background:#f0efe9;padding:1rem}
+.gl-header{background:#1a1a1a;color:#fff;border-radius:12px;padding:1rem 1.5rem;margin-bottom:1.25rem;display:flex;justify-content:space-between;align-items:center}
+.gl-logo{display:flex;align-items:center;gap:10px}
+.gl-dot{width:28px;height:28px;background:#22c55e;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.gl-name{font-size:17px;font-weight:700}
+.gl-tagline{font-size:11px;color:#888;margin-top:1px}
+.gl-module{font-size:12px;color:#22c55e;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#777;margin-bottom:.75rem}
+.card{background:#fff;border:0.5px solid #ddd;border-radius:12px;padding:1.25rem;margin-bottom:.875rem}
+input,select{width:100%;padding:7px 10px;border:0.5px solid #ccc;border-radius:7px;font-size:13px;background:#fff;color:#1a1a1a;outline:none}
+input:focus,select:focus{border-color:#555}
+
+/* Nav */
+.nav{display:flex;gap:6px;margin-bottom:1.25rem;border-bottom:1px solid #e0e0e0;padding-bottom:.75rem;flex-wrap:wrap}
+.nav-btn{padding:7px 18px;border:0.5px solid #ccc;border-radius:20px;font-size:13px;cursor:pointer;background:#fff;color:#555;font-weight:500}
+.nav-btn.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1rem}
+.stat-card{background:#fff;border:0.5px solid #ddd;border-radius:10px;padding:.875rem 1rem}
+.stat-card .sv{font-size:22px;font-weight:700;margin-top:2px}
+.stat-card .sl{font-size:11px;color:#888}
+
+/* Weather card */
+.wx-card{background:linear-gradient(135deg,#1e3a5f,#2d6a9f);color:#fff;border-radius:14px;padding:1.5rem;margin-bottom:.875rem}
+.wx-city{font-size:13px;opacity:.8;margin-bottom:4px}
+.wx-temp{font-size:52px;font-weight:700;line-height:1;margin:8px 0}
+.wx-desc{font-size:16px;opacity:.9;margin-bottom:1rem}
+.wx-details{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.wx-detail{background:rgba(255,255,255,.15);border-radius:8px;padding:.6rem .75rem;text-align:center}
+.wx-detail .wd-val{font-size:16px;font-weight:600}
+.wx-detail .wd-lbl{font-size:10px;opacity:.7;margin-top:2px;text-transform:uppercase;letter-spacing:.04em}
+.wx-card.warn-rain{background:linear-gradient(135deg,#1a3a5f,#1e6091)}
+.wx-card.warn-freeze{background:linear-gradient(135deg,#1a2a5f,#2d4a9f)}
+.wx-card.warn-wind{background:linear-gradient(135deg,#3a2a1a,#6b4c1a)}
+.wx-card.warn-severe{background:linear-gradient(135deg,#5f1a1a,#9f2d2d)}
+
+/* Forecast strip */
+.forecast-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:1rem}
+.fc-day{background:rgba(255,255,255,.12);border-radius:8px;padding:.6rem;text-align:center;position:relative}
+.fc-day.bad-day{background:rgba(255,80,80,.25);border:1px solid rgba(255,80,80,.4)}
+.fc-day.warn-day{background:rgba(255,200,0,.2);border:1px solid rgba(255,200,0,.3)}
+.fc-day .fd-name{font-size:10px;opacity:.7;text-transform:uppercase;letter-spacing:.04em}
+.fc-day .fd-icon{font-size:20px;margin:4px 0}
+.fc-day .fd-temp{font-size:12px;font-weight:600}
+.fc-day .fd-lo{font-size:10px;opacity:.6}
+.fc-day .fd-warn{position:absolute;top:3px;right:3px;font-size:10px}
+
+/* Risk alerts */
+.risk-alert{display:flex;align-items:flex-start;gap:10px;padding:.875rem 1rem;border-radius:10px;margin-bottom:8px;border:0.5px solid}
+.risk-high{background:#fff5f5;border-color:#fecaca}
+.risk-med{background:#fffbeb;border-color:#fde68a}
+.risk-low{background:#f0fdf4;border-color:#86efac}
+.risk-icon{font-size:20px;flex-shrink:0;margin-top:2px}
+.risk-title{font-weight:600;font-size:13px}
+.risk-detail{font-size:12px;color:#555;margin-top:2px;line-height:1.5}
+.risk-job{font-size:11px;color:#888;margin-top:4px}
+.risk-actions{display:flex;gap:6px;margin-top:8px}
+
+/* Job weather table */
+.jw-table{width:100%;border-collapse:collapse;font-size:13px}
+.jw-table th{text-align:left;padding:7px 10px;border-bottom:1px solid #eee;font-size:11px;font-weight:600;color:#999;text-transform:uppercase;white-space:nowrap}
+.jw-table td{padding:8px 10px;border-bottom:0.5px solid #f5f5f5;vertical-align:middle}
+.jw-table tr:hover td{background:#fafafa}
+.wx-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.wx-ok{background:#dcfce7;color:#15803d}
+.wx-warn{background:#fef3c7;color:#92400e}
+.wx-bad{background:#fee2e2;color:#991b1b}
+.wx-unknown{background:#f5f4f0;color:#666}
+
+/* Search */
+.search-wrap{position:relative;flex:1;min-width:180px}
+.search-wrap input{padding-left:28px}
+.search-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:#aaa;font-size:12px}
+
+.btn{border:none;border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;font-weight:500}
+.btn-dark{background:#1a1a1a;color:#fff}.btn-dark:hover{background:#333}
+.btn-outline{background:#fff;color:#1a1a1a;border:0.5px solid #ccc}.btn-outline:hover{background:#f5f5f5}
+.btn-sm{padding:4px 10px;font-size:12px;border-radius:6px}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px}
+.spinner-dark{border:2px solid #ccc;border-top-color:#1a1a1a}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+.toast.show{opacity:1}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:.75rem;align-items:center}
+.empty{text-align:center;padding:2rem;color:#aaa;font-size:13px}
+</style>
+</head>
+<body>
+
+<div class="gl-header">
+  <div class="gl-logo">
+    <div class="gl-dot">🟢</div>
+    <div>
+      <div class="gl-name">Green Lit Software</div>
+      <div class="gl-tagline">Empowering Roofing Entrepreneurs</div>
+    </div>
+  </div>
+  <div class="gl-module">Weather & Job Risk</div>
+</div>
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+  <div class="nav">
+    <button class="nav-btn active" id="nav-dashboard" onclick="showTab('dashboard')">🌤 Dashboard</button>
+    <button class="nav-btn" id="nav-jobs" onclick="showTab('jobs')">⚠️ Job Risk</button>
+    <button class="nav-btn" id="nav-lookup" onclick="showTab('lookup')">🔍 City Lookup</button>
+  </div>
+  <button class="btn btn-outline" onclick="refreshAll()" id="refresh-btn" style="font-size:12px;padding:6px 14px">↺ Refresh weather</button>
+</div>
+
+<!-- STATS -->
+<div class="stats" id="stats-row">
+  <div class="stat-card"><div class="sl">Active jobs</div><div class="sv" id="st-active">—</div></div>
+  <div class="stat-card"><div class="sl">At-risk jobs</div><div class="sv" style="color:#dc2626" id="st-risk">—</div></div>
+  <div class="stat-card"><div class="sl">Weather alerts</div><div class="sv" style="color:#d97706" id="st-alerts">—</div></div>
+  <div class="stat-card"><div class="sl">Clear days ahead</div><div class="sv" style="color:#15803d" id="st-clear">—</div></div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="tab-dashboard">
+  <div id="wx-cards-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1rem"></div>
+  <div id="risk-alerts-section"></div>
+</div>
+
+<!-- JOB RISK -->
+<div id="tab-jobs" style="display:none">
+  <div class="card">
+    <h2>All Active Jobs — Weather Risk Assessment</h2>
+    <div class="filters">
+      <select id="risk-filter" onchange="renderJobRiskTable()" style="width:auto;font-size:12px;padding:5px 8px">
+        <option value="">All risk levels</option>
+        <option value="high">High risk</option>
+        <option value="med">Medium risk</option>
+        <option value="ok">OK to proceed</option>
+      </select>
+    </div>
+    <table class="jw-table">
+      <thead><tr>
+        <th>Customer</th><th>Address</th><th>Start date</th><th>System</th>
+        <th>Current</th><th>7-day outlook</th><th>Risk</th><th>Flags</th>
+      </tr></thead>
+      <tbody id="job-risk-body"></tbody>
+    </table>
+    <div id="job-risk-empty" class="empty" style="display:none">No active jobs found. Sync from the Job Board.</div>
+  </div>
+</div>
+
+<!-- CITY LOOKUP -->
+<div id="tab-lookup" style="display:none">
+  <div class="card">
+    <h2>Look up weather for any city</h2>
+    <div style="display:flex;gap:8px;margin-bottom:1rem">
+      <input id="lookup-city" placeholder="City name e.g. Camrose, Leduc, St. Albert..." style="flex:1" onkeydown="if(event.key==='Enter')lookupCity()">
+      <button class="btn btn-dark" onclick="lookupCity()" id="lookup-btn">Get forecast</button>
+    </div>
+    <div id="lookup-result"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Config ────────────────────────────────────────────────────────────────────
+const WX_API = 'https://api.open-meteo.com/v1/forecast';
+const GEO_API = 'https://geocoding-api.open-meteo.com/v1/search';
+
+// Warning thresholds
+const THRESH = {
+  rain: 1,        // mm/day precipitation
+  snow: 0.5,      // mm/day snowfall
+  freeze: 2,      // °C — too cold to shingle
+  wind: 40,       // km/h
+  windSteep: 30,  // km/h for 8/12+ pitch
+};
+
+// WMO weather codes → description + icon
+const WX_CODES = {
+  0:'☀️ Clear',1:'🌤 Mainly clear',2:'⛅ Partly cloudy',3:'☁️ Overcast',
+  45:'🌫 Fog',48:'🌫 Icy fog',51:'🌦 Light drizzle',53:'🌧 Drizzle',55:'🌧 Heavy drizzle',
+  61:'🌧 Light rain',63:'🌧 Rain',65:'🌧 Heavy rain',
+  71:'🌨 Light snow',73:'❄️ Snow',75:'❄️ Heavy snow',77:'🌨 Snow grains',
+  80:'🌦 Rain showers',81:'🌧 Heavy showers',82:'⛈ Violent showers',
+  85:'🌨 Snow showers',86:'❄️ Heavy snow showers',
+  95:'⛈ Thunderstorm',96:'⛈ Thunderstorm + hail',99:'⛈ Severe thunderstorm',
+};
+
+let jobs = [];
+let weatherCache = {}; // city -> {data, timestamp}
+let jobWeather = {};   // jobId -> weatherResult
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+async function init() {
+  await loadJobs();
+  await refreshAll();
+}
+
+async function loadJobs() {
+  try {
+    const r = await window.storage.get('jobs-data');
+    if (r) {
+      const all = JSON.parse(r.value);
+      jobs = all.filter(j => !['complete','invoiced','paid'].includes(j.stage));
+    }
+  } catch(e) {}
+}
+
+async function refreshAll() {
+  const btn = document.getElementById('refresh-btn');
+  btn.innerHTML = '<span class="spinner-dark" style="width:12px;height:12px;border:2px solid #ccc;border-top-color:#1a1a1a;border-radius:50%;animation:spin .6s linear infinite;display:inline-block;margin-right:6px;vertical-align:middle"></span>Fetching...';
+  btn.disabled = true;
+
+  // Get unique cities from active jobs
+  const cities = [...new Set(jobs.map(j => j.city || j.address?.split(',').pop()?.trim()).filter(Boolean))];
+
+  // Always include Edmonton as fallback
+  if (!cities.length) cities.push('Edmonton');
+
+  // Fetch weather for each city
+  await Promise.all(cities.map(city => fetchWeather(city)));
+
+  // Match jobs to weather
+  jobs.forEach(j => {
+    const city = j.city || j.address?.split(',').pop()?.trim() || 'Edmonton';
+    jobWeather[j.id] = weatherCache[city] || null;
+  });
+
+  renderDashboard();
+  renderJobRiskTable();
+  updateStats();
+
+  btn.innerHTML = '↺ Refresh weather';
+  btn.disabled = false;
+  toast('✓ Weather updated');
+}
+
+// ── Geocode + fetch weather ───────────────────────────────────────────────────
+async function fetchWeather(city) {
+  // Check cache (5 min)
+  if (weatherCache[city] && Date.now() - weatherCache[city].timestamp < 300000) return weatherCache[city];
+  try {
+    // Geocode
+    const geoRes = await fetch(`${GEO_API}?name=${encodeURIComponent(city)}&count=1&language=en&format=json`);
+    const geoData = await geoRes.json();
+    if (!geoData.results?.length) return null;
+    const { latitude, longitude, name, admin1 } = geoData.results[0];
+
+    // Fetch forecast
+    const wxRes = await fetch(`${WX_API}?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m,precipitation,snowfall,windspeed_10m,weathercode&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum,windspeed_10m_max,sunrise,sunset&current_weather=true&timezone=auto&forecast_days=7`);
+    const wxData = await wxRes.json();
+
+    const result = { city: name, province: admin1, latitude, longitude, data: wxData, timestamp: Date.now() };
+    weatherCache[city] = result;
+    return result;
+  } catch(e) { return null; }
+}
+
+// ── Risk assessment ───────────────────────────────────────────────────────────
+function assessRisk(wxResult, job) {
+  if (!wxResult?.data) return { level: 'unknown', flags: [], score: 0 };
+  const daily = wxResult.data.daily;
+  const current = wxResult.data.current_weather;
+  const flags = [];
+  let score = 0;
+
+  // Today's conditions
+  const todayCode = daily.weathercode?.[0] || 0;
+  const todayMaxTemp = daily.temperature_2m_max?.[0] ?? 10;
+  const todayMinTemp = daily.temperature_2m_min?.[0] ?? 5;
+  const todayPrecip = daily.precipitation_sum?.[0] || 0;
+  const todaySnow = daily.snowfall_sum?.[0] || 0;
+  const todayWind = daily.windspeed_10m_max?.[0] || 0;
+  const currentTemp = current?.temperature ?? 10;
+  const currentWind = current?.windspeed ?? 0;
+
+  // Rain/precipitation flag
+  if (todayPrecip >= THRESH.rain) { flags.push({ type: 'rain', label: `Rain forecast: ${todayPrecip.toFixed(1)}mm`, icon: '🌧', severity: 'high' }); score += 3; }
+  if (todaySnow >= THRESH.snow) { flags.push({ type: 'snow', label: `Snow forecast: ${todaySnow.toFixed(1)}mm`, icon: '❄️', severity: 'high' }); score += 3; }
+
+  // Freeze flag
+  if (todayMinTemp <= THRESH.freeze) { flags.push({ type: 'freeze', label: `Low temp: ${todayMinTemp.toFixed(0)}°C — too cold for asphalt shingles`, icon: '🧊', severity: 'high' }); score += 3; }
+
+  // Wind flag — check if steep roof
+  const pitch = parseInt(job?.system?.match(/(\d+)\/12/)?.[1]) || 0;
+  const windThresh = pitch >= 8 ? THRESH.windSteep : THRESH.wind;
+  if (todayWind >= windThresh) { flags.push({ type: 'wind', label: `Wind: ${todayWind.toFixed(0)} km/h${pitch >= 8 ? ' (steep roof — threshold 30 km/h)' : ''}`, icon: '💨', severity: todayWind >= 60 ? 'high' : 'med' }); score += 2; }
+
+  // Next 7-day outlook
+  let badDays = 0;
+  for (let i = 1; i < 7; i++) {
+    const p = daily.precipitation_sum?.[i] || 0;
+    const s = daily.snowfall_sum?.[i] || 0;
+    const lo = daily.temperature_2m_min?.[i] ?? 5;
+    if (p >= THRESH.rain || s >= THRESH.snow || lo <= THRESH.freeze) badDays++;
+  }
+  if (badDays >= 3) { flags.push({ type: 'outlook', label: `${badDays} of next 6 days have adverse conditions`, icon: '📅', severity: 'med' }); score += 1; }
+
+  const level = score >= 3 ? 'high' : score >= 1 ? 'med' : 'ok';
+  return { level, flags, score, todayCode, todayMaxTemp, todayMinTemp, todayPrecip, todaySnow, todayWind, currentTemp, currentWind };
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────────────
+function renderDashboard() {
+  const grid = document.getElementById('wx-cards-grid');
+  const alerts = document.getElementById('risk-alerts-section');
+  grid.innerHTML = '';
+  alerts.innerHTML = '';
+
+  const cities = Object.keys(weatherCache);
+  if (!cities.length) {
+    grid.innerHTML = '<div class="card empty">No weather data yet. Make sure jobs have cities set on the Job Board, then click Refresh.</div>';
+    return;
+  }
+
+  // Group jobs by city
+  const cityJobs = {};
+  jobs.forEach(j => {
+    const city = j.city || 'Edmonton';
+    if (!cityJobs[city]) cityJobs[city] = [];
+    cityJobs[city].push(j);
+  });
+
+  cities.forEach(city => {
+    const wx = weatherCache[city];
+    if (!wx?.data) return;
+    const cityJobList = cityJobs[city] || [];
+    const riskResults = cityJobList.map(j => ({ job: j, risk: assessRisk(wx, j) }));
+    const highRisk = riskResults.filter(r => r.risk.level === 'high').length;
+
+    grid.appendChild(buildWeatherCard(wx, cityJobList.length, highRisk));
+
+    // Build risk alerts for this city
+    riskResults.filter(r => r.risk.level !== 'ok' && r.risk.flags.length).forEach(({ job, risk }) => {
+      risk.flags.forEach(flag => {
+        const div = document.createElement('div');
+        div.className = `risk-alert risk-${risk.level === 'high' ? 'high' : 'med'}`;
+        div.innerHTML = `
+          <div class="risk-icon">${flag.icon}</div>
+          <div style="flex:1">
+            <div class="risk-title">${flag.label}</div>
+            <div class="risk-job">📍 ${job.customer || 'Job'} — ${job.address || ''}${job.city ? ', ' + job.city : ''} · Start: ${job.startDate ? fmtDate(job.startDate) : 'TBD'}</div>
+            <div class="risk-actions">
+              <button class="btn btn-sm btn-outline" onclick="notifyDelay('${job.id}')">📱 Send delay notice</button>
+              <button class="btn btn-sm btn-outline" onclick="viewJobForecast('${job.city || job.address}')">📅 View full forecast</button>
+            </div>
+          </div>`;
+        alerts.appendChild(div);
+      });
+    });
+  });
+
+  if (!alerts.innerHTML) {
+    alerts.innerHTML = '<div class="card" style="text-align:center;color:#15803d;padding:1.5rem"><div style="font-size:28px">✅</div><div style="font-weight:600;margin-top:8px">All clear</div><div style="font-size:13px;color:#888;margin-top:4px">No weather risks detected for active job sites.</div></div>';
+  }
+}
+
+function buildWeatherCard(wx, jobCount, highRiskCount) {
+  const d = wx.data;
+  const cur = d.current_weather;
+  const daily = d.daily;
+  const code = cur?.weathercode ?? 0;
+  const desc = WX_CODES[code] || '🌤 Clear';
+  const temp = cur?.temperature ?? '--';
+  const wind = cur?.windspeed ?? '--';
+  const precip = daily.precipitation_sum?.[0] || 0;
+  const snow = daily.snowfall_sum?.[0] || 0;
+  const lo = daily.temperature_2m_min?.[0] ?? '--';
+
+  // Determine card warning class
+  let warnCls = '';
+  if (snow > THRESH.snow || precip > 10) warnCls = 'warn-severe';
+  else if (precip > THRESH.rain) warnCls = 'warn-rain';
+  else if (lo <= THRESH.freeze) warnCls = 'warn-freeze';
+  else if (wind > THRESH.wind) warnCls = 'warn-wind';
+
+  const div = document.createElement('div');
+  div.className = `wx-card ${warnCls}`;
+  div.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <div class="wx-city">${wx.city}${wx.province ? ', ' + wx.province : ''}</div>
+        <div class="wx-temp">${Math.round(temp)}°</div>
+        <div class="wx-desc">${desc}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:12px;opacity:.8">${jobCount} active job${jobCount !== 1 ? 's' : ''}</div>
+        ${highRiskCount > 0 ? `<div style="font-size:13px;font-weight:700;color:#fca5a5;margin-top:4px">⚠ ${highRiskCount} at risk</div>` : '<div style="font-size:12px;color:#86efac;margin-top:4px">✓ All clear</div>'}
+      </div>
+    </div>
+    <div class="wx-details" style="margin-top:1rem">
+      <div class="wx-detail"><div class="wd-val">${lo}°</div><div class="wd-lbl">Low</div></div>
+      <div class="wx-detail"><div class="wd-val">${precip.toFixed(1)}mm</div><div class="wd-lbl">Precip</div></div>
+      <div class="wx-detail"><div class="wd-val">${snow.toFixed(1)}mm</div><div class="wd-lbl">Snow</div></div>
+      <div class="wx-detail"><div class="wd-val">${Math.round(wind)} km/h</div><div class="wd-lbl">Wind</div></div>
+    </div>
+    <div class="forecast-strip">
+      ${(daily.time || []).slice(0, 7).map((day, i) => {
+        const dc = daily.weathercode?.[i] ?? 0;
+        const dIcon = (WX_CODES[dc] || '🌤').split(' ')[0];
+        const dHi = Math.round(daily.temperature_2m_max?.[i] ?? 0);
+        const dLo = Math.round(daily.temperature_2m_min?.[i] ?? 0);
+        const dP = daily.precipitation_sum?.[i] || 0;
+        const dS = daily.snowfall_sum?.[i] || 0;
+        const dW = daily.windspeed_10m_max?.[i] || 0;
+        const isBad = dP >= THRESH.rain || dS >= THRESH.snow || dLo <= THRESH.freeze;
+        const isWarn = dW >= THRESH.wind && !isBad;
+        const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        const dayName = i === 0 ? 'Today' : dayNames[new Date(day).getDay()];
+        return `<div class="fc-day ${isBad ? 'bad-day' : isWarn ? 'warn-day' : ''}">
+          ${isBad ? '<div class="fd-warn">⚠</div>' : ''}
+          <div class="fd-name">${dayName}</div>
+          <div class="fd-icon">${dIcon}</div>
+          <div class="fd-temp">${dHi}°</div>
+          <div class="fd-lo">${dLo}°</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  return div;
+}
+
+// ── Job risk table ────────────────────────────────────────────────────────────
+function renderJobRiskTable() {
+  const filter = document.getElementById('risk-filter')?.value || '';
+  const tbody = document.getElementById('job-risk-body');
+  const empty = document.getElementById('job-risk-empty');
+  tbody.innerHTML = '';
+
+  let list = jobs.map(j => {
+    const city = j.city || 'Edmonton';
+    const wx = weatherCache[city];
+    const risk = assessRisk(wx, j);
+    return { job: j, wx, risk };
+  });
+
+  if (filter) list = list.filter(x => x.risk.level === filter || (filter === 'ok' && x.risk.level === 'ok'));
+  list.sort((a, b) => { const o = { high: 0, med: 1, ok: 2, unknown: 3 }; return (o[a.risk.level] || 3) - (o[b.risk.level] || 3); });
+
+  empty.style.display = list.length ? 'none' : 'block';
+
+  list.forEach(({ job: j, wx, risk }) => {
+    const tr = document.createElement('tr');
+    const badgeCls = risk.level === 'high' ? 'wx-bad' : risk.level === 'med' ? 'wx-warn' : risk.level === 'ok' ? 'wx-ok' : 'wx-unknown';
+    const badgeLbl = risk.level === 'high' ? '⚠ High risk' : risk.level === 'med' ? '⚡ Medium' : risk.level === 'ok' ? '✓ Clear' : '? Unknown';
+
+    // 7-day icon strip
+    const daily = wx?.data?.daily;
+    const strip = daily ? (daily.time || []).slice(0, 7).map((_, i) => {
+      const p = daily.precipitation_sum?.[i] || 0;
+      const s = daily.snowfall_sum?.[i] || 0;
+      const lo = daily.temperature_2m_min?.[i] ?? 5;
+      if (p >= THRESH.rain || s >= THRESH.snow || lo <= THRESH.freeze) return '<span title="Bad weather">🔴</span>';
+      if (daily.windspeed_10m_max?.[i] >= THRESH.wind) return '<span title="High winds">🟡</span>';
+      return '<span title="Clear">🟢</span>';
+    }).join('') : '—';
+
+    const curTemp = wx?.data?.current_weather?.temperature;
+    const curWind = wx?.data?.current_weather?.windspeed;
+    const curCode = wx?.data?.current_weather?.weathercode ?? 0;
+    const curDesc = wx ? ((WX_CODES[curCode] || '🌤').split(' ')[0] + ' ' + Math.round(curTemp ?? 0) + '°C') : '—';
+
+    tr.innerHTML = `
+      <td style="font-weight:600">${j.customer || '—'}</td>
+      <td style="font-size:12px;color:#888">${j.address || ''}${j.city ? ', ' + j.city : ''}</td>
+      <td style="font-size:12px;white-space:nowrap">${j.startDate ? fmtDate(j.startDate) : '—'}</td>
+      <td style="font-size:12px">${j.system?.split(',')[0] || '—'}</td>
+      <td style="font-size:13px;white-space:nowrap">${curDesc}</td>
+      <td style="letter-spacing:2px">${strip}</td>
+      <td><span class="wx-badge ${badgeCls}">${badgeLbl}</span></td>
+      <td style="font-size:12px">${risk.flags.map(f => f.icon).join(' ') || '—'}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// ── City lookup ───────────────────────────────────────────────────────────────
+async function lookupCity() {
+  const city = document.getElementById('lookup-city').value.trim();
+  if (!city) return;
+  const btn = document.getElementById('lookup-btn');
+  btn.textContent = 'Loading...'; btn.disabled = true;
+  const wx = await fetchWeather(city);
+  btn.textContent = 'Get forecast'; btn.disabled = false;
+  const div = document.getElementById('lookup-result');
+  if (!wx?.data) { div.innerHTML = '<div style="color:#c0392b;font-size:13px">City not found. Try a different name.</div>'; return; }
+  const card = buildWeatherCard(wx, 0, 0);
+  div.innerHTML = '';
+  div.appendChild(card);
+}
+
+async function viewJobForecast(city) {
+  document.getElementById('lookup-city').value = city;
+  showTab('lookup');
+  await lookupCity();
+}
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+function notifyDelay(jobId) {
+  const j = jobs.find(x => x.id === jobId);
+  if (!j) return;
+  const msg = `Hi ${j.customer || 'there'}, unfortunately we need to delay your roofing project at ${j.address || 'your address'} due to weather conditions. Safety is our top priority. We'll be in touch within 24 hours to reschedule. We apologize for any inconvenience. — Your Roofing Team`;
+  navigator.clipboard.writeText(msg).then(() => toast('✓ Delay notice copied to clipboard — paste into text or email')).catch(() => {
+    prompt('Copy this delay notice:', msg);
+  });
+}
+
+// ── Stats update ──────────────────────────────────────────────────────────────
+function updateStats() {
+  const active = jobs.length;
+  const risks = jobs.filter(j => {
+    const wx = weatherCache[j.city || 'Edmonton'];
+    return assessRisk(wx, j).level === 'high';
+  }).length;
+  const alerts = Object.values(weatherCache).reduce((s, wx) => {
+    if (!wx?.data?.daily) return s;
+    const d = wx.data.daily;
+    return s + (d.precipitation_sum || []).filter((p, i) => p >= THRESH.rain || (d.snowfall_sum?.[i] || 0) >= THRESH.snow || (d.temperature_2m_min?.[i] ?? 5) <= THRESH.freeze).length;
+  }, 0);
+  const clearDays = Object.values(weatherCache).length ? (() => {
+    const wx = Object.values(weatherCache)[0];
+    if (!wx?.data?.daily) return 0;
+    const d = wx.data.daily;
+    return (d.precipitation_sum || []).filter((p, i) => p < THRESH.rain && (d.snowfall_sum?.[i] || 0) < THRESH.snow && (d.temperature_2m_min?.[i] ?? 5) > THRESH.freeze).length;
+  })() : 0;
+
+  document.getElementById('st-active').textContent = active;
+  document.getElementById('st-risk').textContent = risks;
+  document.getElementById('st-alerts').textContent = alerts;
+  document.getElementById('st-clear').textContent = clearDays + '/7';
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function showTab(name) {
+  ['dashboard','jobs','lookup'].forEach(t => {
+    document.getElementById('tab-' + t).style.display = t === name ? 'block' : 'none';
+    document.getElementById('nav-' + t)?.classList.toggle('active', t === name);
+  });
+}
+function fmtDate(iso) { if (!iso) return '—'; return new Date(iso).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' }); }
+function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); }
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

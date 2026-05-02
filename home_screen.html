@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Green Lit Software</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#22c55e;
+  --green-dark:#15803d;
+  --black:#1a1a1a;
+  --bg:#f0efe9;
+  --card:#fff;
+  --border:#e0e0e0;
+  --text:#1a1a1a;
+  --muted:#888;
+}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── Header ── */
+.header{background:var(--black);padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-dot{width:36px;height:36px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.logo-text{}
+.logo-name{font-size:20px;font-weight:800;color:#fff;letter-spacing:-.02em}
+.logo-tag{font-size:11px;color:var(--green);font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-top:1px}
+.header-right{display:flex;align-items:center;gap:12px}
+.header-date{font-size:12px;color:#666}
+.user-pill{background:#2a2a2a;border-radius:20px;padding:5px 14px;font-size:12px;color:#ccc;display:flex;align-items:center;gap:6px}
+.user-dot{width:8px;height:8px;background:var(--green);border-radius:50%}
+
+/* ── Hero ── */
+.hero{background:linear-gradient(135deg,#1a1a1a 0%,#0f2a1a 100%);padding:3rem 2rem;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 70% 50%,rgba(34,197,94,.15) 0%,transparent 60%)}
+.hero-inner{max-width:1200px;margin:0 auto;position:relative}
+.hero-greeting{font-size:13px;color:var(--green);font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem}
+.hero-title{font-size:36px;font-weight:800;color:#fff;line-height:1.15;margin-bottom:.75rem;letter-spacing:-.02em}
+.hero-title span{color:var(--green)}
+.hero-sub{font-size:15px;color:#999;max-width:500px;line-height:1.6}
+.hero-stats{display:flex;gap:2rem;margin-top:2rem}
+.hero-stat .hs-val{font-size:28px;font-weight:700;color:#fff}
+.hero-stat .hs-lbl{font-size:12px;color:#666;margin-top:2px}
+.hero-badge{position:absolute;right:0;top:50%;transform:translateY(-50%);background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);border-radius:16px;padding:1.5rem 2rem;text-align:center;display:none}
+@media(min-width:768px){.hero-badge{display:block}}
+.hero-badge .hb-icon{font-size:48px;margin-bottom:.5rem}
+.hero-badge .hb-text{font-size:12px;color:var(--green);font-weight:600}
+
+/* ── Quick actions ── */
+.quick-bar{background:#fff;border-bottom:0.5px solid var(--border);padding:.75rem 2rem;display:flex;gap:8px;overflow-x:auto}
+.qa-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:0.5px solid var(--border);background:#fff;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;color:var(--text);text-decoration:none;transition:all .15s}
+.qa-btn:hover{background:var(--black);color:#fff;border-color:var(--black)}
+.qa-btn.primary{background:var(--black);color:#fff;border-color:var(--black)}
+.qa-btn.primary:hover{background:#333}
+
+/* ── Main layout ── */
+.main{max-width:1200px;margin:0 auto;padding:2rem}
+
+/* ── Section headers ── */
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
+.section-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+
+/* ── Module grid ── */
+.modules-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:2rem}
+.module-card{background:var(--card);border:0.5px solid var(--border);border-radius:14px;padding:1.25rem;cursor:pointer;transition:all .18s;position:relative;overflow:hidden;text-decoration:none;color:inherit;display:block}
+.module-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .18s}
+.module-card:hover{border-color:#aaa;box-shadow:0 4px 20px rgba(0,0,0,.08);transform:translateY(-1px)}
+.module-card:hover::before{opacity:1}
+.mc-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.875rem}
+.mc-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.mc-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:.05em}
+.mc-name{font-size:15px;font-weight:700;margin-bottom:3px}
+.mc-desc{font-size:12px;color:var(--muted);line-height:1.5}
+.mc-footer{display:flex;justify-content:space-between;align-items:center;margin-top:.875rem;padding-top:.75rem;border-top:0.5px solid #f0f0f0}
+.mc-status{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px}
+.mc-status-dot{width:6px;height:6px;border-radius:50%}
+.mc-arrow{font-size:16px;color:#ccc;transition:all .15s}
+.module-card:hover .mc-arrow{color:var(--black);transform:translateX(3px)}
+
+/* ── Category sections ── */
+.category{margin-bottom:2rem}
+.category-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.75rem;display:flex;align-items:center;gap:8px}
+.category-label::after{content:'';flex:1;height:0.5px;background:var(--border)}
+
+/* ── Activity feed ── */
+.activity-feed{background:var(--card);border:0.5px solid var(--border);border-radius:14px;padding:1.25rem}
+.af-item{display:flex;gap:10px;padding:8px 0;border-bottom:0.5px solid #f5f5f5;font-size:13px}
+.af-item:last-child{border:none;padding-bottom:0}
+.af-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.af-time{font-size:11px;color:var(--muted);white-space:nowrap;min-width:60px;text-align:right}
+
+/* ── Footer ── */
+.footer{background:var(--black);padding:2rem;text-align:center;margin-top:2rem}
+.footer-name{font-size:16px;font-weight:700;color:#fff;margin-bottom:4px}
+.footer-tag{font-size:12px;color:#555}
+.footer-links{display:flex;gap:1.5rem;justify-content:center;margin-top:1rem}
+.footer-links a{font-size:12px;color:#666;text-decoration:none}
+.footer-links a:hover{color:var(--green)}
+
+/* ── Welcome modal ── */
+.welcome-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:flex;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(4px)}
+.welcome-modal{background:#fff;border-radius:20px;padding:2.5rem;max-width:480px;width:100%;text-align:center}
+.wm-icon{font-size:56px;margin-bottom:1rem}
+.wm-title{font-size:24px;font-weight:800;margin-bottom:.5rem;letter-spacing:-.02em}
+.wm-title span{color:var(--green)}
+.wm-sub{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:1.5rem}
+.wm-btn{background:var(--black);color:#fff;border:none;border-radius:10px;padding:12px 28px;font-size:15px;font-weight:600;cursor:pointer;width:100%;margin-bottom:.75rem;transition:background .15s}
+.wm-btn:hover{background:#333}
+.wm-skip{font-size:12px;color:var(--muted);cursor:pointer;text-decoration:underline}
+.wm-steps{display:flex;gap:8px;justify-content:center;margin:1.5rem 0}
+.wm-step{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1}
+.wm-step-num{width:28px;height:28px;border-radius:50%;background:var(--black);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.wm-step-label{font-size:11px;color:var(--muted);text-align:center}
+
+@media(max-width:600px){
+  .hero-title{font-size:26px}
+  .hero-stats{gap:1.5rem}
+  .main{padding:1rem}
+  .modules-grid{grid-template-columns:1fr}
+  .quick-bar{padding:.75rem 1rem}
+}
+</style>
+</head>
+<body>
+
+<!-- Welcome modal (first visit) -->
+<div class="welcome-bg" id="welcome" style="display:none">
+  <div class="welcome-modal">
+    <div class="wm-icon">🟢</div>
+    <div class="wm-title">Welcome to <span>Green Lit</span></div>
+    <div class="wm-sub">The complete roofing business operating system built by a roofer, for roofers. Everything you need to estimate, manage, and grow your roofing company.</div>
+    <div class="wm-steps">
+      <div class="wm-step"><div class="wm-step-num">1</div><div class="wm-step-label">Set up Supplier Pricing</div></div>
+      <div class="wm-step"><div class="wm-step-num">2</div><div class="wm-step-label">Create your first estimate</div></div>
+      <div class="wm-step"><div class="wm-step-num">3</div><div class="wm-step-label">Send quote via Proposify</div></div>
+    </div>
+    <button class="wm-btn" onclick="closeWelcome()">Get Started</button>
+    <div class="wm-skip" onclick="closeWelcome()">I'll explore on my own</div>
+  </div>
+</div>
+
+<!-- Header -->
+<div class="header">
+  <div class="logo">
+    <div class="logo-dot">🟢</div>
+    <div class="logo-text">
+      <div class="logo-name">Green Lit Software</div>
+      <div class="logo-tag">Roofing Business OS</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="header-date" id="header-date"></div>
+    <div class="user-pill"><div class="user-dot"></div>Iron Shield Roofing</div>
+  </div>
+</div>
+
+<!-- Quick actions bar -->
+<div class="quick-bar">
+  <a href="estimator.html" class="qa-btn primary">⚡ New Estimate</a>
+  <a href="leads.html" class="qa-btn">+ New Lead</a>
+  <a href="jobs.html" class="qa-btn">📋 Job Board</a>
+  <a href="calendar.html" class="qa-btn">📅 Today's Schedule</a>
+  <a href="invoices.html" class="qa-btn">🧾 Invoices</a>
+  <a href="crm.html" class="qa-btn">👥 CRM</a>
+  <a href="weather.html" class="qa-btn">🌤 Weather</a>
+</div>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-greeting">Good morning, Cory</div>
+    <div class="hero-title">Your roofing business,<br><span>all in one place.</span></div>
+    <div class="hero-sub">Estimate, quote, schedule, track, invoice and grow — built by a roofer who's been where you are.</div>
+    <div class="hero-stats" id="hero-stats">
+      <div class="hero-stat"><div class="hs-val" id="hs-quotes">—</div><div class="hs-lbl">Active quotes</div></div>
+      <div class="hero-stat"><div class="hs-val" id="hs-jobs">—</div><div class="hs-lbl">Jobs on board</div></div>
+      <div class="hero-stat"><div class="hs-val" id="hs-leads">—</div><div class="hs-lbl">Open leads</div></div>
+      <div class="hero-stat"><div class="hs-val" id="hs-revenue">—</div><div class="hs-lbl">Revenue this month</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+
+  <!-- Sales & Estimating -->
+  <div class="category">
+    <div class="category-label">Sales & Estimating</div>
+    <div class="modules-grid">
+
+      <a href="estimator.html" class="module-card">
+        <div class="mc-header">
+          <div class="mc-icon" style="background:#dbeafe">📐</div>
+          <span class="mc-badge" style="background:#dbeafe;color:#1d4ed8">Core</span>
+        </div>
+        <div class="mc-name">Estimator</div>
+        <div class="mc-desc">Full material takeoff for 9 roofing brands. Multi-structure support, labour calculations, markup & margin.</div>
+        <div class="mc-footer">
+          <div class="mc-status"><div class="mc-status-dot" style="background:#22c55e"></div>Ready</div>
+          <div class="mc-arrow">→</div>
+        </div>
+      </a>
+
+      <a href="supplier-pricing.html" class="module-card">
+        <div class="mc-header">
+          <div class="mc-icon" style="background:#fef3c7">🏭</div>
+          <span class="mc-badge" style="background:#fef3c7;color:#92400e">Setup</span>
+        </div>
+        <div class="mc-name">Supplier Pricing</div>
+        <div class="mc-desc">Manage prices from RoofMart, ABC Supply, QXO, Proline & Euroshield. Standard & project pricing with comparison.</div>
+        <div class="mc-footer">
+          <div class="mc-status"><div class="mc-status-dot" style="background:#22c55e"></div>Ready</div>
+          <div class="mc-arrow">→</div>
+        </div>
+      </a>
+
+      <a href="catalog.html" class="module-card">
+        <div class="mc-header">
+          <div class="mc-icon" style="background:#ede9fe">🔍</div>
+          <span class="mc-badge" style="background:#ede9fe;color:#6d28d9">Add-ons</span>
+        </div>
+        <div class="mc-name">Product Catalog</div>
+        <div class="mc-desc">Search and add vents, flashings, sealants and accessories from any supplier directly to a quote.</div>
+        <div class="mc-footer">
+          <div class="mc-status"><div class="mc-status-dot" style="background:#22c55e"></div>Ready</div>
+          <div class="mc-arrow">→</div>
+        </div>
+      </a>
+
+      <a href="quote-builder.html" class="module-card">
+        <div class="mc-header">
+          <div class="mc-icon" style="background:#dcfce7">📄</div>
+          <span class="mc-badge" style="background:#dcfce7;color:#15803d">Customer</span>
+        </div>
+        <div class="mc-name">Customer Quote Builder</div>
+        <div class="mc-desc">Build professional customer-facing quotes. Proposify-ready scope of work and pricing table export.</div>
+        <div class="mc-footer">
+          <div class="mc-status"><div class="mc-status-dot" style="background:#22c55e"></div>Ready</div>
+          <div class="mc-arrow">→</div>
+        </div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- CRM & Leads -->
+  <div class="category">
+    <div class="category-label">CRM & Lead Management</div>
+    <div class="modules-grid">
+
+      <a href="crm.html" class="module-card">
+        <div class="mc-header">
+          <div class="mc-icon" style="background:#dbeafe">👥</div>
+          <span class="mc-badge" style="background:#dbeafe;color:#1d4ed8">CRM</span>
+        </div>
+        <div class="mc-name">CRM — Quotes & Customers</div>
+        <div class="mc-desc">Full quote history, customer database, pipeline tracking and status management.</div>
+        <div class="mc-footer">
+          <div class="mc-status"><div class="mc-status-dot" style="background:#22c55e"></div>Ready</div>
+          <div class="mc-arrow">→</div>
+        </div>
+      </a>
+
+      <a href="leads.html" class="module-card">
+        <div class="mc-header">
+          <div class="mc-icon" style="background:#fef3c7">🎯</div>
+          <span class="mc-badge" style="background:#fef3c7;color:#92400e">Leads</span>
+        </div>
+        <div class="mc-name">Lead Management</div>
+        <div class="mc-desc">Kanban pipeline, AI email-to-lead parsing, staff assignment, follow-up reminders and activity logging.</div>
+        <div class="mc-footer">
+          <div class="mc-status"><div class="mc-status-dot" style="background:#22c55e"></div>Ready</div>
+          <div class="mc-arrow">→</div>
+        </div>
+      </a>
+
+      <a href="communications.html" class="module-card">
+        <div class="mc-header">
+          <div class="mc-icon" style="background:#dcfce7">💬</div>
+          <span class="mc-badge" style="background:#dcfce7;color:#15803d">Comms</span>
+        </div>
+        <div class="mc-name">Customer Communications</div>
+        <div class="mc-desc">Full communication history per customer. AI-powered call logging, message templates and follow-up reminders.</div>
+        <div class="mc-footer">
+          <div class="mc-status"><div class="mc-status-dot" style="background:#22c55e"></div>Ready</div>
+          <div class="mc-arrow">→</div>
+        </div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- Operations -->
+  <div class="category">
+    <div class="category-label">Operations</div>
+    <div class="modules-grid">
+
+      <a href="jobs.html" class="module-card">
+        <div class="mc-header">
+          <div class="mc-icon" style="background:#cffafe">🔨</div>
+          <span class="mc-badge" style="background:#cffafe;color:#0e7490">Ops</span>
+        </div>
+        <div class="mc-name">Project Tracking & Job Board</div>
+        <div class="mc-desc">9-stage Kanban job board. Crew assignment, stage checklists, activity logs and auto-sync from CRM.</div>
+        <div class="mc-footer">
+          <div class="mc-status"><div class="mc-status-dot" style="background:#22c55e"></div>Ready</div>
+          <div class="mc-arrow">→</div>
+        </div>
+      </a>
+
+      <a href="calendar.html" class="module-card">
+        <div class="mc-header">
+          <div class="mc-icon" style="background:#ede9fe">📅</div>
+          <span class="mc-badge" style="background:#ede9fe;color:#6d28d9">Schedule</span>
+        </div>
+        <div class="mc-name">Calendar & Scheduling</div>
+        <div class="mc-desc">Month, week and day views. Jobs, leads, reminders and invoices in one place with weather overlay.</div>
+        <div class="mc-footer">
+          <div class="mc-status"><div class="mc-status-dot" style="background:#22c55e"></div>Ready</div>
+          <div class="mc-arrow">→</div>
+        </div>
+      </a>
+
+      <a href="weather.html" class="module-card">
+        <div class="mc-header">
+          <div class="mc-icon" style="background:#dbeafe">🌤</div>
+          <span class="mc-badge" style="background:#dbeafe;color:#1d4ed8">Weather</span>
+        </div>
+        <div class="mc-name">Weather & Job Risk</div>
+        <div class="mc-desc">Live 14-day forecast per job site. Rain, freeze and wind warnings. At-risk job flagging with delay notices.</div>
+        <div class="mc-footer">
+          <div class="mc-status"><div class="mc-status-dot" style="background:#22c55e"></div>Ready</div>
+          <div class="mc-arrow">→</div>
+        </div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- Field Documents -->
+  <div class="category">
+    <div class="category-label">Field Documents</div>
+    <div class="modules-grid">
+
+      <a href="work-order.html" class="module-card">
+        <div class="mc-header">
+          <div class="mc-icon" style="background:#fef3c7">📋</div>
+          <span class="mc-badge" style="background:#fef3c7;color:#92400e">Field</span>
+        </div>
+        <div class="mc-name">Labour Work Order (PO)</div>
+        <div class="mc-desc">Full subcontractor purchase order. 16-section scope, safety, payment terms, sign-off and storage.</div>
+        <div class="mc-footer">
+          <div class="mc-status"><div class="mc-status-dot" style="background:#22c55e"></div>Ready</div>
+          <div class="mc-arrow">→</div>
+        </div>
+      </a>
+
+      <a href="material-order.html" class="module-card">
+        <div class="mc-header">
+          <div class="mc-icon" style="background:#dcfce7">📦</div>
+          <span class="mc-badge" style="background:#dcfce7;color:#15803d">Field</span>
+        </div>
+        <div class="mc-name">Material Order</div>
+        <div class="mc-desc">Supplier purchase order with auto-calculated quantities, delivery instructions and verification checklist.</div>
+        <div class="mc-footer">
+          <div class="mc-status"><div class="mc-status-dot" style="background:#22c55e"></div>Ready</div>
+          <div class="mc-arrow">→</div>
+        </div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- Finance & Reporting -->
+  <div class="category">
+    <div class="category-label">Finance & Reporting</div>
+    <div class="modules-grid">
+
+      <a href="invoices.html" class="module-card">
+        <div class="mc-header">
+          <div class="mc-icon" style="background:#cffafe">🧾</div>
+          <span class="mc-badge" style="background:#cffafe;color:#0e7490">Finance</span>
+        </div>
+        <div class="mc-name">Financial Management</div>
+        <div class="mc-desc">Commitment fees, progress draws and final invoices. GST calculation, payment tracking and P&L reporting.</div>
+        <div class="mc-footer">
+          <div class="mc-status"><div class="mc-status-dot" style="background:#22c55e"></div>Ready</div>
+          <div class="mc-arrow">→</div>
+        </div>
+      </a>
+
+      <a href="analytics.html" class="module-card">
+        <div class="mc-header">
+          <div class="mc-icon" style="background:#dbeafe">📊</div>
+          <span class="mc-badge" style="background:#dbeafe;color:#1d4ed8">Reports</span>
+        </div>
+        <div class="mc-name">Analytics & Reporting</div>
+        <div class="mc-desc">Revenue by month, win rates, top estimators, lead source performance and quote-to-close time tracking.</div>
+        <div class="mc-footer">
+          <div class="mc-status"><div class="mc-status-dot" style="background:#22c55e"></div>Ready</div>
+          <div class="mc-arrow">→</div>
+        </div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- Activity feed + tip -->
+  <div style="display:grid;grid-template-columns:1fr 300px;gap:1rem;margin-top:.5rem" id="bottom-grid">
+    <div class="activity-feed">
+      <div class="section-title" style="margin-bottom:1rem">Recent Activity</div>
+      <div id="activity-list">
+        <div style="color:#aaa;font-size:13px;text-align:center;padding:1.5rem">Activity will appear here as you use Green Lit.</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="background:#1a1a1a;border-radius:14px;padding:1.25rem;color:#fff">
+        <div style="font-size:11px;color:#22c55e;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem">Founded by</div>
+        <div style="font-size:16px;font-weight:700;margin-bottom:4px">Cory Gardner</div>
+        <div style="font-size:12px;color:#888;line-height:1.6">Roofing industry veteran. Built Green Lit to pass on the systems and processes that lead to success — to the next generation of roofing entrepreneurs.</div>
+      </div>
+      <div style="background:#f0fdf4;border:0.5px solid #86efac;border-radius:14px;padding:1.25rem">
+        <div style="font-size:11px;color:#15803d;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem">💡 Getting started tip</div>
+        <div style="font-size:13px;color:#555;line-height:1.6" id="tip-text">Start by entering your supplier prices in the Supplier Pricing module — the estimator will auto-fill material costs for every quote.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <div class="footer-name">Green Lit Software</div>
+  <div class="footer-tag">Empowering Roofing Entrepreneurs · Built by Cory Gardner</div>
+  <div class="footer-links">
+    <a href="estimator.html">Estimator</a>
+    <a href="crm.html">CRM</a>
+    <a href="jobs.html">Job Board</a>
+    <a href="invoices.html">Invoicing</a>
+    <a href="analytics.html">Analytics</a>
+  </div>
+</div>
+
+<script>
+// ── Date ──────────────────────────────────────────────────────────────────────
+document.getElementById('header-date').textContent = new Date().toLocaleDateString('en-CA',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+
+// ── Welcome modal ─────────────────────────────────────────────────────────────
+function closeWelcome() {
+  document.getElementById('welcome').style.display = 'none';
+  try { localStorage.setItem('gl-welcomed','1'); } catch(e) {}
+}
+try {
+  if (!localStorage.getItem('gl-welcomed')) document.getElementById('welcome').style.display = 'flex';
+} catch(e) {}
+
+// ── Live stats from storage ───────────────────────────────────────────────────
+async function loadStats() {
+  try {
+    // Quotes
+    const qr = await window.storage.get('crm-quotes');
+    if (qr) {
+      const quotes = JSON.parse(qr.value);
+      const active = quotes.filter(q=>['draft','sent'].includes(q.status)).length;
+      document.getElementById('hs-quotes').textContent = active;
+      // Revenue this month
+      const now = new Date();
+      const monthRev = quotes.filter(q=>q.status==='approved'&&q.createdAt&&new Date(q.createdAt).getMonth()===now.getMonth()&&new Date(q.createdAt).getFullYear()===now.getFullYear()).reduce((s,q)=>s+(q.value||0),0);
+      document.getElementById('hs-revenue').textContent = '$'+Math.round(monthRev).toLocaleString();
+    }
+    // Jobs
+    const jr = await window.storage.get('jobs-data');
+    if (jr) {
+      const jobs = JSON.parse(jr.value);
+      const active = jobs.filter(j=>!['complete','invoiced','paid'].includes(j.stage)).length;
+      document.getElementById('hs-jobs').textContent = active;
+    }
+    // Leads
+    const lr = await window.storage.get('leads-data');
+    if (lr) {
+      const leads = JSON.parse(lr.value);
+      const open = leads.filter(l=>!['won','lost'].includes(l.stage)).length;
+      document.getElementById('hs-leads').textContent = open;
+    }
+  } catch(e) {}
+}
+
+// ── Tips rotation ─────────────────────────────────────────────────────────────
+const TIPS = [
+  'Start by entering your supplier prices in the Supplier Pricing module — the estimator will auto-fill material costs for every quote.',
+  'Use the Roofr import in the Estimator to pre-fill all measurements from a Roofr report instantly.',
+  'Log every customer call in Communications — it builds a paper trail that protects you in disputes.',
+  'Set follow-up reminders on every quote you send — most jobs are won on the second or third contact.',
+  'Mark jobs as Approved in the CRM and they auto-appear on the Job Board — no double entry needed.',
+  'The Weather module checks your job sites daily — flag risky days before your crew shows up.',
+  'Use the Analytics module at the end of each month to see your win rate by estimator and brand.',
+  'The Customer Quote Builder feeds directly into Proposify — build the scope here, paste it there.',
+];
+document.getElementById('tip-text').textContent = TIPS[Math.floor(Math.random()*TIPS.length)];
+
+// ── Activity feed ─────────────────────────────────────────────────────────────
+async function loadActivity() {
+  const items = [];
+  try {
+    const qr = await window.storage.get('crm-quotes');
+    if (qr) JSON.parse(qr.value).slice(0,3).forEach(q=>items.push({
+      text:`Quote ${q.quoteNum} — ${q.customer||'Customer'} — ${q.status}`,
+      time:q.updatedAt||q.createdAt, color:'#1d4ed8', icon:'📋'
+    }));
+    const jr = await window.storage.get('jobs-data');
+    if (jr) JSON.parse(jr.value).slice(0,3).forEach(j=>items.push({
+      text:`Job — ${j.customer||'Job'} — ${(j.stage||'').replace(/([A-Z])/g,' $1')}`,
+      time:j.updatedAt||j.createdAt, color:'#0e7490', icon:'🔨'
+    }));
+    const lr = await window.storage.get('leads-data');
+    if (lr) JSON.parse(lr.value).slice(0,2).forEach(l=>items.push({
+      text:`Lead — ${l.first||''} ${l.last||''} — ${l.stage||'new'}`,
+      time:l.createdAt, color:'#7c3aed', icon:'🎯'
+    }));
+  } catch(e) {}
+
+  items.sort((a,b)=>new Date(b.time)-new Date(a.time));
+  const list = document.getElementById('activity-list');
+  if (!items.length) return;
+  list.innerHTML = items.slice(0,8).map(item=>`
+    <div class="af-item">
+      <div class="af-dot" style="background:${item.color}"></div>
+      <div style="flex:1">${item.icon} ${item.text}</div>
+      <div class="af-time">${timeAgo(item.time)}</div>
+    </div>`).join('');
+}
+
+function timeAgo(iso) {
+  if (!iso) return '';
+  const d = Math.floor((Date.now()-new Date(iso))/86400000);
+  if (d===0) return 'today';
+  if (d===1) return 'yesterday';
+  if (d<7) return d+'d ago';
+  return Math.floor(d/7)+'w ago';
+}
+
+// ── Responsive bottom grid ────────────────────────────────────────────────────
+function checkWidth() {
+  const g = document.getElementById('bottom-grid');
+  if (g) g.style.gridTemplateColumns = window.innerWidth < 700 ? '1fr' : '1fr 300px';
+}
+window.addEventListener('resize', checkWidth);
+checkWidth();
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadStats();
+loadActivity();
+</script>
+</body>
+</html>

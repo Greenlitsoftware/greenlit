@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Green Lit — Financials</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;font-size:14px;color:#1a1a1a;background:#f0efe9;padding:1rem}
+.gl-header{background:#1a1a1a;color:#fff;border-radius:12px;padding:1rem 1.5rem;margin-bottom:1.25rem;display:flex;justify-content:space-between;align-items:center}
+.gl-logo{display:flex;align-items:center;gap:10px}
+.gl-dot{width:28px;height:28px;background:#22c55e;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.gl-name{font-size:17px;font-weight:700}
+.gl-tagline{font-size:11px;color:#888;margin-top:1px}
+.gl-module{font-size:12px;color:#22c55e;font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#777;margin-bottom:.75rem}
+.card{background:#fff;border:0.5px solid #ddd;border-radius:12px;padding:1.25rem;margin-bottom:.875rem}
+label{font-size:12px;color:#666;display:block;margin-bottom:3px;margin-top:8px}
+label:first-of-type{margin-top:0}
+input,select,textarea{width:100%;padding:7px 10px;border:0.5px solid #ccc;border-radius:7px;font-size:13px;background:#fff;color:#1a1a1a;outline:none}
+input:focus,select:focus,textarea:focus{border-color:#555}
+input[readonly]{background:#f5f5f5;color:#666}
+textarea{resize:vertical;min-height:52px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
+
+/* Nav */
+.nav{display:flex;gap:6px;margin-bottom:1.25rem;border-bottom:1px solid #e0e0e0;padding-bottom:.75rem;flex-wrap:wrap}
+.nav-btn{padding:7px 18px;border:0.5px solid #ccc;border-radius:20px;font-size:13px;cursor:pointer;background:#fff;color:#555;font-weight:500}
+.nav-btn.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:1rem}
+.stat-card{background:#fff;border:0.5px solid #ddd;border-radius:10px;padding:.875rem 1rem}
+.stat-card .sv{font-size:22px;font-weight:700;margin-top:2px}
+.stat-card .sl{font-size:11px;color:#888}
+
+/* Invoice status badges */
+.inv-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.inv-draft{background:#f5f4f0;color:#666}
+.inv-sent{background:#dbeafe;color:#1d4ed8}
+.inv-partial{background:#fef3c7;color:#92400e}
+.inv-paid{background:#dcfce7;color:#15803d}
+.inv-overdue{background:#fee2e2;color:#991b1b}
+
+/* Invoice type */
+.type-commitment{background:#ede9fe;color:#6d28d9}
+.type-progress{background:#cffafe;color:#0e7490}
+.type-final{background:#f0fdf4;color:#15803d}
+
+/* Invoice table */
+.inv-table{width:100%;border-collapse:collapse;font-size:13px}
+.inv-table th{text-align:left;padding:7px 10px;border-bottom:1px solid #eee;font-size:11px;font-weight:600;color:#999;text-transform:uppercase;white-space:nowrap}
+.inv-table td{padding:7px 10px;border-bottom:0.5px solid #f5f5f5;vertical-align:middle}
+.inv-table tr:hover td{background:#fafafa;cursor:pointer}
+
+/* Invoice document */
+.inv-doc{background:#fff;border:0.5px solid #ddd;border-radius:12px;padding:2rem;max-width:760px;margin:0 auto}
+.inv-doc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:2px solid #1a1a1a}
+.inv-co-name{font-size:22px;font-weight:800;letter-spacing:-.02em}
+.inv-co-tag{font-size:12px;color:#22c55e;font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin-top:2px}
+.inv-title{font-size:28px;font-weight:800;color:#1a1a1a;text-align:right}
+.inv-num{font-size:13px;color:#888;text-align:right;margin-top:4px}
+.inv-addresses{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-bottom:1.5rem;font-size:13px}
+.inv-addr-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#aaa;margin-bottom:5px}
+.inv-addr-val{line-height:1.7}
+.inv-line-table{width:100%;border-collapse:collapse;margin-bottom:1.5rem;font-size:13px}
+.inv-line-table th{text-align:left;padding:8px 10px;background:#f5f4f0;font-size:11px;font-weight:600;text-transform:uppercase;color:#888}
+.inv-line-table th.num{text-align:right}
+.inv-line-table td{padding:9px 10px;border-bottom:0.5px solid #f0f0f0}
+.inv-line-table td.num{text-align:right;font-weight:500}
+.inv-totals{margin-left:auto;width:280px;font-size:13px}
+.inv-totals-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:0.5px solid #f0f0f0}
+.inv-totals-row.total{font-size:16px;font-weight:700;padding-top:10px;border-top:2px solid #1a1a1a;border-bottom:none}
+.inv-totals-row.balance{font-size:18px;font-weight:800;color:#22c55e;padding-top:10px;border-top:2px solid #22c55e;border-bottom:none}
+.inv-terms{margin-top:2rem;padding-top:1rem;border-top:0.5px solid #eee;font-size:12px;color:#888;line-height:1.7}
+.payment-pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;margin-left:6px}
+
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:flex;align-items:center;justify-content:center;padding:1rem}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:820px;max-height:94vh;overflow-y:auto;padding:1.5rem;position:relative}
+.modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:22px;cursor:pointer;color:#888}
+
+.btn{border:none;border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;font-weight:500}
+.btn-dark{background:#1a1a1a;color:#fff}.btn-dark:hover{background:#333}
+.btn-green{background:#15803d;color:#fff}.btn-green:hover{background:#166534}
+.btn-outline{background:#fff;color:#1a1a1a;border:0.5px solid #ccc}.btn-outline:hover{background:#f5f5f5}
+.btn-sm{padding:4px 10px;font-size:12px;border-radius:6px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:.75rem;align-items:center}
+.search-wrap{position:relative;flex:1;min-width:180px}
+.search-wrap input{padding-left:28px}
+.search-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:#aaa;font-size:12px}
+.toggle-row{display:flex;align-items:center;gap:8px;margin-top:8px}
+.toggle-row input[type=checkbox]{width:auto;cursor:pointer}
+.toggle-row label{margin:0;font-size:13px;color:#444;cursor:pointer}
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+.toast.show{opacity:1}
+.progress-bar{height:6px;background:#f0f0f0;border-radius:3px;overflow:hidden;margin-top:4px}
+.progress-fill{height:100%;background:#22c55e;border-radius:3px}
+@media print{
+  body{background:#fff;padding:0}
+  .no-print{display:none!important}
+  .inv-doc{border:none;padding:1rem}
+}
+</style>
+</head>
+<body>
+
+<div class="gl-header">
+  <div class="gl-logo">
+    <div class="gl-dot">🟢</div>
+    <div>
+      <div class="gl-name">Green Lit Software</div>
+      <div class="gl-tagline">Empowering Roofing Entrepreneurs</div>
+    </div>
+  </div>
+  <div class="gl-module">Financial Management</div>
+</div>
+
+<div class="no-print" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+  <div class="nav">
+    <button class="nav-btn active" id="nav-invoices" onclick="showTab('invoices')">🧾 Invoices</button>
+    <button class="nav-btn" id="nav-new" onclick="showTab('new')">+ New Invoice</button>
+    <button class="nav-btn" id="nav-report" onclick="showTab('report')">📊 P&L Report</button>
+    <button class="nav-btn" id="nav-settings" onclick="showTab('settings')">⚙ Settings</button>
+  </div>
+  <button class="btn btn-green no-print" onclick="syncFromCRM()" style="font-size:12px;padding:6px 14px">↺ Sync from CRM</button>
+</div>
+
+<!-- STATS -->
+<div class="stats no-print" id="stats-row"></div>
+
+<!-- INVOICES LIST -->
+<div id="tab-invoices">
+  <div class="card">
+    <div class="filters">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="inv-search" placeholder="Search by customer, invoice #, quote #..." oninput="renderInvoices()">
+      </div>
+      <select id="inv-status-filter" onchange="renderInvoices()" style="width:auto;font-size:12px;padding:5px 8px">
+        <option value="">All statuses</option>
+        <option value="draft">Draft</option>
+        <option value="sent">Sent</option>
+        <option value="partial">Partially paid</option>
+        <option value="paid">Paid</option>
+        <option value="overdue">Overdue</option>
+      </select>
+      <select id="inv-type-filter" onchange="renderInvoices()" style="width:auto;font-size:12px;padding:5px 8px">
+        <option value="">All types</option>
+        <option value="commitment">Commitment fee</option>
+        <option value="progress">Progress draw</option>
+        <option value="final">Final invoice</option>
+      </select>
+    </div>
+    <table class="inv-table">
+      <thead><tr>
+        <th>Invoice #</th><th>Type</th><th>Customer</th><th>Quote #</th>
+        <th>Issue date</th><th>Due date</th><th>Amount</th><th>GST</th>
+        <th>Total</th><th>Paid</th><th>Balance</th><th>Status</th><th>Actions</th>
+      </tr></thead>
+      <tbody id="inv-body"></tbody>
+    </table>
+    <div id="inv-empty" style="display:none;text-align:center;padding:2rem;color:#aaa;font-size:13px">No invoices yet. Sync from CRM or create a new invoice.</div>
+  </div>
+</div>
+
+<!-- NEW INVOICE -->
+<div id="tab-new" style="display:none">
+  <div class="card">
+    <h2 id="inv-form-title">New Invoice</h2>
+    <input type="hidden" id="edit-inv-id">
+
+    <!-- Pull from quote -->
+    <div style="background:#f5f4f0;border-radius:8px;padding:1rem;margin-bottom:1rem">
+      <div style="font-size:12px;font-weight:600;color:#555;margin-bottom:6px">Pull from approved quote</div>
+      <div style="display:flex;gap:8px">
+        <input id="pull-quote-num" placeholder="Enter quote # e.g. 2026-0001" style="flex:1">
+        <button class="btn btn-dark btn-sm" onclick="pullFromQuote()">Pull quote data</button>
+      </div>
+    </div>
+
+    <div class="g3">
+      <div><label>Invoice #</label><input id="if-num" readonly style="background:#f5f5f5"></div>
+      <div><label>Invoice type</label>
+        <select id="if-type" onchange="onTypeChange()">
+          <option value="commitment">Commitment fee</option>
+          <option value="progress">Progress draw</option>
+          <option value="final" selected>Final invoice</option>
+        </select>
+      </div>
+      <div><label>Quote #</label><input id="if-quote" placeholder="e.g. 2026-0001"></div>
+    </div>
+
+    <div class="g3">
+      <div><label>Customer name</label><input id="if-customer" placeholder="Customer name"></div>
+      <div><label>Customer address</label><input id="if-address" placeholder="Street address"></div>
+      <div><label>City</label><input id="if-city" placeholder="City"></div>
+    </div>
+
+    <div class="g2">
+      <div><label>Customer email</label><input id="if-email" type="email" placeholder="email@example.com"></div>
+      <div><label>Customer phone</label><input id="if-phone" placeholder="(780) 000-0000"></div>
+    </div>
+
+    <div class="g4" style="margin-top:4px">
+      <div><label>Issue date</label><input id="if-issued" type="date"></div>
+      <div><label>Due date</label><input id="if-due" type="date"></div>
+      <div><label>Payment terms</label>
+        <select id="if-terms">
+          <option>Due on receipt</option>
+          <option>Net 7</option>
+          <option>Net 14</option>
+          <option>Net 30</option>
+        </select>
+      </div>
+      <div><label>Status</label>
+        <select id="if-status">
+          <option value="draft">Draft</option>
+          <option value="sent">Sent</option>
+          <option value="paid">Paid</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Line items -->
+    <div style="margin-top:1rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+        <label style="margin:0;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#aaa">Line Items</label>
+        <button class="btn btn-outline btn-sm" onclick="addLineItem()">+ Add line</button>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead><tr style="border-bottom:1px solid #eee">
+          <th style="text-align:left;padding:5px 8px;font-size:11px;color:#999;font-weight:600">Description</th>
+          <th style="text-align:right;padding:5px 8px;font-size:11px;color:#999;font-weight:600;width:100px">Amount ($)</th>
+          <th style="width:30px"></th>
+        </tr></thead>
+        <tbody id="line-items-body"></tbody>
+      </table>
+    </div>
+
+    <!-- Totals -->
+    <div style="margin-top:1rem;padding-top:1rem;border-top:0.5px solid #eee">
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-size:13px">
+        <div style="display:flex;justify-content:space-between;width:260px">
+          <span style="color:#888">Subtotal</span><span id="calc-subtotal" style="font-weight:500">$0.00</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;width:260px">
+          <span style="color:#888">GST (5%)</span><span id="calc-gst" style="font-weight:500">$0.00</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;width:260px;font-size:16px;font-weight:700;padding-top:6px;border-top:1px solid #eee;margin-top:4px">
+          <span>Total</span><span id="calc-total">$0.00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Previous payments (for final invoice) -->
+    <div id="prev-payments-section" style="margin-top:1rem;display:none">
+      <label style="margin-top:0;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#aaa">Previous Payments Received</label>
+      <div id="prev-payments-list" style="margin-top:6px"></div>
+      <div style="display:flex;gap:8px;margin-top:6px">
+        <input id="new-payment-desc" placeholder="e.g. Commitment fee received" style="flex:1">
+        <input id="new-payment-amt" type="number" placeholder="$0.00" style="width:100px">
+        <button class="btn btn-outline btn-sm" onclick="addPayment()">+ Add</button>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div style="margin-top:1rem"><label>Notes / payment instructions</label>
+      <textarea id="if-notes" placeholder="e.g. Please make cheque payable to Green Lit Roofing. E-transfer to payments@greenlitroofing.com"></textarea>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:1rem">
+      <button class="btn btn-dark" onclick="saveInvoice()" style="flex:1">Save Invoice</button>
+      <button class="btn btn-green" onclick="saveAndPreview()">Save & Preview</button>
+      <button class="btn btn-outline" onclick="showTab('invoices')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- P&L REPORT -->
+<div id="tab-report" style="display:none">
+  <div class="card">
+    <h2>Profit & Loss Report</h2>
+    <div class="filters" style="margin-bottom:1rem">
+      <select id="report-period" onchange="renderReport()" style="width:auto">
+        <option value="month">This month</option>
+        <option value="quarter">This quarter</option>
+        <option value="year">This year</option>
+        <option value="all">All time</option>
+      </select>
+    </div>
+    <div id="report-content"></div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div id="tab-settings" style="display:none">
+  <div class="card">
+    <h2>Company Settings</h2>
+    <p style="font-size:12px;color:#888;margin-bottom:1rem">This information appears on all invoices.</p>
+    <div class="g2">
+      <div><label>Company name</label><input id="co-name" placeholder="Your Roofing Company Ltd."></div>
+      <div><label>GST # / Business #</label><input id="co-gst" placeholder="e.g. 123456789 RT0001"></div>
+    </div>
+    <div class="g2">
+      <div><label>Address</label><input id="co-address" placeholder="Company street address"></div>
+      <div><label>City / Province / Postal</label><input id="co-cityp" placeholder="e.g. Edmonton, AB T5A 1A1"></div>
+    </div>
+    <div class="g2">
+      <div><label>Phone</label><input id="co-phone" placeholder="(780) 000-0000"></div>
+      <div><label>Email</label><input id="co-email" placeholder="info@yourcompany.com"></div>
+    </div>
+    <div class="g2">
+      <div><label>Website</label><input id="co-website" placeholder="www.yourcompany.com"></div>
+      <div><label>Payment instructions</label><input id="co-payment" placeholder="e.g. E-transfer to payments@yourcompany.com"></div>
+    </div>
+    <div style="margin-top:8px"><label>Default invoice notes / terms</label>
+      <textarea id="co-terms" placeholder="e.g. Payment due within 14 days. Workmanship warranty: 2 years."></textarea>
+    </div>
+    <div style="margin-top:1rem;display:flex;gap:8px">
+      <button class="btn btn-dark" onclick="saveSettings()" style="flex:1">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- INVOICE PREVIEW MODAL -->
+<div class="modal-bg" id="inv-modal" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="no-print" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <div style="font-size:15px;font-weight:600">Invoice Preview</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-dark btn-sm" onclick="window.print()">🖨 Print / PDF</button>
+        <button class="btn btn-outline btn-sm" onclick="closeModal()">Close</button>
+      </div>
+    </div>
+    <div id="invoice-preview"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ─────────────────────────────────────────────────────────────────────
+let invoices = [];
+let lineItems = [];
+let prevPayments = [];
+let settings = {};
+let invCounter = 1;
+const GST_RATE = 0.05;
+
+// ── Storage ───────────────────────────────────────────────────────────────────
+async function loadAll() {
+  try {
+    const ir = await window.storage.get('invoices-data');
+    if (ir) invoices = JSON.parse(ir.value);
+    const sr = await window.storage.get('invoice-settings');
+    if (sr) settings = JSON.parse(sr.value);
+    const cr = await window.storage.get('inv-counter');
+    if (cr) invCounter = parseInt(cr.value) || 1;
+  } catch(e) {}
+  document.getElementById('if-issued').value = today();
+  setDueDate();
+  loadSettings();
+  nextInvNum();
+  renderStats();
+  renderInvoices();
+  renderReport();
+  addLineItem(); // start with one blank line
+}
+
+async function saveInvoicesData() { try { await window.storage.set('invoices-data', JSON.stringify(invoices)); } catch(e) {} }
+
+// ── Settings ──────────────────────────────────────────────────────────────────
+function loadSettings() {
+  if (settings.name) document.getElementById('co-name').value = settings.name || '';
+  if (settings.gst) document.getElementById('co-gst').value = settings.gst || '';
+  if (settings.address) document.getElementById('co-address').value = settings.address || '';
+  if (settings.cityp) document.getElementById('co-cityp').value = settings.cityp || '';
+  if (settings.phone) document.getElementById('co-phone').value = settings.phone || '';
+  if (settings.email) document.getElementById('co-email').value = settings.email || '';
+  if (settings.website) document.getElementById('co-website').value = settings.website || '';
+  if (settings.payment) document.getElementById('co-payment').value = settings.payment || '';
+  if (settings.terms) document.getElementById('co-terms').value = settings.terms || '';
+  if (settings.terms) document.getElementById('if-notes').value = settings.terms || '';
+}
+
+async function saveSettings() {
+  settings = {
+    name: sv('co-name'), gst: sv('co-gst'), address: sv('co-address'),
+    cityp: sv('co-cityp'), phone: sv('co-phone'), email: sv('co-email'),
+    website: sv('co-website'), payment: sv('co-payment'), terms: sv('co-terms'),
+  };
+  try { await window.storage.set('invoice-settings', JSON.stringify(settings)); } catch(e) {}
+  toast('✓ Settings saved');
+}
+
+// ── Sync from CRM ─────────────────────────────────────────────────────────────
+async function syncFromCRM() {
+  try {
+    const r = await window.storage.get('crm-quotes');
+    if (!r) { toast('No CRM data found.'); return; }
+    const quotes = JSON.parse(r.value);
+    const approved = quotes.filter(q => q.status === 'approved');
+    let added = 0;
+    approved.forEach(q => {
+      const exists = invoices.find(i => i.quoteNum === q.quoteNum && i.type === 'final');
+      if (!exists) {
+        const subtotal = q.value || 0;
+        const gst = round2(subtotal * GST_RATE);
+        const total = round2(subtotal + gst);
+        invoices.unshift({
+          id: 'inv-' + Date.now() + Math.random(),
+          num: nextInvNumStr(),
+          type: 'final',
+          quoteNum: q.quoteNum,
+          customer: q.customer || '',
+          address: q.address || '',
+          city: q.city || '',
+          email: q.email || '',
+          phone: q.phone || '',
+          issued: today(),
+          due: addDays(today(), 14),
+          terms: 'Net 14',
+          status: 'draft',
+          lineItems: [{ desc: 'Roofing services — ' + (q.systems || 'as per quote ' + q.quoteNum), amount: subtotal }],
+          prevPayments: [],
+          subtotal, gst, total,
+          notes: settings.terms || '',
+          system: q.systems || '',
+          estimator: q.estimator || '',
+          createdAt: new Date().toISOString(),
+        });
+        added++;
+      }
+    });
+    await saveInvoicesData();
+    renderStats(); renderInvoices();
+    toast(added > 0 ? `✓ ${added} invoice${added > 1 ? 's' : ''} created from CRM` : 'All approved quotes already have invoices');
+  } catch(e) { toast('Sync failed: ' + e.message); }
+}
+
+// ── Pull from quote ───────────────────────────────────────────────────────────
+async function pullFromQuote() {
+  const qNum = sv('pull-quote-num');
+  if (!qNum) { alert('Enter a quote number first.'); return; }
+  try {
+    const r = await window.storage.get('crm-quotes');
+    if (!r) { toast('No CRM data found.'); return; }
+    const quotes = JSON.parse(r.value);
+    const q = quotes.find(x => x.quoteNum === qNum);
+    if (!q) { toast('Quote ' + qNum + ' not found in CRM.'); return; }
+    document.getElementById('if-quote').value = q.quoteNum;
+    document.getElementById('if-customer').value = q.customer || '';
+    document.getElementById('if-address').value = q.address || '';
+    document.getElementById('if-city').value = q.city || '';
+    document.getElementById('if-email').value = q.email || '';
+    document.getElementById('if-phone').value = q.phone || '';
+    // Set line item
+    lineItems = [{ desc: 'Roofing services — ' + (q.systems || 'as per quote ' + q.quoteNum), amount: q.value || 0 }];
+    renderLineItems();
+    toast('✓ Quote data loaded');
+  } catch(e) { toast('Could not load quote: ' + e.message); }
+}
+
+// ── Line items ────────────────────────────────────────────────────────────────
+function addLineItem(desc = '', amount = '') {
+  lineItems.push({ desc, amount });
+  renderLineItems();
+}
+
+function renderLineItems() {
+  const tbody = document.getElementById('line-items-body');
+  tbody.innerHTML = '';
+  lineItems.forEach((item, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input value="${item.desc}" placeholder="Description of work or materials..." oninput="lineItems[${i}].desc=this.value" style="border:0.5px solid #eee"></td>
+      <td><input type="number" value="${item.amount}" placeholder="0.00" min="0" step="0.01"
+        oninput="lineItems[${i}].amount=parseFloat(this.value)||0;calcTotals()" style="border:0.5px solid #eee;text-align:right"></td>
+      <td><button onclick="removeLineItem(${i})" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:16px;padding:0">×</button></td>`;
+    tbody.appendChild(tr);
+  });
+  calcTotals();
+}
+
+function removeLineItem(i) {
+  lineItems.splice(i, 1);
+  renderLineItems();
+}
+
+function calcTotals() {
+  const sub = lineItems.reduce((s, l) => s + (parseFloat(l.amount) || 0), 0);
+  const gst = round2(sub * GST_RATE);
+  const total = round2(sub + gst);
+  document.getElementById('calc-subtotal').textContent = fmt(sub);
+  document.getElementById('calc-gst').textContent = fmt(gst);
+  document.getElementById('calc-total').textContent = fmt(total);
+}
+
+// ── Previous payments ─────────────────────────────────────────────────────────
+function addPayment() {
+  const desc = sv('new-payment-desc');
+  const amt = parseFloat(document.getElementById('new-payment-amt').value) || 0;
+  if (!desc && !amt) return;
+  prevPayments.push({ desc: desc || 'Payment received', amount: amt, date: today() });
+  renderPrevPayments();
+  document.getElementById('new-payment-desc').value = '';
+  document.getElementById('new-payment-amt').value = '';
+}
+
+function renderPrevPayments() {
+  const div = document.getElementById('prev-payments-list');
+  div.innerHTML = prevPayments.map((p, i) => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:#f5f4f0;border-radius:6px;margin-bottom:4px;font-size:13px">
+      <span>${p.desc}</span>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-weight:600;color:#15803d">${fmt(p.amount)}</span>
+        <button onclick="prevPayments.splice(${i},1);renderPrevPayments()" style="background:none;border:none;cursor:pointer;color:#ccc;font-size:14px">×</button>
+      </div>
+    </div>`).join('');
+}
+
+function onTypeChange() {
+  const type = sv('if-type');
+  document.getElementById('prev-payments-section').style.display = type === 'final' ? 'block' : 'none';
+}
+
+// ── Invoice CRUD ──────────────────────────────────────────────────────────────
+function saveInvoice(andPreview = false) {
+  const sub = lineItems.reduce((s, l) => s + (parseFloat(l.amount) || 0), 0);
+  const gst = round2(sub * GST_RATE);
+  const total = round2(sub + gst);
+  const totalPaid = prevPayments.reduce((s, p) => s + (p.amount || 0), 0);
+  const balance = round2(total - totalPaid);
+  const id = sv('edit-inv-id');
+
+  const inv = {
+    id: id || 'inv-' + Date.now(),
+    num: sv('if-num'),
+    type: sv('if-type'),
+    quoteNum: sv('if-quote'),
+    customer: sv('if-customer'),
+    address: sv('if-address'),
+    city: sv('if-city'),
+    email: sv('if-email'),
+    phone: sv('if-phone'),
+    issued: sv('if-issued'),
+    due: sv('if-due'),
+    terms: sv('if-terms'),
+    status: sv('if-status'),
+    lineItems: [...lineItems],
+    prevPayments: [...prevPayments],
+    subtotal: sub, gst, total, balance, totalPaid,
+    notes: sv('if-notes'),
+    createdAt: id ? invoices.find(i => i.id === id)?.createdAt || new Date().toISOString() : new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  if (!inv.customer) { alert('Please enter a customer name.'); return; }
+
+  if (id) { const idx = invoices.findIndex(i => i.id === id); if (idx >= 0) invoices[idx] = inv; }
+  else { invoices.unshift(inv); invCounter++; try { window.storage.set('inv-counter', String(invCounter)); } catch(e) {} }
+
+  saveInvoicesData(); renderStats(); renderInvoices();
+  if (andPreview) { showModal(inv.id); }
+  else { showTab('invoices'); toast('✓ Invoice saved'); }
+  clearInvForm();
+}
+
+function saveAndPreview() { saveInvoice(true); }
+
+function clearInvForm() {
+  document.getElementById('edit-inv-id').value = '';
+  document.getElementById('inv-form-title').textContent = 'New Invoice';
+  document.getElementById('pull-quote-num').value = '';
+  ['if-quote','if-customer','if-address','if-city','if-email','if-phone'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  document.getElementById('if-type').value = 'final';
+  document.getElementById('if-status').value = 'draft';
+  document.getElementById('if-terms').value = 'Net 14';
+  document.getElementById('if-issued').value = today();
+  setDueDate();
+  document.getElementById('if-notes').value = settings.terms || '';
+  document.getElementById('prev-payments-section').style.display = 'block';
+  lineItems = []; prevPayments = [];
+  renderLineItems(); renderPrevPayments();
+  nextInvNum(); addLineItem();
+}
+
+function editInvoice(id) {
+  const inv = invoices.find(i => i.id === id); if (!inv) return;
+  document.getElementById('edit-inv-id').value = inv.id;
+  document.getElementById('inv-form-title').textContent = 'Edit Invoice';
+  document.getElementById('if-num').value = inv.num;
+  document.getElementById('if-type').value = inv.type;
+  document.getElementById('if-quote').value = inv.quoteNum || '';
+  document.getElementById('if-customer').value = inv.customer;
+  document.getElementById('if-address').value = inv.address || '';
+  document.getElementById('if-city').value = inv.city || '';
+  document.getElementById('if-email').value = inv.email || '';
+  document.getElementById('if-phone').value = inv.phone || '';
+  document.getElementById('if-issued').value = inv.issued;
+  document.getElementById('if-due').value = inv.due;
+  document.getElementById('if-terms').value = inv.terms;
+  document.getElementById('if-status').value = inv.status;
+  document.getElementById('if-notes').value = inv.notes || '';
+  lineItems = [...(inv.lineItems || [])];
+  prevPayments = [...(inv.prevPayments || [])];
+  renderLineItems(); renderPrevPayments(); onTypeChange();
+  showTab('new');
+}
+
+async function deleteInvoice(id) {
+  if (!confirm('Delete this invoice?')) return;
+  invoices = invoices.filter(i => i.id !== id);
+  await saveInvoicesData(); renderStats(); renderInvoices();
+  toast('Invoice deleted');
+}
+
+async function markPaid(id) {
+  const inv = invoices.find(i => i.id === id); if (!inv) return;
+  inv.status = 'paid'; inv.balance = 0; inv.totalPaid = inv.total;
+  inv.updatedAt = new Date().toISOString();
+  await saveInvoicesData(); renderStats(); renderInvoices();
+  // Update job board to invoiced
+  try {
+    const jr = await window.storage.get('jobs-data');
+    if (jr) {
+      const jobs = JSON.parse(jr.value);
+      const job = jobs.find(j => j.quoteNum === inv.quoteNum);
+      if (job) { job.stage = 'paid'; await window.storage.set('jobs-data', JSON.stringify(jobs)); }
+    }
+  } catch(e) {}
+  toast('✓ Invoice marked as paid');
+}
+
+// ── Render invoices table ─────────────────────────────────────────────────────
+function renderInvoices() {
+  const q = sv('inv-search').toLowerCase();
+  const sf = sv('inv-status-filter');
+  const tf = sv('inv-type-filter');
+  let list = invoices.filter(i => {
+    const mQ = !q || [i.num, i.customer, i.quoteNum].filter(Boolean).join(' ').toLowerCase().includes(q);
+    const mS = !sf || getInvoiceStatus(i) === sf;
+    const mT = !tf || i.type === tf;
+    return mQ && mS && mT;
+  });
+  const tbody = document.getElementById('inv-body');
+  const empty = document.getElementById('inv-empty');
+  tbody.innerHTML = ''; empty.style.display = list.length ? 'none' : 'block';
+  list.forEach(inv => {
+    const status = getInvoiceStatus(inv);
+    const tr = document.createElement('tr');
+    tr.onclick = () => showModal(inv.id);
+    tr.innerHTML = `
+      <td style="font-weight:600;white-space:nowrap">${inv.num}</td>
+      <td><span class="inv-badge type-${inv.type}">${typLabel(inv.type)}</span></td>
+      <td style="font-weight:500">${inv.customer}</td>
+      <td style="font-size:12px;color:#888">${inv.quoteNum || '—'}</td>
+      <td style="font-size:12px;white-space:nowrap">${fmtDate(inv.issued)}</td>
+      <td style="font-size:12px;white-space:nowrap;color:${isOverdue(inv)?'#dc2626':'#1a1a1a'}">${fmtDate(inv.due)}</td>
+      <td style="text-align:right">${fmt(inv.subtotal)}</td>
+      <td style="text-align:right;color:#888">${fmt(inv.gst)}</td>
+      <td style="text-align:right;font-weight:600">${fmt(inv.total)}</td>
+      <td style="text-align:right;color:#15803d">${fmt(inv.totalPaid || 0)}</td>
+      <td style="text-align:right;font-weight:600;color:${(inv.balance||inv.total)>0?'#dc2626':'#15803d'}">${fmt(inv.balance !== undefined ? inv.balance : inv.total)}</td>
+      <td><span class="inv-badge inv-${status}">${statusLabel(status)}</span></td>
+      <td onclick="event.stopPropagation()" style="white-space:nowrap">
+        <button class="btn btn-outline btn-sm" onclick="showModal('${inv.id}')">View</button>
+        <button class="btn btn-outline btn-sm" style="margin-left:3px" onclick="editInvoice('${inv.id}')">Edit</button>
+        ${status !== 'paid' ? `<button class="btn btn-green btn-sm" style="margin-left:3px" onclick="markPaid('${inv.id}')">✓ Paid</button>` : ''}
+        <button class="btn btn-outline btn-sm" style="margin-left:3px;color:#c0392b" onclick="deleteInvoice('${inv.id}')">✕</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
+function renderStats() {
+  const total = invoices.reduce((s, i) => s + (i.total || 0), 0);
+  const paid = invoices.filter(i => i.status === 'paid').reduce((s, i) => s + (i.total || 0), 0);
+  const outstanding = invoices.filter(i => i.status !== 'paid').reduce((s, i) => s + (i.balance !== undefined ? i.balance : i.total || 0), 0);
+  const overdue = invoices.filter(i => isOverdue(i) && i.status !== 'paid').length;
+  const gstCollected = invoices.filter(i => i.status === 'paid').reduce((s, i) => s + (i.gst || 0), 0);
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-card"><div class="sl">Total invoiced</div><div class="sv">$${Math.round(total).toLocaleString()}</div></div>
+    <div class="stat-card"><div class="sl">Collected</div><div class="sv" style="color:#15803d">$${Math.round(paid).toLocaleString()}</div></div>
+    <div class="stat-card"><div class="sl">Outstanding</div><div class="sv" style="color:#d97706">$${Math.round(outstanding).toLocaleString()}</div></div>
+    <div class="stat-card"><div class="sl">Overdue</div><div class="sv" style="color:#dc2626">${overdue}</div></div>
+    <div class="stat-card"><div class="sl">GST collected</div><div class="sv" style="color:#0d9488">$${Math.round(gstCollected).toLocaleString()}</div></div>`;
+}
+
+// ── P&L Report ────────────────────────────────────────────────────────────────
+function renderReport() {
+  const period = sv('report-period') || 'month';
+  const now = new Date();
+  const filtered = invoices.filter(i => {
+    if (!i.createdAt) return false;
+    const d = new Date(i.createdAt);
+    if (period === 'month') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    if (period === 'quarter') { const q = Math.floor(now.getMonth() / 3); const dq = Math.floor(d.getMonth() / 3); return dq === q && d.getFullYear() === now.getFullYear(); }
+    if (period === 'year') return d.getFullYear() === now.getFullYear();
+    return true;
+  });
+
+  const revenue = filtered.filter(i => i.status === 'paid').reduce((s, i) => s + (i.subtotal || 0), 0);
+  const gst = filtered.filter(i => i.status === 'paid').reduce((s, i) => s + (i.gst || 0), 0);
+  const outstanding = filtered.filter(i => i.status !== 'paid').reduce((s, i) => s + (i.total || 0), 0);
+  const invCount = filtered.length;
+  const paidCount = filtered.filter(i => i.status === 'paid').length;
+
+  document.getElementById('report-content').innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem">
+      <div style="background:#f0fdf4;border-radius:10px;padding:1rem"><div style="font-size:11px;color:#888">Revenue collected</div><div style="font-size:22px;font-weight:700;color:#15803d;margin-top:4px">$${Math.round(revenue).toLocaleString()}</div></div>
+      <div style="background:#f5f4f0;border-radius:10px;padding:1rem"><div style="font-size:11px;color:#888">Outstanding</div><div style="font-size:22px;font-weight:700;color:#d97706;margin-top:4px">$${Math.round(outstanding).toLocaleString()}</div></div>
+      <div style="background:#f0fdf4;border-radius:10px;padding:1rem"><div style="font-size:11px;color:#888">GST collected</div><div style="font-size:22px;font-weight:700;color:#0d9488;margin-top:4px">$${Math.round(gst).toLocaleString()}</div></div>
+      <div style="background:#f5f4f0;border-radius:10px;padding:1rem"><div style="font-size:11px;color:#888">Invoices</div><div style="font-size:22px;font-weight:700;margin-top:4px">${paidCount}/${invCount} paid</div></div>
+    </div>
+    <table class="inv-table">
+      <thead><tr><th>Invoice #</th><th>Type</th><th>Customer</th><th>Quote #</th><th>Date</th><th style="text-align:right">Subtotal</th><th style="text-align:right">GST</th><th style="text-align:right">Total</th><th>Status</th></tr></thead>
+      <tbody>${filtered.map(i => `<tr>
+        <td style="font-weight:600">${i.num}</td>
+        <td><span class="inv-badge type-${i.type}">${typLabel(i.type)}</span></td>
+        <td>${i.customer}</td><td style="color:#888">${i.quoteNum||'—'}</td>
+        <td style="font-size:12px">${fmtDate(i.issued)}</td>
+        <td style="text-align:right">${fmt(i.subtotal)}</td>
+        <td style="text-align:right;color:#888">${fmt(i.gst)}</td>
+        <td style="text-align:right;font-weight:600">${fmt(i.total)}</td>
+        <td><span class="inv-badge inv-${getInvoiceStatus(i)}">${statusLabel(getInvoiceStatus(i))}</span></td>
+      </tr>`).join('')}
+      <tr style="font-weight:700;border-top:2px solid #1a1a1a">
+        <td colspan="5">Totals</td>
+        <td style="text-align:right">$${Math.round(filtered.reduce((s,i)=>s+i.subtotal,0)).toLocaleString()}</td>
+        <td style="text-align:right;color:#0d9488">$${Math.round(filtered.reduce((s,i)=>s+i.gst,0)).toLocaleString()}</td>
+        <td style="text-align:right">$${Math.round(filtered.reduce((s,i)=>s+i.total,0)).toLocaleString()}</td>
+        <td></td>
+      </tr></tbody>
+    </table>`;
+}
+
+// ── Invoice preview ───────────────────────────────────────────────────────────
+function showModal(id) {
+  const inv = invoices.find(i => i.id === id); if (!inv) return;
+  const totalPaid = inv.totalPaid || 0;
+  const balance = inv.balance !== undefined ? inv.balance : inv.total;
+  const s = settings;
+  document.getElementById('invoice-preview').innerHTML = `
+    <div class="inv-doc">
+      <div class="inv-doc-header">
+        <div>
+          <div class="inv-co-name">${s.name || 'Your Roofing Company'}</div>
+          <div class="inv-co-tag">Green Lit Software</div>
+          <div style="font-size:12px;color:#888;margin-top:8px;line-height:1.7">
+            ${s.address || ''}${s.cityp ? '<br>' + s.cityp : ''}<br>
+            ${s.phone || ''}${s.email ? ' · ' + s.email : ''}<br>
+            ${s.gst ? 'GST #: ' + s.gst : ''}
+          </div>
+        </div>
+        <div>
+          <div class="inv-title">${typLabel(inv.type).toUpperCase()}</div>
+          <div class="inv-num"># ${inv.num}</div>
+          <div style="margin-top:12px;font-size:12px;color:#888;text-align:right;line-height:1.9">
+            <div>Issue date: <strong>${fmtDate(inv.issued)}</strong></div>
+            <div>Due date: <strong style="color:${isOverdue(inv)&&inv.status!=='paid'?'#dc2626':'#1a1a1a'}">${fmtDate(inv.due)}</strong></div>
+            <div>Terms: <strong>${inv.terms}</strong></div>
+            ${inv.quoteNum ? `<div>Quote ref: <strong>${inv.quoteNum}</strong></div>` : ''}
+          </div>
+        </div>
+      </div>
+
+      <div class="inv-addresses">
+        <div>
+          <div class="inv-addr-label">Bill to</div>
+          <div class="inv-addr-val">
+            <strong>${inv.customer}</strong><br>
+            ${inv.address || ''}${inv.city ? '<br>' + inv.city : ''}<br>
+            ${inv.email || ''}${inv.phone ? '<br>' + inv.phone : ''}
+          </div>
+        </div>
+        <div>
+          <div class="inv-addr-label">Payment status</div>
+          <div style="margin-top:5px">
+            <span class="inv-badge inv-${getInvoiceStatus(inv)}" style="font-size:13px">${statusLabel(getInvoiceStatus(inv))}</span>
+            ${totalPaid > 0 ? `<div style="font-size:12px;color:#15803d;margin-top:6px">Payments received: ${fmt(totalPaid)}</div>` : ''}
+            ${balance > 0 ? `<div style="font-size:14px;font-weight:700;color:#dc2626;margin-top:4px">Balance owing: ${fmt(balance)}</div>` : `<div style="font-size:14px;font-weight:700;color:#15803d;margin-top:4px">✓ Paid in full</div>`}
+          </div>
+        </div>
+      </div>
+
+      <table class="inv-line-table">
+        <thead><tr>
+          <th>Description</th>
+          <th class="num">Amount</th>
+        </tr></thead>
+        <tbody>
+          ${(inv.lineItems || []).map(l => `<tr><td>${l.desc}</td><td class="num">${fmt(l.amount)}</td></tr>`).join('')}
+          ${(inv.prevPayments || []).map(p => `<tr><td style="color:#15803d">Less: ${p.desc}${p.date ? ' (' + fmtDate(p.date) + ')' : ''}</td><td class="num" style="color:#15803d">(${fmt(p.amount)})</td></tr>`).join('')}
+        </tbody>
+      </table>
+
+      <div class="inv-totals">
+        <div class="inv-totals-row"><span style="color:#888">Subtotal</span><span>${fmt(inv.subtotal)}</span></div>
+        <div class="inv-totals-row"><span style="color:#888">GST (5%)</span><span>${fmt(inv.gst)}</span></div>
+        <div class="inv-totals-row total"><span>Total</span><span>${fmt(inv.total)}</span></div>
+        ${totalPaid > 0 ? `<div class="inv-totals-row" style="color:#15803d"><span>Payments received</span><span>(${fmt(totalPaid)})</span></div>` : ''}
+        ${balance > 0 ? `<div class="inv-totals-row balance"><span>Balance owing</span><span>${fmt(balance)}</span></div>` : `<div class="inv-totals-row" style="color:#15803d;font-weight:700;font-size:15px;padding-top:8px"><span>✓ Paid in full</span><span></span></div>`}
+      </div>
+
+      ${inv.notes ? `<div class="inv-terms"><strong>Notes & Payment Instructions</strong><br>${inv.notes}</div>` : ''}
+      ${s.payment ? `<div class="inv-terms" style="margin-top:.5rem"><strong>Payment</strong><br>${s.payment}</div>` : ''}
+      <div class="inv-terms" style="margin-top:.5rem;color:#ccc;font-size:11px">
+        Generated by Green Lit Software · ${s.name || 'Your Roofing Company'} · ${fmtDate(new Date().toISOString())}
+      </div>
+    </div>`;
+  document.getElementById('inv-modal').style.display = 'flex';
+}
+
+function closeModal() { document.getElementById('inv-modal').style.display = 'none'; }
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function getInvoiceStatus(inv) {
+  if (inv.status === 'paid') return 'paid';
+  if (isOverdue(inv)) return 'overdue';
+  if (inv.totalPaid > 0 && inv.balance > 0) return 'partial';
+  return inv.status || 'draft';
+}
+function isOverdue(inv) { return inv.due && new Date(inv.due) < new Date() && inv.status !== 'paid'; }
+function statusLabel(s) { return { draft:'Draft', sent:'Sent', partial:'Partial', paid:'Paid', overdue:'Overdue' }[s] || s; }
+function typLabel(t) { return { commitment:'Commitment Fee', progress:'Progress Draw', final:'Final Invoice' }[t] || t; }
+function showTab(name) {
+  ['invoices','new','report','settings'].forEach(t => {
+    document.getElementById('tab-' + t).style.display = t === name ? 'block' : 'none';
+    document.getElementById('nav-' + t)?.classList.toggle('active', t === name);
+  });
+  if (name === 'new' && !sv('edit-inv-id')) clearInvForm();
+  if (name === 'report') renderReport();
+}
+function nextInvNum() { document.getElementById('if-num').value = nextInvNumStr(); }
+function nextInvNumStr() { return 'INV-' + new Date().getFullYear() + '-' + String(invCounter).padStart(4,'0'); }
+function setDueDate() {
+  const issued = sv('if-issued'); if (!issued) return;
+  document.getElementById('if-due').value = addDays(issued, 14);
+}
+function today() { return new Date().toISOString().split('T')[0]; }
+function addDays(dateStr, days) { const d = new Date(dateStr); d.setDate(d.getDate() + days); return d.toISOString().split('T')[0]; }
+function round2(n) { return Math.round(n * 100) / 100; }
+function fmt(n) { return '$' + Number(n || 0).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function fmtDate(iso) { if (!iso) return '—'; return new Date(iso).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' }); }
+function sv(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); }
+
+document.getElementById('if-terms').addEventListener('change', function() {
+  const days = { 'Due on receipt': 0, 'Net 7': 7, 'Net 14': 14, 'Net 30': 30 }[this.value] || 14;
+  const issued = sv('if-issued'); if (issued) document.getElementById('if-due').value = addDays(issued, days);
+});
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadAll();
+</script>
+</body>
+</html>
