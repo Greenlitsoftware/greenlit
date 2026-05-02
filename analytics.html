@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Analytics — Green Lit Software</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #f5f5f3;
+    color: #1a1a1a;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+  .topbar {
+    background: #0a0a0a; color: #fff; padding: 14px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid #222;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand-dot { width: 12px; height: 12px; border-radius: 50%; background: #7bc043; box-shadow: 0 0 8px rgba(123,192,67,0.6); }
+  .brand-name { font-weight: 600; font-size: 15px; }
+  .brand-sub { font-size: 13px; color: #7bc043; font-weight: 500; }
+  .module-label { font-size: 12px; color: #7bc043; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; }
+  .home-btn { color: #7bc043; text-decoration: none; font-size: 13px; padding: 6px 12px; border: 1px solid #333; border-radius: 6px; }
+  .home-btn:hover { background: #1a1a1a; border-color: #7bc043; }
+
+  .container { max-width: 1400px; margin: 0 auto; padding: 24px 28px; }
+
+  .controls {
+    background: #fff; border: 1px solid #e5e5e0; border-radius: 12px;
+    padding: 14px 18px; margin-bottom: 20px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  }
+  .period-tabs { display: flex; gap: 4px; background: #f5f5f3; padding: 3px; border-radius: 8px; }
+  .period-tab { padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; color: #666; border: none; background: transparent; }
+  .period-tab.active { background: #fff; color: #1a1a1a; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+  .custom-range { display: none; gap: 8px; align-items: center; font-size: 13px; }
+  .custom-range.show { display: flex; }
+  .date-input { padding: 5px 8px; border: 1px solid #e5e5e0; border-radius: 6px; font-size: 13px; }
+  .refresh-btn { background: #f5f5f3; border: 1px solid #e5e5e0; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 13px; }
+
+  .info-banner {
+    background: #f0f9ff; border: 1px solid #bae6fd; color: #0c4a6e;
+    padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px;
+  }
+
+  .kpi-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px; margin-bottom: 20px;
+  }
+  .kpi {
+    background: #fff; border: 1px solid #e5e5e0; border-radius: 12px;
+    padding: 16px 18px;
+  }
+  .kpi-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+  .kpi-value { font-size: 24px; font-weight: 700; margin-top: 6px; color: #1a1a1a; }
+  .kpi-sub { font-size: 12px; color: #666; margin-top: 4px; }
+  .kpi-sub.up { color: #16a34a; }
+  .kpi-sub.down { color: #dc2626; }
+
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .row-3 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px; }
+  @media (max-width: 900px) {
+    .row, .row-3 { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: #fff; border: 1px solid #e5e5e0; border-radius: 12px;
+    padding: 18px 20px;
+  }
+  .card-title {
+    font-size: 14px; font-weight: 600; margin-bottom: 4px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .card-sub { font-size: 12px; color: #888; margin-bottom: 14px; }
+
+  /* CHARTS */
+  .bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 180px; padding: 10px 0; border-bottom: 1px solid #f0f0eb; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; }
+  .bar-stack { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 1; justify-content: flex-end; }
+  .bar { width: 80%; background: #7bc043; border-radius: 3px 3px 0 0; min-height: 1px; transition: all 0.2s; cursor: pointer; }
+  .bar.alt { background: #2563eb; }
+  .bar:hover { opacity: 0.8; }
+  .bar-label { font-size: 10px; color: #888; margin-top: 6px; white-space: nowrap; }
+  .bar-value { font-size: 10px; color: #444; font-weight: 600; }
+
+  .h-bar-list { display: flex; flex-direction: column; gap: 8px; }
+  .h-bar-row { display: grid; grid-template-columns: 140px 1fr 60px; gap: 8px; align-items: center; font-size: 12px; }
+  .h-bar-name { color: #444; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .h-bar-track { background: #f5f5f3; border-radius: 4px; height: 18px; position: relative; overflow: hidden; }
+  .h-bar-fill { background: #7bc043; height: 100%; border-radius: 4px; transition: width 0.3s; }
+  .h-bar-fill.purple { background: #8b5cf6; }
+  .h-bar-fill.blue { background: #2563eb; }
+  .h-bar-fill.amber { background: #d97706; }
+  .h-bar-val { text-align: right; color: #444; font-weight: 600; }
+
+  /* FUNNEL */
+  .funnel { display: flex; flex-direction: column; gap: 6px; padding: 8px 0; }
+  .funnel-stage {
+    display: grid; grid-template-columns: 130px 1fr 50px; gap: 8px; align-items: center;
+    font-size: 12px;
+  }
+  .funnel-name { font-weight: 500; color: #444; }
+  .funnel-bar-track { background: #f5f5f3; height: 26px; border-radius: 4px; overflow: hidden; }
+  .funnel-bar-fill { height: 100%; background: linear-gradient(90deg, #7bc043, #4ade80); display: flex; align-items: center; padding: 0 10px; color: #fff; font-weight: 600; font-size: 11px; min-width: 40px; }
+
+  /* TABLES */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .data-table th { text-align: left; font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.5px; padding: 8px 10px; border-bottom: 1px solid #e5e5e0; background: #fafaf7; }
+  .data-table td { padding: 10px; border-bottom: 1px solid #f0f0eb; }
+  .data-table tr:hover { background: #fafaf7; }
+  .data-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 500; }
+  .badge.good { background: #dcfce7; color: #166534; }
+  .badge.bad { background: #fee2e2; color: #991b1b; }
+  .badge.neutral { background: #e5e5e0; color: #555; }
+
+  .empty-chart { text-align: center; padding: 30px 20px; color: #999; font-size: 13px; }
+
+  @media (max-width: 600px) {
+    .container { padding: 16px; }
+    .controls { flex-direction: column; align-items: stretch; }
+    .h-bar-row { grid-template-columns: 100px 1fr 50px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-dot"></div>
+    <div>
+      <div class="brand-name">Green Lit <span class="brand-sub">Software</span></div>
+      <div class="module-label">Analytics &amp; Reporting</div>
+    </div>
+  </div>
+  <a href="index.html" class="home-btn">← Home</a>
+</div>
+
+<div class="container">
+
+  <div id="info-banner" class="info-banner" style="display:none;">
+    No data yet. Analytics will populate as you save quotes in CRM, leads in Lead Management, and invoices in Financials.
+  </div>
+
+  <div class="controls">
+    <div class="period-tabs">
+      <button class="period-tab" data-p="today" onclick="setPeriod('today')">Today</button>
+      <button class="period-tab" data-p="week" onclick="setPeriod('week')">Week</button>
+      <button class="period-tab" data-p="month" onclick="setPeriod('month')">Month</button>
+      <button class="period-tab active" data-p="all" onclick="setPeriod('all')">All time</button>
+      <button class="period-tab" data-p="custom" onclick="setPeriod('custom')">Custom</button>
+    </div>
+    <div class="custom-range" id="customRange">
+      <span>From</span>
+      <input class="date-input" type="date" id="customStart" onchange="render()">
+      <span>to</span>
+      <input class="date-input" type="date" id="customEnd" onchange="render()">
+    </div>
+    <button class="refresh-btn" onclick="refreshData()">↺ Refresh data</button>
+  </div>
+
+  <div class="kpi-grid" id="kpiGrid"></div>
+
+  <div class="row">
+    <div class="card">
+      <div class="card-title">Revenue by month</div>
+      <div class="card-sub">Approved quote value over the past 12 months</div>
+      <div class="bar-chart" id="revChart"></div>
+      <div style="display:flex;gap:16px;margin-top:8px;font-size:11px;color:#666;">
+        <span><span style="display:inline-block;width:10px;height:10px;background:#7bc043;border-radius:2px;"></span> Revenue</span>
+        <span><span style="display:inline-block;width:10px;height:10px;background:#2563eb;border-radius:2px;"></span> Quote count</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Lead conversion funnel</div>
+      <div class="card-sub">Drop-off from new lead through to won</div>
+      <div class="funnel" id="funnelChart"></div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="card">
+      <div class="card-title">Lead source performance</div>
+      <div class="card-sub">Where your leads come from and how they convert</div>
+      <table class="data-table" id="sourceTable">
+        <thead><tr><th>Source</th><th class="num">Leads</th><th class="num">Won</th><th class="num">Win %</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title">Quotes by roofing system</div>
+      <div class="card-sub">Most quoted brands and products</div>
+      <div class="h-bar-list" id="systemList"></div>
+    </div>
+  </div>
+
+  <div class="row-3">
+    <div class="card">
+      <div class="card-title">Top estimators</div>
+      <div class="card-sub">Performance leaderboard by win rate and revenue</div>
+      <table class="data-table" id="estTable">
+        <thead><tr><th>Estimator</th><th class="num">Quotes</th><th class="num">Won</th><th class="num">Win %</th><th class="num">Revenue</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title">Quote-to-close time</div>
+      <div class="card-sub">How long before approval</div>
+      <div id="closeTimeBlock"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+'use strict';
+
+const state = {
+  period: 'all',
+  quotes: [],
+  leads: [],
+  invoices: []
+};
+
+function fmtMoney(n) {
+  if (typeof n !== 'number' || isNaN(n)) return '$0';
+  if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
+  if (n >= 1000) return '$' + (n/1000).toFixed(0) + 'k';
+  return '$' + n.toLocaleString(undefined, { maximumFractionDigits: 0 });
+}
+function fmtMoneyFull(n) {
+  if (typeof n !== 'number' || isNaN(n)) return '$0';
+  return '$' + n.toLocaleString(undefined, { maximumFractionDigits: 0 });
+}
+function fmtPct(n) {
+  if (typeof n !== 'number' || isNaN(n)) return '0%';
+  return Math.round(n * 100) + '%';
+}
+function parseDate(s) {
+  if (!s) return null;
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? null : d;
+}
+function daysBetween(a, b) {
+  if (!a || !b) return null;
+  return Math.round((b - a) / 86400000);
+}
+
+function loadData() {
+  state.quotes = [];
+  state.leads = [];
+  state.invoices = [];
+
+  try {
+    const q = JSON.parse(localStorage.getItem('greenlit_quotes') || '[]');
+    if (Array.isArray(q)) state.quotes = q;
+  } catch(e) {}
+  try {
+    const l = JSON.parse(localStorage.getItem('greenlit_leads') || '[]');
+    if (Array.isArray(l)) state.leads = l;
+  } catch(e) {}
+  try {
+    const i = JSON.parse(localStorage.getItem('greenlit_invoices') || '[]');
+    if (Array.isArray(i)) state.invoices = i;
+  } catch(e) {}
+
+  const empty = state.quotes.length === 0 && state.leads.length === 0 && state.invoices.length === 0;
+  document.getElementById('info-banner').style.display = empty ? 'block' : 'none';
+}
+
+function periodRange() {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (state.period === 'today') return [today, new Date(today.getTime() + 86400000)];
+  if (state.period === 'week') {
+    const start = new Date(today);
+    start.setDate(start.getDate() - start.getDay());
+    return [start, new Date(start.getTime() + 7*86400000)];
+  }
+  if (state.period === 'month') {
+    return [new Date(now.getFullYear(), now.getMonth(), 1), new Date(now.getFullYear(), now.getMonth()+1, 1)];
+  }
+  if (state.period === 'custom') {
+    const s = document.getElementById('customStart').value;
+    const e = document.getElementById('customEnd').value;
+    if (s && e) return [new Date(s), new Date(new Date(e).getTime() + 86400000)];
+    return [null, null];
+  }
+  return [null, null]; // all time
+}
+
+function inPeriod(dateStr) {
+  const [start, end] = periodRange();
+  if (!start || !end) return true;
+  const d = parseDate(dateStr);
+  if (!d) return false;
+  return d >= start && d < end;
+}
+
+function setPeriod(p) {
+  state.period = p;
+  document.querySelectorAll('.period-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.p === p);
+  });
+  document.getElementById('customRange').classList.toggle('show', p === 'custom');
+  render();
+}
+
+function refreshData() {
+  loadData();
+  render();
+}
+
+function getFilteredQuotes() {
+  return state.quotes.filter(q => inPeriod(q.date || q.createdAt || q.created));
+}
+function getFilteredLeads() {
+  return state.leads.filter(l => inPeriod(l.createdAt || l.date || l.created));
+}
+function getFilteredInvoices() {
+  return state.invoices.filter(i => inPeriod(i.issueDate || i.date));
+}
+
+function renderKPIs() {
+  const quotes = getFilteredQuotes();
+  const leads = getFilteredLeads();
+  const invoices = getFilteredInvoices();
+
+  const totalQuotes = quotes.length;
+  const wonQuotes = quotes.filter(q => (q.status || '').toLowerCase() === 'approved' || (q.status || '').toLowerCase() === 'won' || (q.status || '').toLowerCase() === 'paid');
+  const lostQuotes = quotes.filter(q => (q.status || '').toLowerCase() === 'lost');
+  const decided = wonQuotes.length + lostQuotes.length;
+  const winRate = decided > 0 ? wonQuotes.length / decided : 0;
+
+  const approvedRev = wonQuotes.reduce((s, q) => s + (Number(q.sellingPrice) || Number(q.total) || Number(q.value) || 0), 0);
+  const avgJob = wonQuotes.length > 0 ? approvedRev / wonQuotes.length : 0;
+
+  const pipelineValue = quotes
+    .filter(q => !['lost', 'paid'].includes((q.status || '').toLowerCase()))
+    .reduce((s, q) => s + (Number(q.sellingPrice) || Number(q.total) || Number(q.value) || 0), 0);
+
+  // close time
+  let closeTimes = [];
+  wonQuotes.forEach(q => {
+    const created = parseDate(q.date || q.createdAt || q.created);
+    const closed = parseDate(q.approvedDate || q.statusChangedAt || q.updatedAt);
+    if (created && closed) {
+      const d = daysBetween(created, closed);
+      if (d != null && d >= 0) closeTimes.push(d);
+    }
+  });
+  const avgClose = closeTimes.length > 0 ? closeTimes.reduce((a,b)=>a+b,0) / closeTimes.length : null;
+
+  const grid = document.getElementById('kpiGrid');
+  grid.innerHTML = `
+    <div class="kpi"><div class="kpi-label">Approved revenue</div><div class="kpi-value">${fmtMoney(approvedRev)}</div><div class="kpi-sub">${wonQuotes.length} won quotes</div></div>
+    <div class="kpi"><div class="kpi-label">Total quotes</div><div class="kpi-value">${totalQuotes}</div><div class="kpi-sub">in selected period</div></div>
+    <div class="kpi"><div class="kpi-label">Win rate</div><div class="kpi-value">${fmtPct(winRate)}</div><div class="kpi-sub">${wonQuotes.length} won / ${decided} decided</div></div>
+    <div class="kpi"><div class="kpi-label">Average job size</div><div class="kpi-value">${fmtMoney(avgJob)}</div><div class="kpi-sub">across won quotes</div></div>
+    <div class="kpi"><div class="kpi-label">Avg close time</div><div class="kpi-value">${avgClose != null ? Math.round(avgClose) + 'd' : '—'}</div><div class="kpi-sub">days quote→approved</div></div>
+    <div class="kpi"><div class="kpi-label">Pipeline value</div><div class="kpi-value">${fmtMoney(pipelineValue)}</div><div class="kpi-sub">open quotes</div></div>
+    <div class="kpi"><div class="kpi-label">Total leads</div><div class="kpi-value">${leads.length}</div><div class="kpi-sub">in selected period</div></div>
+  `;
+}
+
+function renderRevenueChart() {
+  const chart = document.getElementById('revChart');
+  // Build last 12 months
+  const now = new Date();
+  const months = [];
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({ key: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`, label: d.toLocaleDateString(undefined,{month:'short'}), rev: 0, count: 0 });
+  }
+  const wonQuotes = state.quotes.filter(q => {
+    const s = (q.status || '').toLowerCase();
+    return s === 'approved' || s === 'won' || s === 'paid';
+  });
+  wonQuotes.forEach(q => {
+    const d = parseDate(q.date || q.createdAt);
+    if (!d) return;
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const m = months.find(m => m.key === key);
+    if (m) {
+      m.rev += Number(q.sellingPrice) || Number(q.total) || Number(q.value) || 0;
+      m.count += 1;
+    }
+  });
+
+  const maxRev = Math.max(1, ...months.map(m => m.rev));
+  const maxCount = Math.max(1, ...months.map(m => m.count));
+
+  if (months.every(m => m.rev === 0 && m.count === 0)) {
+    chart.innerHTML = '<div class="empty-chart" style="flex:1">No revenue data yet for this period.</div>';
+    return;
+  }
+
+  chart.innerHTML = months.map(m => `
+    <div class="bar-col" title="${m.label}: ${fmtMoneyFull(m.rev)} (${m.count} quotes)">
+      <div class="bar-stack">
+        <div class="bar-value">${m.rev > 0 ? fmtMoney(m.rev) : ''}</div>
+        <div class="bar" style="height:${(m.rev/maxRev)*120}px"></div>
+        <div class="bar alt" style="height:${(m.count/maxCount)*40}px"></div>
+      </div>
+      <div class="bar-label">${m.label}</div>
+    </div>
+  `).join('');
+}
+
+function renderFunnel() {
+  const stages = [
+    { name: 'New', match: ['new'] },
+    { name: 'Contacted', match: ['contacted'] },
+    { name: 'Appointment set', match: ['appointment set','appointment_set','appt'] },
+    { name: 'Quote sent', match: ['quote sent','quote_sent','quoted'] },
+    { name: 'Won', match: ['won','approved'] }
+  ];
+  const counts = stages.map(s => 0);
+  state.leads.forEach(l => {
+    const stage = (l.stage || l.status || '').toLowerCase();
+    stages.forEach((s, i) => {
+      if (s.match.includes(stage)) counts[i]++;
+    });
+  });
+
+  const total = Math.max(1, ...counts);
+  const html = stages.map((s, i) => `
+    <div class="funnel-stage">
+      <div class="funnel-name">${s.name}</div>
+      <div class="funnel-bar-track">
+        <div class="funnel-bar-fill" style="width:${Math.max(8, (counts[i]/total)*100)}%">${counts[i]}</div>
+      </div>
+      <div style="text-align:right;color:#666;font-size:11px;">${i > 0 && counts[i-1] > 0 ? Math.round((counts[i]/counts[i-1])*100) + '%' : ''}</div>
+    </div>
+  `).join('');
+
+  document.getElementById('funnelChart').innerHTML = state.leads.length === 0
+    ? '<div class="empty-chart">No leads yet.</div>'
+    : html;
+}
+
+function renderSources() {
+  const sources = {};
+  state.leads.forEach(l => {
+    const src = l.source || 'Unknown';
+    if (!sources[src]) sources[src] = { total: 0, won: 0 };
+    sources[src].total++;
+    const stage = (l.stage || l.status || '').toLowerCase();
+    if (stage === 'won' || stage === 'approved') sources[src].won++;
+  });
+
+  const arr = Object.entries(sources).sort((a,b) => b[1].total - a[1].total);
+  const tbody = document.querySelector('#sourceTable tbody');
+  if (arr.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty-chart">No leads logged yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = arr.map(([name, d]) => `
+    <tr>
+      <td>${name}</td>
+      <td class="num">${d.total}</td>
+      <td class="num">${d.won}</td>
+      <td class="num">${d.total > 0 ? Math.round((d.won/d.total)*100) + '%' : '—'}</td>
+    </tr>
+  `).join('');
+}
+
+function renderSystems() {
+  const systems = {};
+  getFilteredQuotes().forEach(q => {
+    const sys = q.system || q.product || 'Unspecified';
+    if (!systems[sys]) systems[sys] = 0;
+    systems[sys]++;
+  });
+  const arr = Object.entries(systems).sort((a,b) => b[1] - a[1]).slice(0, 10);
+  const max = Math.max(1, ...arr.map(([,n]) => n));
+  const list = document.getElementById('systemList');
+
+  if (arr.length === 0) {
+    list.innerHTML = '<div class="empty-chart">No quotes yet.</div>';
+    return;
+  }
+  const colors = ['', 'purple', 'blue', 'amber'];
+  list.innerHTML = arr.map(([name, n], i) => `
+    <div class="h-bar-row">
+      <div class="h-bar-name" title="${name}">${name}</div>
+      <div class="h-bar-track"><div class="h-bar-fill ${colors[i % 4]}" style="width:${(n/max)*100}%"></div></div>
+      <div class="h-bar-val">${n}</div>
+    </div>
+  `).join('');
+}
+
+function renderEstimators() {
+  const ests = {};
+  getFilteredQuotes().forEach(q => {
+    const e = q.estimator || 'Unassigned';
+    if (!ests[e]) ests[e] = { quotes: 0, won: 0, revenue: 0 };
+    ests[e].quotes++;
+    const status = (q.status || '').toLowerCase();
+    if (status === 'won' || status === 'approved' || status === 'paid') {
+      ests[e].won++;
+      ests[e].revenue += Number(q.sellingPrice) || Number(q.total) || Number(q.value) || 0;
+    }
+  });
+
+  const arr = Object.entries(ests).sort((a,b) => b[1].revenue - a[1].revenue);
+  const tbody = document.querySelector('#estTable tbody');
+  if (arr.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-chart">No quotes yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = arr.map(([name, d]) => `
+    <tr>
+      <td><strong>${name}</strong></td>
+      <td class="num">${d.quotes}</td>
+      <td class="num">${d.won}</td>
+      <td class="num">${d.quotes > 0 ? Math.round((d.won/d.quotes)*100) + '%' : '—'}</td>
+      <td class="num">${fmtMoneyFull(d.revenue)}</td>
+    </tr>
+  `).join('');
+}
+
+function renderCloseTime() {
+  const buckets = [
+    { label: '1–3 days', min: 0, max: 3, count: 0 },
+    { label: '4–7 days', min: 4, max: 7, count: 0 },
+    { label: '8–14 days', min: 8, max: 14, count: 0 },
+    { label: '15–30 days', min: 15, max: 30, count: 0 },
+    { label: '30+ days', min: 31, max: Infinity, count: 0 }
+  ];
+  let times = [];
+  state.quotes.filter(q => {
+    const s = (q.status || '').toLowerCase();
+    return s === 'won' || s === 'approved' || s === 'paid';
+  }).forEach(q => {
+    const a = parseDate(q.date || q.createdAt);
+    const b = parseDate(q.approvedDate || q.statusChangedAt || q.updatedAt);
+    if (a && b) {
+      const days = daysBetween(a, b);
+      if (days != null && days >= 0) {
+        times.push(days);
+        buckets.forEach(bk => { if (days >= bk.min && days <= bk.max) bk.count++; });
+      }
+    }
+  });
+
+  const block = document.getElementById('closeTimeBlock');
+  if (times.length === 0) {
+    block.innerHTML = '<div class="empty-chart">No closed quotes yet.</div>';
+    return;
+  }
+
+  const total = times.length;
+  const fastest = Math.min(...times);
+  const slowest = Math.max(...times);
+  const avg = Math.round(times.reduce((a,b)=>a+b,0)/total);
+  const max = Math.max(1, ...buckets.map(b => b.count));
+
+  let html = `<div style="margin-bottom:12px;font-size:12px;color:#666;">
+    Avg <strong style="color:#1a1a1a;">${avg}d</strong> · Fastest <strong style="color:#1a1a1a;">${fastest}d</strong> · Slowest <strong style="color:#1a1a1a;">${slowest}d</strong>
+  </div>`;
+  html += '<div class="h-bar-list">';
+  buckets.forEach((b, i) => {
+    const colors = ['', 'purple', 'blue', 'amber', ''];
+    html += `<div class="h-bar-row">
+      <div class="h-bar-name">${b.label}</div>
+      <div class="h-bar-track"><div class="h-bar-fill ${colors[i]}" style="width:${(b.count/max)*100}%"></div></div>
+      <div class="h-bar-val">${b.count}</div>
+    </div>`;
+  });
+  html += '</div>';
+  block.innerHTML = html;
+}
+
+function render() {
+  renderKPIs();
+  renderRevenueChart();
+  renderFunnel();
+  renderSources();
+  renderSystems();
+  renderEstimators();
+  renderCloseTime();
+}
+
+loadData();
+render();
+</script>
+</body>
+</html>
