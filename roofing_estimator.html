@@ -181,6 +181,29 @@
   </div>
 </div>
 
+<!-- =================== ROOFR IMPORT =================== -->
+<div class="card">
+  <div class="section-h-row">
+    <div class="section-h">Roofr CSV Import</div>
+    <button class="btn" onclick="toggleRoofrPanel()" id="roofrToggleBtn">📋 Show import panel</button>
+  </div>
+  <div id="roofrPanel" style="display:none;">
+    <div class="section-sub">Drop a Roofr CSV file or paste the report contents below.</div>
+    <div id="roofrDrop" style="border:2px dashed #d4d4d0; border-radius:10px; padding:20px; text-align:center; cursor:pointer; background:#fafaf7; transition:all 0.15s;">
+      <div style="font-size:14px; font-weight:500; color:#555; margin-bottom:6px;">📁 Drop CSV file here, or click to choose</div>
+      <div style="font-size:12px; color:#888;">Roofr "Measurements" CSV export</div>
+      <input type="file" id="roofrFile" accept=".csv,text/csv" style="display:none;">
+    </div>
+    <div style="margin:10px 0; text-align:center; font-size:11px; color:#888; text-transform:uppercase; letter-spacing:1px;">— or paste —</div>
+    <textarea id="roofrPaste" placeholder="Paste the contents of the Roofr CSV (including header row) here..." style="min-height:90px; font-family:monospace; font-size:11px;"></textarea>
+    <div style="display:flex; gap:8px; margin-top:10px;">
+      <button class="btn green" onclick="parseRoofrCSV()">Import to estimator</button>
+      <button class="btn" onclick="clearRoofrPanel()">Clear</button>
+    </div>
+    <div id="roofrStatus" style="margin-top:10px; font-size:13px;"></div>
+  </div>
+</div>
+
 <!-- =================== ROOF STRUCTURES =================== -->
 <div class="card">
   <div class="section-h-row">
@@ -1653,7 +1676,226 @@ window.addEventListener('DOMContentLoaded', function(){
   onZoneChange();
   initQuote();
   checkRoofrReport();
+  setupRoofrDrop();
 });
+
+// ============ ROOFR CSV IMPORT ============
+function toggleRoofrPanel(){
+  const panel = $('roofrPanel');
+  const btn = $('roofrToggleBtn');
+  if (panel.style.display === 'none'){
+    panel.style.display = 'block';
+    btn.textContent = '× Hide import panel';
+  } else {
+    panel.style.display = 'none';
+    btn.textContent = '📋 Show import panel';
+  }
+}
+function clearRoofrPanel(){
+  $('roofrPaste').value = '';
+  $('roofrStatus').innerHTML = '';
+  $('roofrFile').value = '';
+}
+function setRoofrStatus(msg, type){
+  const el = $('roofrStatus');
+  let bg = '#f0f9ff', border = '#bae6fd', color = '#0c4a6e';
+  if (type === 'error'){ bg = '#fef2f2'; border = '#fecaca'; color = '#991b1b'; }
+  if (type === 'success'){ bg = '#f0fdf4'; border = '#bbf7d0'; color = '#166534'; }
+  el.innerHTML = '<div style="background:'+bg+';border:1px solid '+border+';color:'+color+';padding:10px 14px;border-radius:8px;">'+msg+'</div>';
+}
+
+function setupRoofrDrop(){
+  const drop = $('roofrDrop');
+  const file = $('roofrFile');
+  if (!drop || !file) return;
+  drop.onclick = function(){ file.click(); };
+  file.onchange = function(){
+    if (file.files && file.files[0]) readRoofrFile(file.files[0]);
+  };
+  ['dragenter','dragover'].forEach(ev => {
+    drop.addEventListener(ev, function(e){
+      e.preventDefault(); e.stopPropagation();
+      drop.style.borderColor = '#7bc043';
+      drop.style.background = '#f0fdf4';
+    });
+  });
+  ['dragleave','drop'].forEach(ev => {
+    drop.addEventListener(ev, function(e){
+      e.preventDefault(); e.stopPropagation();
+      drop.style.borderColor = '#d4d4d0';
+      drop.style.background = '#fafaf7';
+    });
+  });
+  drop.addEventListener('drop', function(e){
+    if (e.dataTransfer.files && e.dataTransfer.files[0]){
+      readRoofrFile(e.dataTransfer.files[0]);
+    }
+  });
+}
+
+function readRoofrFile(f){
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    $('roofrPaste').value = ev.target.result;
+    parseRoofrCSV();
+  };
+  reader.onerror = function(){ setRoofrStatus('Could not read file.', 'error'); };
+  reader.readAsText(f);
+}
+
+function parseRoofrCSV(){
+  const txt = $('roofrPaste').value.trim();
+  if (!txt){ setRoofrStatus('Paste a CSV first or drop a file above.', 'error'); return; }
+
+  // Split into lines, find header + first data row
+  const lines = txt.split(/\r?\n/).filter(l => l.trim().length);
+  if (lines.length < 2){ setRoofrStatus('CSV needs at least a header row and one data row.', 'error'); return; }
+
+  // Roofr CSV uses commas. Some pastes might be tabs.
+  const sep = lines[0].indexOf('\t') > -1 ? '\t' : ',';
+  const headers = parseCsvLine(lines[0], sep);
+  const data = parseCsvLine(lines[1], sep);
+
+  const get = function(name){
+    const i = headers.findIndex(h => h.toLowerCase() === name.toLowerCase());
+    return i >= 0 ? (data[i] || '').trim() : '';
+  };
+  const getNum = function(name){
+    const v = get(name);
+    return v ? parseFloat(v) || 0 : 0;
+  };
+
+  // Parse address — Roofr puts everything in one field
+  const fullAddr = get('Address');
+  if (!fullAddr){ setRoofrStatus('Could not find an Address column. Make sure you copied the full CSV including the header row.', 'error'); return; }
+
+  // Try to split address: last 4 words are usually "City Province Country" — varies, so we just put the whole thing in address and try to extract city
+  let addr = fullAddr, city = '';
+  // Pattern: "<street> <city> <province> Canada"
+  const parts = fullAddr.split(/\s+/);
+  if (parts.length >= 4){
+    // Look for "Sherwood Park", "St Albert", "Spruce Grove" etc — city is typically 1-2 words before province
+    // Simple approach: assume last word is country, second-last is province, then everything before that
+    // is street + city. We can't reliably split without zip codes, so put the whole thing in address.
+    // But if the user's pattern has known cities, we can try harder.
+    const known = ['Sherwood Park','St Albert','Spruce Grove','Stony Plain','Fort Saskatchewan','Beaumont','Leduc','Devon','Camrose','Wetaskiwin','Millet','Edmonton','Calgary','Red Deer'];
+    for (const k of known){
+      const idx = fullAddr.indexOf(' ' + k + ' ');
+      if (idx > -1){
+        addr = fullAddr.substring(0, idx).trim();
+        city = k;
+        break;
+      }
+      const idxEnd = fullAddr.indexOf(' ' + k);
+      if (idxEnd > -1 && fullAddr.endsWith(k + ' Alberta Canada')){
+        addr = fullAddr.substring(0, idxEnd).trim();
+        city = k;
+        break;
+      }
+    }
+    // Fallback: assume the city is just the word(s) before "Alberta"
+    if (!city){
+      const ab = fullAddr.indexOf(' Alberta');
+      if (ab > -1){
+        const beforeAB = fullAddr.substring(0, ab).trim();
+        // Last word as city (one-word fallback)
+        const lastSpace = beforeAB.lastIndexOf(' ');
+        if (lastSpace > -1){
+          city = beforeAB.substring(lastSpace + 1);
+          addr = beforeAB.substring(0, lastSpace);
+        }
+      }
+    }
+  }
+
+  // Pitches 4–12 (we only support these in the estimator)
+  const pitchData = {};
+  for (let p = 4; p <= 12; p++){
+    const sf = getNum(p + '/12 pitch (Sqft)');
+    if (sf > 0) pitchData[p] = Math.round(sf);
+  }
+
+  // Linear measurements
+  const eaves = getNum('Eaves (LF)');
+  const rake = getNum('Rakes (LF)');
+  const valley = getNum('Valleys (LF)');
+  const hip = getNum('Hips (LF)');
+  const ridge = getNum('Ridges (LF)');
+  const wall = getNum('Wall Flashing (LF)');
+  const step = getNum('Step Flashing (LF)');
+
+  // Find predominant pitch (largest area)
+  let predPitch = 0, maxArea = 0;
+  Object.entries(pitchData).forEach(([p, sf]) => {
+    if (sf > maxArea){ maxArea = sf; predPitch = parseInt(p); }
+  });
+
+  // Apply to form
+  if (addr) $('f-address').value = addr;
+  if (city) $('f-city').value = city;
+
+  // Reset structures and create one
+  structures = [];
+  nextStructId = 1;
+  $('structTabs').innerHTML = '';
+  $('structPanels').innerHTML = '';
+  addStructure();
+  const sid = structures[0].id;
+
+  // Fill pitches
+  for (let p = 4; p <= 12; p++){
+    const el = $('s' + sid + '-p' + p);
+    if (el) el.value = pitchData[p] || 0;
+  }
+  // Predominant pitch
+  if (predPitch){
+    const predEl = $('s' + sid + '-pred');
+    if (predEl) predEl.value = predPitch;
+  }
+  // Linear
+  const setVal = function(key, val){
+    const el = $('s' + sid + '-' + key);
+    if (el && val > 0) el.value = Math.round(val * 100) / 100;
+  };
+  setVal('eaves', eaves);
+  setVal('rake', rake);
+  setVal('valley', valley);
+  setVal('hip', hip);
+  setVal('ridge', ridge);
+  setVal('wall', wall);
+  setVal('step', step);
+
+  updateStructLabel(sid);
+
+  const totalPitched = getNum('Total pitched area (Sqft)');
+  let msg = '✓ Imported successfully — ';
+  msg += '<strong>' + (addr || 'address parsed') + '</strong>';
+  if (city) msg += ', ' + city;
+  msg += '. Total pitched area: <strong>' + totalPitched.toLocaleString() + ' sqft</strong>';
+  if (predPitch) msg += ', predominant pitch: <strong>' + predPitch + '/12</strong>';
+  msg += '.<br><br>⚠️ <strong>Don\'t forget to enter the waste factor</strong> before calculating. The CSV combined any multiple structures into one — if this job has a separate garage or shed, click "+ Add structure" to enter it manually.';
+  setRoofrStatus(msg, 'success');
+}
+
+// Simple CSV line parser handling quoted values
+function parseCsvLine(line, sep){
+  const out = [];
+  let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++){
+    const c = line[i];
+    if (c === '"'){
+      if (inQ && line[i+1] === '"'){ cur += '"'; i++; }
+      else inQ = !inQ;
+    } else if (c === sep && !inQ){
+      out.push(cur);
+      cur = '';
+    } else {
+      cur += c;
+    }
+  }
+  out.push(cur);
+  return out;
+}
 </script>
 
 </body>
