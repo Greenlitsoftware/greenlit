@@ -395,7 +395,7 @@ const PROD_LABOUR_MARKUP = {
 
 // Brand-specific starter & ridge bundle linear feet
 const STARTER_LF = {
-  iko_main:105, iko_armour:69, // IKO default: Leading Edge 105 (was 123); Armourshake gets 69
+  iko_main:109, iko_armour:69, // IKO default: Leading Edge 109 LF (RoofMart current spec); Armourshake gets 69
   bp:69, ct:116, mal:72, gaf_wb:100, gaf_match:60, oc:105,
   euro_eave_3340:33, euro_rake_3340:40, euro_3030:30,
   fw:30
@@ -409,7 +409,7 @@ const RIDGE_LF = {
 
 // IKO-specific: Ultra HP Cap is mandatory for Armourshake
 // Coverage TBD — using 25 LF/bdl as placeholder until confirmed
-const IKO_ULTRA_HP_LF = 25;
+const IKO_ULTRA_HP_LF = 20;
 
 // I&W width per brand default product (in inches) — used to calculate area displacement of underlay
 // Default I&W is usually 36" (3 ft) wide on most brands; IKO Stormshield is 44" (3.667 ft)
@@ -454,7 +454,7 @@ const ACC_DEFS = [
 
 // Brand-specific starter products for the price panel
 const BRAND_STARTERS = {
-  iko: [{key:'starter', label:'IKO Leading Edge 105 (105 LF/bdl) — default'}, {key:'starterArmour', label:'IKO Armourshake Starter (69 LF/bdl) — req\'d for Armourshake'}],
+  iko: [{key:'starter', label:'IKO Leading Edge 109 (109 LF/bdl) — default'}, {key:'starterArmour', label:'IKO Armourshake Starter (69 LF/bdl) — req\'d for Armourshake'}],
   bp: [{key:'starter', label:'BP Starter Strip (69/bdl)'}],
   gaf: [{key:'starter', label:'GAF Weather Blocker Starter (100/bdl)'}, {key:'starterMatch', label:'GAF StarterMatch (60/bdl) — Grand Sequoia AS'}],
   ct: [{key:'starter', label:'CertainTeed Swift Start (116/bdl)'}],
@@ -471,7 +471,7 @@ const BRAND_STARTERS = {
 const BRAND_RIDGES = {
   iko: [
     {key:'hipridge', label:'IKO Hip & Ridge 12 (29.5 LF/bdl) — default'},
-    {key:'hipridgeUltra', label:'IKO Ultra HP Cap (25 LF/bdl) — req\'d for Armourshake'}
+    {key:'hipridgeUltra', label:'IKO Ultra HP Cap (20 LF/bdl) — req\'d for Armourshake'}
   ],
   bp: [{key:'hipridge', label:'BP Yukon SB (29/bdl)'}],
   gaf: [{key:'hipridge', label:'GAF Timbertex (20/bdl)'}],
