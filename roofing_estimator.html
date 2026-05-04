@@ -442,15 +442,67 @@ const ACC_DEFS = [
   { key:'staples', label:'Staples', unit:'box', priceLabel:'per box' },
   { key:'nails', label:'Nails', unit:'box', priceLabel:'per box' },
   { key:'eurnails', label:'1⅜" Nails (Euroshield only)', unit:'box', priceLabel:'per box', euroOnly:true },
-  { key:'vent', label:'Standard Vents', unit:'ea', priceLabel:'each', onDemand:true },
-  { key:'slantback', label:'Slant Back Vents', unit:'ea', priceLabel:'each', onDemand:true },
-  { key:'turbo', label:'Turbo Vents', unit:'ea', priceLabel:'each', onDemand:true },
-  { key:'ridgevent', label:'Ridge Vent (LF)', unit:'lf', priceLabel:'per LF', onDemand:true },
+  // ----- VENTS (12 distinct products, each tracked separately) -----
+  { key:'vent6050t', label:'Duraflo 6050T Shake Vent', unit:'ea', priceLabel:'each', onDemand:true, vent:true },
+  { key:'ventwp50', label:'Duraflo WeatherPro 50 Vent', unit:'ea', priceLabel:'each', onDemand:true, vent:true },
+  { key:'ventwp50sb', label:'Duraflo WeatherPro 50 Slant Back', unit:'ea', priceLabel:'each', onDemand:true, vent:true },
+  { key:'vent75', label:'Duraflo 75 Roof Vent', unit:'ea', priceLabel:'each', onDemand:true, vent:true },
+  { key:'ventprov', label:'Duraflo ProVentilator (3 Opening)', unit:'ea', priceLabel:'each', onDemand:true, vent:true },
+  { key:'ventturbo', label:'Duraflo Turbo Vent', unit:'ea', priceLabel:'each', onDemand:true, vent:true },
+  { key:'ventridge4', label:'Duraflo Ridge Vent 4ft Solid Body', unit:'ea', priceLabel:'each', onDemand:true, vent:true },
+  { key:'ventlomroll', label:'Lomanco Lo-OmniRoll 30 Ridge Vent', unit:'ea', priceLabel:'each', onDemand:true, vent:true },
+  { key:'ventwhirl12', label:'Lomanco Whirlybird 12in', unit:'ea', priceLabel:'each', onDemand:true, vent:true },
+  { key:'ventwhirl14', label:'Lomanco Whirlybird 14in', unit:'ea', priceLabel:'each', onDemand:true, vent:true },
+  { key:'ventmax301', label:'Maximum 301', unit:'ea', priceLabel:'each', onDemand:true, vent:true },
+  { key:'ventsolar', label:'4 Seasons 10W PRO Solar Panel Vent', unit:'ea', priceLabel:'each', onDemand:true, vent:true },
+  { key:'ridgevent', label:'Ridge Vent (LF) — Lo-OmniRoll', unit:'lf', priceLabel:'per LF', onDemand:true },
   { key:'stack2', label:'Plumbing Stack 2"', unit:'ea', priceLabel:'each', onDemand:true },
   { key:'stack3', label:'Plumbing Stack 3"', unit:'ea', priceLabel:'each', onDemand:true },
   { key:'stack4', label:'Plumbing Stack 4"', unit:'ea', priceLabel:'each', onDemand:true },
-  { key:'goose', label:'Goose Necks', unit:'ea', priceLabel:'each', onDemand:true }
+  // ----- GOOSE NECKS (5 distinct products) -----
+  { key:'goose6blk',     label:'Gooseneck Vent 6in Black',                unit:'ea', priceLabel:'each', onDemand:true, goose:true },
+  { key:'goose6galv',    label:'Gooseneck Vent 6in Galvanized W/Damper',  unit:'ea', priceLabel:'each', onDemand:true, goose:true },
+  { key:'gooseprimex',   label:'Primex Roof Mount Exhaust Vent',          unit:'ea', priceLabel:'each', onDemand:true, goose:true },
+  { key:'gooseprimex4',  label:'Primex 4in Snap-In Adapter',              unit:'ea', priceLabel:'each', onDemand:true, goose:true },
+  { key:'gooseprimex6',  label:'Primex 6in Snap-In Adapters',             unit:'ea', priceLabel:'each', onDemand:true, goose:true },
+  // ----- SEALANTS (2 distinct products) -----
+  { key:'sealroofcraft', label:'Roofcraft Roof Patch 300ml',              unit:'tb', priceLabel:'per tube', onDemand:true, sealant:true },
+  { key:'sealmulco',     label:'Mulco Supra Caulking Clear 300ml',        unit:'tb', priceLabel:'per tube', onDemand:true, sealant:true }
 ];
+
+// List of goose neck product keys (used by structure form, calc, delivery)
+const GOOSE_KEYS = ['goose6blk','goose6galv','gooseprimex','gooseprimex4','gooseprimex6'];
+const GOOSE_LABELS = {
+  goose6blk: 'Gooseneck 6" Black',
+  goose6galv: 'Gooseneck 6" Galv W/Damper',
+  gooseprimex: 'Primex Roof Mount Exhaust',
+  gooseprimex4: 'Primex 4" Snap-In Adapter',
+  gooseprimex6: 'Primex 6" Snap-In Adapter'
+};
+
+// List of sealant product keys
+const SEAL_KEYS = ['sealroofcraft','sealmulco'];
+const SEAL_LABELS = {
+  sealroofcraft: 'Roofcraft Roof Patch 300ml',
+  sealmulco: 'Mulco Supra Caulking 300ml'
+};
+
+// List of vent product keys (used by structure form, calc, delivery)
+const VENT_KEYS = ['vent6050t','ventwp50','ventwp50sb','vent75','ventprov','ventturbo','ventridge4','ventlomroll','ventwhirl12','ventwhirl14','ventmax301','ventsolar'];
+const VENT_LABELS = {
+  vent6050t: 'Duraflo 6050T',
+  ventwp50: 'Duraflo WP 50',
+  ventwp50sb: 'Duraflo WP 50 SB',
+  vent75: 'Duraflo 75',
+  ventprov: 'Duraflo ProVentilator',
+  ventturbo: 'Duraflo Turbo',
+  ventridge4: 'Duraflo Ridge Vent 4ft',
+  ventlomroll: 'Lomanco Lo-OmniRoll 30',
+  ventwhirl12: 'Lomanco Whirlybird 12"',
+  ventwhirl14: 'Lomanco Whirlybird 14"',
+  ventmax301: 'Maximum 301',
+  ventsolar: '4 Seasons 10W PRO Solar'
+};
 
 // Brand-specific starter products for the price panel
 const BRAND_STARTERS = {
@@ -753,19 +805,37 @@ function buildStructurePanel(panel, sid, isFirst){
   rakeBox.appendChild(makeCheck('s'+sid+'-rakeridgefw', 'Include hip & ridge shingles on rake edges (F Wave)'));
   panel.appendChild(rakeBox);
 
-  // Vents, stacks, flashings (per structure)
+  // Vents (12 distinct products, each its own count)
   const vH = document.createElement('div');
   vH.className = 'section-h';
   vH.style.marginTop = '16px';
-  vH.textContent = 'Vents, Stacks & Flashings';
+  vH.textContent = 'Vents (pick how many of each)';
   panel.appendChild(vH);
+
+  const ventGrid = document.createElement('div');
+  ventGrid.className = 'grid-3';
+  VENT_KEYS.forEach(vk => {
+    const w = document.createElement('div');
+    const l = document.createElement('label'); l.textContent = VENT_LABELS[vk] + ' (#)'; w.appendChild(l);
+    const i = document.createElement('input'); i.type = 'number'; i.id = 's'+sid+'-'+vk; i.value = '0'; i.min = '0';
+    w.appendChild(i);
+    ventGrid.appendChild(w);
+  });
+  panel.appendChild(ventGrid);
+
+  // Stacks, ridge vent LF, backpans, flashings (no longer includes goose — that has its own section)
+  const sH = document.createElement('div');
+  sH.className = 'section-h';
+  sH.style.marginTop = '16px';
+  sH.textContent = 'Stacks, Backpans, Flashings';
+  panel.appendChild(sH);
 
   const vGrid = document.createElement('div');
   vGrid.className = 'grid-3';
   [
-    ['vents','Standard vents (#)'],['slantback','Slant back vents (#)'],['turbo','Turbo vents (#)'],
-    ['ridgevent','Ridge vent (LF)'],['stack2','Plumbing stacks 2" (#)'],['stack3','Plumbing stacks 3" (#)'],
-    ['stack4','Plumbing stacks 4" (#)'],['goose','Goose necks (#)'],
+    ['ridgevent','Ridge vent LF (Lo-OmniRoll)'],
+    ['stack2','Plumbing stacks 2" (#)'],['stack3','Plumbing stacks 3" (#)'],
+    ['stack4','Plumbing stacks 4" (#)'],
     ['bp3','Backpan 3ft (#)'],['bp5','Backpan 5ft (#)'],['bp8','Backpan 8ft (#)'],
     ['transition','Transition flashing (LF)'],['revdrip','Reversible drip edge (LF)']
   ].forEach(pair => {
@@ -776,6 +846,42 @@ function buildStructurePanel(panel, sid, isFirst){
     vGrid.appendChild(w);
   });
   panel.appendChild(vGrid);
+
+  // Goose necks (5 distinct products)
+  const gH = document.createElement('div');
+  gH.className = 'section-h';
+  gH.style.marginTop = '16px';
+  gH.textContent = 'Goose Necks (pick how many of each)';
+  panel.appendChild(gH);
+
+  const gooseGrid = document.createElement('div');
+  gooseGrid.className = 'grid-3';
+  GOOSE_KEYS.forEach(gk => {
+    const w = document.createElement('div');
+    const l = document.createElement('label'); l.textContent = GOOSE_LABELS[gk] + ' (#)'; w.appendChild(l);
+    const i = document.createElement('input'); i.type = 'number'; i.id = 's'+sid+'-'+gk; i.value = '0'; i.min = '0';
+    w.appendChild(i);
+    gooseGrid.appendChild(w);
+  });
+  panel.appendChild(gooseGrid);
+
+  // Sealants (2 distinct products)
+  const sealH = document.createElement('div');
+  sealH.className = 'section-h';
+  sealH.style.marginTop = '16px';
+  sealH.textContent = 'Sealants & Caulkings (tubes per job)';
+  panel.appendChild(sealH);
+
+  const sealGrid = document.createElement('div');
+  sealGrid.className = 'grid-3';
+  SEAL_KEYS.forEach(sk => {
+    const w = document.createElement('div');
+    const l = document.createElement('label'); l.textContent = SEAL_LABELS[sk] + ' (tubes)'; w.appendChild(l);
+    const i = document.createElement('input'); i.type = 'number'; i.id = 's'+sid+'-'+sk; i.value = '0'; i.min = '0';
+    w.appendChild(i);
+    sealGrid.appendChild(w);
+  });
+  panel.appendChild(sealGrid);
 
   // Update tab label whenever fields change
   setTimeout(() => updateStructLabel(sid), 0);
@@ -955,13 +1061,18 @@ function getStructData(sid){
     secondIce: sc(sid, 'secondice'),
     rakeRidge: sc(sid, 'rakeridge'),
     rakeRidgeFW: sc(sid, 'rakeridgefw'),
-    QTY: {
-      vents: sv(sid,'vents'), slantback: sv(sid,'slantback'), turbo: sv(sid,'turbo'),
-      ridgevent: sv(sid,'ridgevent'), stack2: sv(sid,'stack2'), stack3: sv(sid,'stack3'),
-      stack4: sv(sid,'stack4'), goose: sv(sid,'goose'),
-      bp3: sv(sid,'bp3'), bp5: sv(sid,'bp5'), bp8: sv(sid,'bp8'),
-      transition: sv(sid,'transition'), revdrip: sv(sid,'revdrip')
-    }
+    QTY: (function(){
+      const q = {
+        ridgevent: sv(sid,'ridgevent'), stack2: sv(sid,'stack2'), stack3: sv(sid,'stack3'),
+        stack4: sv(sid,'stack4'),
+        bp3: sv(sid,'bp3'), bp5: sv(sid,'bp5'), bp8: sv(sid,'bp8'),
+        transition: sv(sid,'transition'), revdrip: sv(sid,'revdrip')
+      };
+      VENT_KEYS.forEach(vk => { q[vk] = sv(sid, vk); });
+      GOOSE_KEYS.forEach(gk => { q[gk] = sv(sid, gk); });
+      SEAL_KEYS.forEach(sk => { q[sk] = sv(sid, sk); });
+      return q;
+    })()
   };
 }
 
@@ -1024,9 +1135,15 @@ function calcMQ(bid, sd){
     staples: Math.ceil((totalSloped * waste) / 2000),
     nails: Math.ceil((totalSloped * waste) / 1500),
     bp3: QTY.bp3 || 0, bp5: QTY.bp5 || 0, bp8: QTY.bp8 || 0,
-    vent: QTY.vents, slantback: QTY.slantback, turbo: QTY.turbo, ridgevent: QTY.ridgevent,
-    stack2: QTY.stack2, stack3: QTY.stack3, stack4: QTY.stack4, goose: QTY.goose
+    ridgevent: QTY.ridgevent || 0,
+    stack2: QTY.stack2 || 0, stack3: QTY.stack3 || 0, stack4: QTY.stack4 || 0
   };
+  // 12 vent products
+  VENT_KEYS.forEach(vk => { common[vk] = QTY[vk] || 0; });
+  // 5 goose neck products
+  GOOSE_KEYS.forEach(gk => { common[gk] = QTY[gk] || 0; });
+  // 2 sealant products
+  SEAL_KEYS.forEach(sk => { common[sk] = QTY[sk] || 0; });
 
   const result = { fieldBundles: {}, starters: {}, ridges: {}, gravelByProduct: {}, common: common };
 
@@ -1484,15 +1601,26 @@ const SUPPLIER_HOIST_RULES = {
       transition: 10,
       // Backpans: 1 each = 1 hoist
       bp3: 1, bp5: 1, bp8: 1,
-      // Vents (RoofMart's specific batch sizes)
-      vent: 12,         // Duraflo 6050T = 12 ea
-      slantback: 8,     // Duraflo Weatherpro 50 Slant Back = 8 ea
-      turbo: 1,         // Duraflo Turbo Vent = 1 ea
-      ridgevent: 12,    // Duraflo PRO Ridge Vent = 12 ea
+      // Vents — RoofMart's actual batch sizes per the 2026-05-01 hoist breakdown
+      vent6050t: 12,     // Duraflo 6050T = 12 ea per hoist
+      ventwp50: 9,       // Duraflo WeatherPro 50 = 9 ea
+      ventwp50sb: 8,     // Duraflo WeatherPro 50 Slant Back = 8 ea
+      vent75: 5,         // Duraflo 75 = 5 ea
+      ventprov: 12,      // Duraflo ProVentilator (no specific listing — using 6050T as proxy, 12 ea)
+      ventturbo: 1,      // Duraflo Turbo Vent = 1 ea
+      ventridge4: 12,    // Duraflo PRO Ridge Vent (4ft solid body) = 12 ea
+      ventlomroll: 1,    // Lomanco Lo-OmniRoll 30 = 1 ea
+      ventwhirl12: 1,    // Lomanco Whirlybird 12in = 1 ea
+      ventwhirl14: 1,    // Lomanco Whirlybird 14in = 1 ea
+      ventmax301: 1,     // Maximum 301 = 1 ea (not listed; conservative)
+      ventsolar: 1,      // 4 Seasons 10W & 10W Pro = 1 ea
+      ridgevent: 12,     // Ridge vent LF (Lo-OmniRoll units): legacy field, kept for back-compat
       // Plumbing stacks / roof flashings = 12 ea per hoist
       stack2: 12, stack3: 12, stack4: 12,
-      // Goose necks: 10 ea per hoist
-      goose: 10,
+      // Goose necks: 10 ea per hoist (RoofMart's "Gooseneck Vent 6in (Metal)" rule applied to all 5 products)
+      goose6blk: 10, goose6galv: 10, gooseprimex: 10, gooseprimex4: 10, gooseprimex6: 10,
+      // Sealants: 12 tubes per hoist (RoofMart "Roofcraft Roof Patch = 12tb or <" applied to both)
+      sealroofcraft: 12, sealmulco: 12,
       // Nails: 1 box = 1 hoist (per RoofMart "Coil Roofing Nails 1 1/4" = 1 ea")
       nails: 1,
       // Staples: 20 boxes per hoist
@@ -1575,14 +1703,22 @@ function computeDelivery(bd, product, supId, mq, includeStandalone){
   totalHoists += hoistsForCategory(supId, 'bp3', c.bp3 || 0);
   totalHoists += hoistsForCategory(supId, 'bp5', c.bp5 || 0);
   totalHoists += hoistsForCategory(supId, 'bp8', c.bp8 || 0);
-  totalHoists += hoistsForCategory(supId, 'vent', c.vent || 0);
-  totalHoists += hoistsForCategory(supId, 'slantback', c.slantback || 0);
-  totalHoists += hoistsForCategory(supId, 'turbo', c.turbo || 0);
+  // Each vent product has its own hoist batch size
+  VENT_KEYS.forEach(vk => {
+    totalHoists += hoistsForCategory(supId, vk, c[vk] || 0);
+  });
   totalHoists += hoistsForCategory(supId, 'ridgevent', c.ridgevent || 0);
   totalHoists += hoistsForCategory(supId, 'stack2', c.stack2 || 0);
   totalHoists += hoistsForCategory(supId, 'stack3', c.stack3 || 0);
   totalHoists += hoistsForCategory(supId, 'stack4', c.stack4 || 0);
-  totalHoists += hoistsForCategory(supId, 'goose', c.goose || 0);
+  // Each goose neck product has its own hoist batch size
+  GOOSE_KEYS.forEach(gk => {
+    totalHoists += hoistsForCategory(supId, gk, c[gk] || 0);
+  });
+  // Each sealant product has its own hoist batch size
+  SEAL_KEYS.forEach(sk => {
+    totalHoists += hoistsForCategory(supId, sk, c[sk] || 0);
+  });
   totalHoists += hoistsForCategory(supId, 'nails', c.nails || 0);
   totalHoists += hoistsForCategory(supId, 'staples', c.staples || 0);
 
@@ -2223,8 +2359,13 @@ const SUP_LIST = [
 ];
 
 const ACC_KEYS_FROM_SUPPLIER = [
-  'icewater','underlay','drip','valley','gable','gravelstop','step','wallfl','bp4','bp8',
-  'staples','nails','eurnails','vent','slantback','turbo','ridgevent','stack2','stack3','stack4','goose'
+  'icewater','underlay','drip','revdrip','transition','valley','gable','gravelstop','step','wallfl','bp3','bp5','bp8',
+  'staples','nails','eurnails',
+  'vent6050t','ventwp50','ventwp50sb','vent75','ventprov','ventturbo',
+  'ventridge4','ventlomroll','ventwhirl12','ventwhirl14','ventmax301','ventsolar',
+  'ridgevent','stack2','stack3','stack4',
+  'goose6blk','goose6galv','gooseprimex','gooseprimex4','gooseprimex6',
+  'sealroofcraft','sealmulco'
 ];
 
 const STARTER_KEYS_BY_BRAND = {
