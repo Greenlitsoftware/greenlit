@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flat Roofing Estimator — Green Lit Software</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #f5f5f3; color: #1a1a1a; line-height: 1.45; min-height: 100vh; font-size: 14px;
+  }
+  .topbar {
+    background: #0a0a0a; color: #fff; padding: 14px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid #222;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand-dot { width: 12px; height: 12px; border-radius: 50%; background: #7bc043; box-shadow: 0 0 8px rgba(123,192,67,0.6); }
+  .brand-name { font-weight: 600; font-size: 15px; }
+  .brand-sub { font-size: 13px; color: #7bc043; font-weight: 500; }
+  .module-label { font-size: 12px; color: #7bc043; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; }
+  .home-btn { color: #7bc043; text-decoration: none; font-size: 13px; padding: 6px 12px; border: 1px solid #333; border-radius: 6px; }
+  .home-btn:hover { background: #1a1a1a; border-color: #7bc043; }
+
+  .container { max-width: 1400px; margin: 0 auto; padding: 24px 28px; }
+  .card { background: #fff; border: 1px solid #e5e5e0; border-radius: 12px; padding: 20px 22px; margin-bottom: 16px; }
+  .section-h { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+  .section-h-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .section-sub { font-size: 12px; color: #888; margin-bottom: 14px; margin-top: -8px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  @media (max-width: 800px) {
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr 1fr; }
+  }
+  label { font-size: 12px; color: #555; font-weight: 500; display: block; margin-bottom: 4px; }
+  label .sub { font-size: 11px; color: #888; font-weight: 400; }
+  input[type=text], input[type=number], input[type=date], input[type=email], input[type=tel], select, textarea {
+    width: 100%; padding: 8px 10px; border: 1px solid #d4d4d0; border-radius: 6px; font-size: 13px; font-family: inherit; background: #fff;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: #7bc043; box-shadow: 0 0 0 3px rgba(123,192,67,0.15); }
+  textarea { min-height: 60px; resize: vertical; }
+
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border: 1px solid #d4d4d0; border-radius: 6px; background: #fff; cursor: pointer; font-size: 13px; font-weight: 500; color: #1a1a1a; }
+  .btn:hover { background: #f5f5f3; }
+  .btn.primary { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+  .btn.primary:hover { background: #000; }
+  .btn.green { background: #7bc043; color: #fff; border-color: #7bc043; }
+  .btn.green:hover { background: #6aab37; }
+  .btn.danger { color: #b91c1c; border-color: #fca5a5; }
+  .btn.calculate { padding: 12px 24px; font-size: 15px; width: 100%; }
+  .btn.sm { padding: 4px 10px; font-size: 12px; }
+
+  .layer-card {
+    background: #fafaf7; border: 1px solid #e5e5e0; border-radius: 10px;
+    padding: 14px 16px; margin-bottom: 10px;
+  }
+  .layer-card .layer-h {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+    color: #555; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;
+  }
+  .layer-card .layer-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; background: #1a1a1a; color: #fff; border-radius: 50%; font-size: 11px;
+  }
+  .layer-card .layer-fields { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; align-items: end; }
+  @media (max-width: 700px) { .layer-card .layer-fields { grid-template-columns: 1fr; } }
+  .layer-card .warning-pill { display: inline-block; background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; margin-left: 6px; }
+
+  table.results { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+  table.results th { text-align: left; padding: 6px 8px; background: #fafaf7; border-bottom: 1px solid #e5e5e0; font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+  table.results th.num, table.results td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  table.results td { padding: 6px 8px; border-bottom: 1px solid #f0f0eb; }
+  table.results tr.section-row td { background: #1a1a1a; color: #fff; font-weight: 600; padding: 8px; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
+  table.results tr.total-row td { background: #f5f5f3; font-weight: 600; }
+  table.results tr.grand-total td { background: #1a1a1a; color: #fff; font-weight: 700; padding: 10px 8px; font-size: 13px; }
+  table.results tr.warning-row td { background: #fef3c7; color: #92400e; font-style: italic; }
+
+  .selling-card {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+    color: #fff; padding: 18px 22px; border-radius: 10px; margin: 14px 0;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  }
+  .selling-card .label { font-size: 11px; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
+  .selling-card .value { font-size: 28px; font-weight: 700; color: #7bc043; }
+
+  #results { display: none; }
+  .footer { text-align: center; color: #888; font-size: 11px; padding: 18px; }
+
+  .info-banner {
+    background: #f0f9ff; border: 1px solid #bae6fd; color: #0c4a6e;
+    padding: 10px 14px; border-radius: 8px; margin-bottom: 14px; font-size: 13px;
+  }
+  .warning-banner {
+    background: #fef3c7; border: 1px solid #fcd34d; color: #92400e;
+    padding: 10px 14px; border-radius: 8px; margin-bottom: 14px; font-size: 13px;
+  }
+
+  .checkrow { display: flex; align-items: center; gap: 8px; padding: 6px 0; cursor: pointer; user-select: none; font-size: 13px; }
+  .checkrow input { width: auto; }
+
+  details.collapsible {
+    border: 1px solid #e5e5e0; border-radius: 8px; padding: 0; margin-bottom: 10px; background: #fafaf7;
+  }
+  details.collapsible summary {
+    padding: 10px 14px; cursor: pointer; font-weight: 600; font-size: 13px; user-select: none;
+    list-style: none;
+  }
+  details.collapsible summary::before { content: "▸ "; color: #888; }
+  details.collapsible[open] summary::before { content: "▾ "; color: #7bc043; }
+  details.collapsible > div { padding: 0 14px 14px; }
+
+  .add-removal-row { display: grid; grid-template-columns: 1fr 80px 90px 90px 40px; gap: 8px; align-items: end; margin-bottom: 8px; }
+  @media (max-width: 700px) { .add-removal-row { grid-template-columns: 1fr 1fr; } }
+
+  /* Multi-area tabs */
+  .struct-tabs { display: flex; gap: 4px; border-bottom: 1px solid #e5e5e0; margin-bottom: 16px; flex-wrap: wrap; }
+  .struct-tab { padding: 8px 16px; border: none; background: transparent; cursor: pointer; font-size: 13px; color: #666; border-bottom: 2px solid transparent; margin-bottom: -1px; display: inline-flex; align-items: center; gap: 8px; }
+  .struct-tab.active { color: #1a1a1a; border-color: #7bc043; font-weight: 600; }
+  .struct-tab .x { color: #b91c1c; font-weight: 700; padding: 0 4px; cursor: pointer; }
+  .struct-tab .x:hover { color: #7f1d1d; }
+  .struct-panel { display: none; }
+  .struct-panel.active { display: block; }
+
+  /* Upstand list row */
+  .upstand-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 40px;
+    gap: 8px; align-items: end; margin-bottom: 6px;
+    background: #f9fafb; padding: 8px; border-radius: 6px;
+  }
+  @media (max-width: 700px) { .upstand-row { grid-template-columns: 1fr 1fr; } }
+  .upstand-row .rm { color: #b91c1c; font-weight: 700; cursor: pointer; text-align: center; font-size: 18px; padding-top: 8px; }
+  .upstand-row .rm:hover { color: #7f1d1d; }
+  .area-h { font-size: 13px; font-weight: 600; margin-top: 14px; margin-bottom: 8px; color: #444; }
+
+  .status-bar {
+    position: fixed; bottom: 20px; right: 20px; padding: 12px 20px;
+    background: #1a1a1a; color: #fff; border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2); font-size: 13px;
+    transform: translateY(100px); opacity: 0; transition: all 0.25s;
+    z-index: 1000;
+  }
+  .status-bar.show { transform: translateY(0); opacity: 1; }
+  .status-bar.success { background: #166534; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-dot"></div>
+    <div>
+      <div class="brand-name">Green Lit <span class="brand-sub">Software</span></div>
+      <div class="module-label">Flat Roofing Estimator</div>
+    </div>
+  </div>
+  <a href="index.html" class="home-btn">← Home</a>
+</div>
+
+<div class="container">
+
+<!-- =================== JOB INFORMATION =================== -->
+<div class="card">
+  <div class="section-h">Job Information</div>
+  <div class="grid-3">
+    <div>
+      <label>Customer</label>
+      <input type="text" id="f-customer" placeholder="Full name">
+    </div>
+    <div>
+      <label>Phone</label>
+      <input type="tel" id="f-phone" placeholder="(780) 000-0000">
+    </div>
+    <div>
+      <label>Quote number</label>
+      <input type="text" id="f-quote" readonly>
+    </div>
+  </div>
+  <div class="grid-3" style="margin-top:10px;">
+    <div>
+      <label>Address</label>
+      <input type="text" id="f-address" placeholder="Street address">
+    </div>
+    <div>
+      <label>City</label>
+      <input type="text" id="f-city" placeholder="City">
+    </div>
+    <div>
+      <label>Email</label>
+      <input type="email" id="f-email" placeholder="email@example.com">
+    </div>
+  </div>
+  <div class="grid-3" style="margin-top:10px;">
+    <div>
+      <label>Date</label>
+      <input type="date" id="f-date">
+    </div>
+    <div>
+      <label>Estimator</label>
+      <input type="text" id="f-estimator" placeholder="Name">
+    </div>
+    <div>
+      <label>Building / project type</label>
+      <input type="text" id="f-project" placeholder="e.g. Commercial reroof, garage flat, etc.">
+    </div>
+  </div>
+  <div style="margin-top:10px;">
+    <label>Project description</label>
+    <textarea id="f-desc" placeholder="Describe the scope of work..."></textarea>
+  </div>
+</div>
+
+<!-- =================== ROOF AREAS (MULTI) =================== -->
+<div class="card">
+  <div class="section-h-row">
+    <div class="section-h">Roof Areas</div>
+    <button class="btn green sm" onclick="addArea()">+ Add roof area</button>
+  </div>
+  <div class="section-sub">Add a tab for each separate roof on this job (e.g. Main building, Penthouse, Garage). Quantities are summed across all areas at calculation time.</div>
+
+  <div class="struct-tabs" id="areaTabs"></div>
+  <div id="areaPanels"></div>
+</div>
+
+<!-- =================== MARKUP =================== -->
+<div class="card">
+  <div class="section-h">Markup &amp; Margin</div>
+  <div class="grid-3">
+    <div>
+      <label>Overhead markup <span class="sub">(%)</span></label>
+      <input type="number" id="f-overhead" value="10" min="0" max="100" step="1">
+    </div>
+    <div>
+      <label>Profit markup <span class="sub">(%)</span></label>
+      <select id="f-profit"></select>
+    </div>
+    <div>
+      <label>Combined margin <span class="sub">markup ÷ (1 + markup)</span></label>
+      <input type="text" id="f-margin" readonly>
+    </div>
+  </div>
+</div>
+
+<!-- =================== SYSTEM BUILDER (LAYERED) =================== -->
+<div class="card">
+  <div class="section-h">Roofing System Builder</div>
+  <div class="section-sub">Pick one or more products per section. The estimator calculates rolls / sheets / quantities from your roof area.</div>
+  <div id="systemBuilder"></div>
+</div>
+
+<!-- =================== JOB COSTS =================== -->
+<div class="card">
+  <div class="section-h">Job Costs &amp; Site Expenses</div>
+  <div class="section-sub">Travel, crane, fuel, delivery — counted separately from materials.</div>
+  <div id="jobCosts"></div>
+</div>
+
+<!-- =================== LABOUR =================== -->
+<div class="card">
+  <div class="section-h">Labour Rates</div>
+  <div class="section-sub">Per square (100 sq ft) labour rates by system type.</div>
+  <div class="grid-3">
+    <div>
+      <label>Tear-off existing roof <span class="sub">($ per sq)</span></label>
+      <input type="number" id="lab-tearoff" value="75" step="1" min="0">
+    </div>
+    <div>
+      <label>Install AVB &amp; insulation <span class="sub">($ per sq)</span></label>
+      <input type="number" id="lab-install" value="55" step="1" min="0">
+    </div>
+    <div>
+      <label>Install membrane (torch / glue / SA) <span class="sub">($ per sq)</span></label>
+      <input type="number" id="lab-membrane" value="95" step="1" min="0">
+    </div>
+  </div>
+  <div class="grid-3" style="margin-top:10px;">
+    <div>
+      <label>Detailing &amp; flashings <span class="sub">($ per LF perimeter)</span></label>
+      <input type="number" id="lab-detail" value="8" step="0.50" min="0">
+    </div>
+    <div>
+      <label>Per-penetration labour <span class="sub">($ each)</span></label>
+      <input type="number" id="lab-penet" value="125" step="5" min="0">
+    </div>
+    <div>
+      <label>Per-drain labour <span class="sub">($ each)</span></label>
+      <input type="number" id="lab-drain" value="225" step="5" min="0">
+    </div>
+  </div>
+</div>
+
+<button class="btn primary calculate" onclick="calculate()">Calculate Flat Roof System</button>
+
+<!-- =================== RESULTS =================== -->
+<div id="results"></div>
+
+<div class="footer">Green Lit Software · Flat Roofing Estimator · v1.0</div>
+
+</div>
+
+<div id="status" class="status-bar"></div>
+
+<script>
+'use strict';
+
+// ============================================================
+// FLAT ROOF PRODUCT CATALOG
+// All ~130 products organized by section.
+// Schema: { name, supplier, netCov, uomCov, price, unit }
+// netCov = how much one "unit" covers (in sq ft or LF or each)
+// price = $ per unit (null = needs pricing — flagged in UI)
+// ============================================================
+
+const FLAT_CATALOG = {
+  deck: {
+    label: 'Deck Sheathing',
+    note: 'New decking or replacement sheathing over existing structure',
+    products: [
+      { name: 'Dens-Deck Prime 1/4" x 4x8 Roof Board', supplier: 'Roofmart', netCov: 32, uomCov: 'sf', price: 30.95, unit: 'sheet' },
+      { name: 'Dens-Deck Prime 1/2" x 4x8 Roof Board', supplier: 'Roofmart', netCov: 32, uomCov: 'sf', price: 32.85, unit: 'sheet' },
+      { name: 'Dens-Deck Prime 5/8" x 4x8 Roof Board', supplier: 'Roofmart', netCov: 32, uomCov: 'sf', price: 35.55, unit: 'sheet' },
+      { name: '1/2" Gyproc 4x8', supplier: 'Home Depot', netCov: 32, uomCov: 'sf', price: 14.50, unit: 'sheet' },
+      { name: '1/2" Gyproc 4x10', supplier: 'Home Depot', netCov: 40, uomCov: 'sf', price: 18.10, unit: 'sheet' },
+      { name: '1/2" Exterior Grade Gypsum Board 4x8', supplier: 'Home Depot', netCov: 32, uomCov: 'sf', price: 29.00, unit: 'sheet' },
+      { name: '3/8" Plywood 4x8', supplier: 'Home Depot', netCov: 32, uomCov: 'sf', price: 31.00, unit: 'sheet' },
+      { name: '5/8" Plywood 4x8', supplier: 'Home Depot', netCov: 32, uomCov: 'sf', price: 50.00, unit: 'sheet' },
+      { name: '1/2" Plywood 4x8', supplier: 'Home Depot', netCov: 32, uomCov: 'sf', price: 40.00, unit: 'sheet' }
+    ]
+  },
+  avb: {
+    label: 'Air &amp; Vapor Barrier',
+    note: 'Goes over the deck, under insulation',
+    products: [
+      { name: 'IKO MVP 1.2mm × 32m', supplier: 'Roofmart', netCov: 315, uomCov: 'sf', price: 218.00, unit: 'roll' },
+      { name: 'IKO MVP Sand 1.2mm × 32m', supplier: 'Roofmart', netCov: 240, uomCov: 'sf', price: 144.55, unit: 'roll' },
+      { name: 'Torchflex TF-95-SF Base 2.2mm', supplier: 'Roofmart', netCov: 147, uomCov: 'sf', price: 56.70, unit: 'roll' },
+      { name: 'IKO AcrylicStick SA', supplier: 'Roofmart', netCov: 375, uomCov: 'sf', price: 369.40, unit: 'roll' },
+      { name: '6 mil Poly, Medium Duty, 10ft × 100ft', supplier: 'Roofmart', netCov: 980, uomCov: 'sf', price: 145.00, unit: 'roll' },
+      { name: '10 mil Poly, Heavy Duty, 10ft × 100ft', supplier: 'Roofmart', netCov: 980, uomCov: 'sf', price: 275.00, unit: 'roll' }
+    ]
+  },
+  insulation_eps: {
+    label: 'Insulation — EPS',
+    note: 'Expanded polystyrene, Type 2 flat board',
+    products: [
+      { name: 'EPS Type 2 Flat 1.0" 4x8 (R4)', supplier: 'Plasti-Fab', netCov: 32, uomCov: 'sf', price: 10.50, unit: 'each' },
+      { name: 'EPS Type 2 Flat 2.0" 4x8 (R8)', supplier: 'Plasti-Fab', netCov: 32, uomCov: 'sf', price: 21.00, unit: 'each' },
+      { name: 'EPS Type 2 Flat 3.0" 4x8 (R12)', supplier: 'Plasti-Fab', netCov: 32, uomCov: 'sf', price: 31.50, unit: 'each' },
+      { name: 'EPS Type 2 Flat 4.0" 4x8 (R16)', supplier: 'Plasti-Fab', netCov: 32, uomCov: 'sf', price: 42.00, unit: 'each' },
+      { name: 'EPS Type 2 Flat 5.0" 4x8 (R20)', supplier: 'Plasti-Fab', netCov: 32, uomCov: 'sf', price: 52.50, unit: 'each' },
+      { name: 'EPS Type 2 Flat 6.0" 4x8 (R24)', supplier: 'Plasti-Fab', netCov: 32, uomCov: 'sf', price: 63.50, unit: 'each' },
+      { name: 'EPS Type 2 Flat 7.0" 4x8 (R28)', supplier: 'Plasti-Fab', netCov: 32, uomCov: 'sf', price: 73.50, unit: 'each' },
+      { name: 'EPS Type 2 Flat 8.0" 4x8 (R32)', supplier: 'Plasti-Fab', netCov: 32, uomCov: 'sf', price: 84.00, unit: 'each' }
+    ]
+  },
+  insulation_iso_4x4: {
+    label: 'Insulation — ISO 4×4',
+    note: 'Polyiso, 4ft × 4ft sheets — paper face and glass face',
+    products: [
+      { name: 'IKOtherm ISO 1.0" 4x4 Paper Face (R6)', supplier: 'Roofmart', netCov: 16, uomCov: 'sf', price: 13.97, unit: 'each' },
+      { name: 'IKOtherm ISO 1.5" 4x4 Paper Face (R9)', supplier: 'Roofmart', netCov: 16, uomCov: 'sf', price: 15.60, unit: 'each' },
+      { name: 'IKOtherm ISO 2.0" 4x4 Paper Face (R12)', supplier: 'Roofmart', netCov: 16, uomCov: 'sf', price: 20.80, unit: 'each' },
+      { name: 'IKOtherm ISO 2.5" 4x4 Paper Face (R15)', supplier: 'Roofmart', netCov: 16, uomCov: 'sf', price: 26.00, unit: 'each' },
+      { name: 'IKOtherm ISO 3.0" 4x4 Paper Face (R18)', supplier: 'Roofmart', netCov: 16, uomCov: 'sf', price: 31.20, unit: 'each' },
+      { name: 'IKOtherm ISO 3.5" 4x4 Paper Face (R21)', supplier: 'Roofmart', netCov: 16, uomCov: 'sf', price: 36.40, unit: 'each' },
+      { name: 'IKOtherm ISO 4.0" 4x4 Paper Face (R24)', supplier: 'Roofmart', netCov: 16, uomCov: 'sf', price: 41.60, unit: 'each' },
+      { name: 'IKOtherm III ISO 1.0" 4x4 Glass Face (R6)', supplier: 'Roofmart', netCov: 16, uomCov: 'sf', price: 16.99, unit: 'each' },
+      { name: 'IKOtherm III ISO 1.5" 4x4 Glass Face (R9)', supplier: 'Roofmart', netCov: 16, uomCov: 'sf', price: 18.32, unit: 'each' },
+      { name: 'IKOtherm III ISO 2.0" 4x4 Glass Face (R12)', supplier: 'Roofmart', netCov: 16, uomCov: 'sf', price: 23.52, unit: 'each' },
+      { name: 'IKOtherm III ISO 2.5" 4x4 Glass Face (R15)', supplier: 'Roofmart', netCov: 16, uomCov: 'sf', price: 28.72, unit: 'each' },
+      { name: 'IKOtherm III ISO 3.0" 4x4 Glass Face (R18)', supplier: 'Roofmart', netCov: 16, uomCov: 'sf', price: 33.92, unit: 'each' },
+      { name: 'IKOtherm III ISO 3.5" 4x4 Glass Face (R21)', supplier: 'Roofmart', netCov: 16, uomCov: 'sf', price: 39.12, unit: 'each' },
+      { name: 'IKOtherm III ISO 4.0" 4x4 Glass Face (R24)', supplier: 'Roofmart', netCov: 16, uomCov: 'sf', price: 44.32, unit: 'each' }
+    ]
+  },
+  insulation_iso_4x8: {
+    label: 'Insulation — ISO 4×8',
+    note: 'Polyiso, 4ft × 8ft sheets — paper face and glass face',
+    products: [
+      { name: 'IKOtherm ISO 1.0" 4x8 Paper Face', supplier: 'Roofmart', netCov: 32, uomCov: 'sf', price: 27.94, unit: 'each' },
+      { name: 'IKOtherm ISO 1.5" 4x8 Paper Face', supplier: 'Roofmart', netCov: 32, uomCov: 'sf', price: 31.20, unit: 'each' },
+      { name: 'IKOtherm ISO 2.0" 4x8 Paper Face', supplier: 'Roofmart', netCov: 32, uomCov: 'sf', price: 41.60, unit: 'each' },
+      { name: 'IKOtherm ISO 2.5" 4x8 Paper Face', supplier: 'Roofmart', netCov: 32, uomCov: 'sf', price: 52.00, unit: 'each' },
+      { name: 'IKOtherm ISO 3.0" 4x8 Paper Face', supplier: 'Roofmart', netCov: 32, uomCov: 'sf', price: 62.40, unit: 'each' },
+      { name: 'IKOtherm ISO 3.5" 4x8 Paper Face', supplier: 'Roofmart', netCov: 32, uomCov: 'sf', price: 72.80, unit: 'each' },
+      { name: 'IKOtherm ISO 4.0" 4x8 Paper Face', supplier: 'Roofmart', netCov: 32, uomCov: 'sf', price: 83.20, unit: 'each' },
+      { name: 'IKOtherm III ISO 1.0" 4x8 Glass Face', supplier: 'Roofmart', netCov: 32, uomCov: 'sf', price: 33.98, unit: 'each' },
+      { name: 'IKOtherm III ISO 1.5" 4x8 Glass Face', supplier: 'Roofmart', netCov: 32, uomCov: 'sf', price: 36.64, unit: 'each' },
+      { name: 'IKOtherm III ISO 2.0" 4x8 Glass Face', supplier: 'Roofmart', netCov: 32, uomCov: 'sf', price: 47.04, unit: 'each' },
+      { name: 'IKOtherm III ISO 2.5" 4x8 Glass Face', supplier: 'Roofmart', netCov: 32, uomCov: 'sf', price: 57.44, unit: 'each' },
+      { name: 'IKOtherm III ISO 3.0" 4x8 Glass Face', supplier: 'Roofmart', netCov: 32, uomCov: 'sf', price: 67.84, unit: 'each' },
+      { name: 'IKOtherm III ISO 3.5" 4x8 Glass Face', supplier: 'Roofmart', netCov: 32, uomCov: 'sf', price: 78.24, unit: 'each' },
+      { name: 'IKOtherm III ISO 4.0" 4x8 Glass Face', supplier: 'Roofmart', netCov: 32, uomCov: 'sf', price: 88.64, unit: 'each' }
+    ]
+  },
+  insulation_xps: {
+    label: 'Insulation — XPS',
+    note: 'Extruded polystyrene, DuPont Roofmate',
+    products: [
+      { name: 'DuPont Roofmate 2x8 Shiplap 2"', supplier: null, netCov: 16, uomCov: 'sf', price: 27.55, unit: 'each' },
+      { name: 'DuPont Roofmate 2x8 Shiplap 3"', supplier: null, netCov: 16, uomCov: 'sf', price: 41.35, unit: 'each' },
+      { name: 'DuPont Roofmate 2x8 Shiplap 4"', supplier: null, netCov: 16, uomCov: 'sf', price: 55.10, unit: 'each' },
+      { name: 'DuPont Roofmate 2x8 1" (no shiplap)', supplier: null, netCov: 16, uomCov: 'sf', price: null, unit: 'each' },
+      { name: 'DuPont Roofmate 2x8 2" (no shiplap)', supplier: null, netCov: 16, uomCov: 'sf', price: null, unit: 'each' },
+      { name: 'DuPont Roofmate 2x8 3" (no shiplap)', supplier: null, netCov: 16, uomCov: 'sf', price: null, unit: 'each' },
+      { name: 'DuPont Roofmate 2x8 4" (no shiplap)', supplier: null, netCov: 16, uomCov: 'sf', price: null, unit: 'each' }
+    ]
+  },
+  secondary: {
+    label: 'Protection / Secondary Board',
+    note: 'Cover board over insulation',
+    products: [
+      { name: 'MSL Fibreboard Standard Coated 1/2" 4x4', supplier: 'Roofmart', netCov: 16, uomCov: 'sf', price: 8.35, unit: 'sheet' },
+      { name: 'MSL Fibreboard Standard Coated 1/2" 4x8', supplier: 'Roofmart', netCov: 32, uomCov: 'sf', price: 19.10, unit: 'each' },
+      { name: 'Dens-Deck Prime 1/4" 4x8', supplier: 'Roofmart', netCov: 32, uomCov: 'sf', price: 30.95, unit: 'sheet' },
+      { name: 'Dens-Deck Prime 1/2" 4x8', supplier: 'Roofmart', netCov: 32, uomCov: 'sf', price: 32.85, unit: 'sheet' },
+      { name: 'Dens-Deck Prime 5/8" 4x8', supplier: 'Roofmart', netCov: 32, uomCov: 'sf', price: 35.55, unit: 'sheet' },
+      { name: 'Protectoboard 4x5 1/8"', supplier: 'Roofmart', netCov: 20, uomCov: 'sf', price: 13.25, unit: 'sheet' },
+      { name: 'Protectoboard 4x5 3/16"', supplier: 'Roofmart', netCov: 20, uomCov: 'sf', price: 18.35, unit: 'sheet' },
+      { name: 'Protectoboard 4x5 1/4"', supplier: 'Roofmart', netCov: 20, uomCov: 'sf', price: 20.75, unit: 'sheet' }
+    ]
+  },
+  fire_tape: {
+    label: 'Fire Tape / Lap Tape',
+    note: 'Perimeter fire protection &amp; seam taping',
+    products: [
+      { name: 'Modiflex Roof Tape 6"', supplier: null, netCov: 45, uomCov: 'lf', price: 25.55, unit: 'roll' },
+      { name: 'Torchflex Torch Tape 180 FF 13"', supplier: null, netCov: 30, uomCov: 'lf', price: 41.25, unit: 'roll' }
+    ]
+  },
+  base_membrane: {
+    label: 'Base Membrane',
+    note: 'First membrane layer over cover board',
+    products: [
+      { name: 'IKO ShieldBase 180 Film 3/16" 3x8', supplier: 'Roofmart', netCov: 24, uomCov: 'sf', price: 68.65, unit: 'sheet' },
+      { name: 'IKO ProtectoBase 180 Film 3/16" 3x8', supplier: null, netCov: 24, uomCov: 'sf', price: 55.00, unit: 'sheet' },
+      { name: 'Fast-N-Stick 180 Base 1m × 15m (1.5 sq, 2.5mm)', supplier: 'Roofmart', netCov: 136, uomCov: 'sf', price: 103.30, unit: 'roll' },
+      { name: 'Torchflex TP-180-FF Base 3.0mm', supplier: 'Roofmart', netCov: 90, uomCov: 'sf', price: 74.35, unit: 'roll' },
+      { name: 'Torchflex TF-95-FF Base 3.0mm', supplier: 'Roofmart', netCov: 161, uomCov: 'sf', price: 56.80, unit: 'roll' },
+      { name: 'Armourbond Flash HD', supplier: 'Roofmart', netCov: 147, uomCov: 'sf', price: 161.90, unit: 'roll' },
+      { name: 'Armourbond Flash', supplier: 'Roofmart', netCov: 147, uomCov: 'sf', price: 124.00, unit: 'roll' }
+    ]
+  },
+  cap_membrane: {
+    label: 'Cap Membrane',
+    note: 'Top membrane layer — granulated finish',
+    products: [
+      { name: 'Torchflex TP-250 Cap', supplier: 'Roofmart', netCov: 70, uomCov: 'sf', price: 71.95, unit: 'roll' },
+      { name: 'Torchflex TP HD Cap 8m, 4.0mm (98 SF NET)', supplier: 'Roofmart', netCov: 70, uomCov: 'sf', price: 96.05, unit: 'roll' }
+    ]
+  },
+  adhesives: {
+    label: 'Adhesives',
+    note: 'Bonding adhesives, primers, hot rubber',
+    products: [
+      { name: 'IKO S.A.M. Adhesive 17L Pail', supplier: 'Roofmart', netCov: 650, uomCov: 'sf', price: 166.75, unit: 'pail' },
+      { name: 'IKO Millenium Adhesive Box (4 cartridges)', supplier: 'Roofmart', netCov: 400, uomCov: 'sf', price: 240.00, unit: 'box' },
+      { name: 'IKO Mod Bit Primer 18.9L — Concrete', supplier: 'Roofmart', netCov: 1000, uomCov: 'sf', price: 118.50, unit: 'pail' },
+      { name: 'IKO Mod Bit Primer 18.9L — Re-cap', supplier: 'Roofmart', netCov: 500, uomCov: 'sf', price: 118.50, unit: 'pail' },
+      { name: 'IKO Easy Melt 200 (50 lb pack, Type 3, @25 lb/sq)', supplier: 'Roofmart', netCov: 25, uomCov: 'sf', price: 53.65, unit: 'each' }
+    ]
+  },
+  fasteners: {
+    label: 'Fasteners',
+    note: 'Screws, plates, nails — for attaching insulation &amp; boards',
+    products: [
+      { name: 'Deckfast #14 Phillips 1-1/4"', supplier: 'Roofmart', netCov: 1000, uomCov: 'ea', price: 83.95, unit: 'box (1000)' },
+      { name: 'Deckfast #14 Phillips 2"', supplier: 'Roofmart', netCov: 1000, uomCov: 'ea', price: 120.65, unit: 'box (1000)' },
+      { name: 'Deckfast #14 Phillips 3"', supplier: 'Roofmart', netCov: 1000, uomCov: 'ea', price: 112.35, unit: 'box (1000)' },
+      { name: 'Deckfast #14 Phillips 4"', supplier: 'Roofmart', netCov: 1000, uomCov: 'ea', price: 190.95, unit: 'box (1000)' },
+      { name: 'Deckfast #14 Phillips 5"', supplier: 'Roofmart', netCov: 1000, uomCov: 'ea', price: 228.40, unit: 'box (1000)' },
+      { name: 'Deckfast #14 Phillips 6"', supplier: 'Roofmart', netCov: 1000, uomCov: 'ea', price: 303.60, unit: 'box (1000)' },
+      { name: 'Deckfast #14 Phillips 7"', supplier: 'Roofmart', netCov: 500, uomCov: 'ea', price: 219.05, unit: 'box (500)' },
+      { name: 'Deckfast #14 Phillips 8"', supplier: 'Roofmart', netCov: 500, uomCov: 'ea', price: 240.85, unit: 'box (500)' },
+      { name: 'Deckfast #14 Phillips 9"', supplier: 'Roofmart', netCov: 500, uomCov: 'ea', price: 295.55, unit: 'box (500)' },
+      { name: 'Deckfast #15 Phillips 10"', supplier: 'Roofmart', netCov: 500, uomCov: 'ea', price: 469.30, unit: 'box (500)' },
+      { name: 'Deckfast #15 Phillips 12"', supplier: 'Roofmart', netCov: 250, uomCov: 'ea', price: 284.65, unit: 'box (250)' },
+      { name: 'Deckfast #15 Phillips 14"', supplier: 'Roofmart', netCov: 250, uomCov: 'ea', price: 322.90, unit: 'box (250)' },
+      { name: 'Deckfast #15 Phillips 16"', supplier: 'Roofmart', netCov: 250, uomCov: 'ea', price: 462.80, unit: 'box (250)' },
+      { name: 'Deckfast #15 Phillips 18"', supplier: 'Roofmart', netCov: 250, uomCov: 'ea', price: 1065.66, unit: 'box (250)' },
+      { name: 'Deckfast #15 Phillips 20"', supplier: 'Roofmart', netCov: 250, uomCov: 'ea', price: 1542.00, unit: 'box (250)' },
+      { name: 'Deckfast #15 Phillips 22"', supplier: 'Roofmart', netCov: 250, uomCov: 'ea', price: 1329.00, unit: 'box (250)' },
+      { name: 'Deckfast #15 Phillips 24"', supplier: 'Roofmart', netCov: 250, uomCov: 'ea', price: 2006.00, unit: 'box (250)' },
+      { name: 'Round Top Nails (pail of 1000)', supplier: 'Roofmart', netCov: 1000, uomCov: 'ea', price: 100.00, unit: 'pail' },
+      { name: 'Deckfast 2-7/8" Hex Plates 1000/box', supplier: 'Roofmart', netCov: 1000, uomCov: 'ea', price: 189.05, unit: 'box' },
+      { name: 'Deckfast 2" Round Spike Plates (pail 1000)', supplier: 'Roofmart', netCov: 1000, uomCov: 'ea', price: 210.00, unit: 'pail' },
+      { name: 'Deckfast 3" Round Plates (pail 1000)', supplier: 'Roofmart', netCov: 1000, uomCov: 'ea', price: 219.70, unit: 'pail' }
+    ]
+  },
+  hatches: {
+    label: 'Hatches',
+    note: 'Roof access hatches',
+    products: [
+      { name: 'Bilco Roof Hatch S-20 36" × 30"', supplier: null, netCov: 1, uomCov: 'ea', price: 1350.00, unit: 'ea' }
+    ]
+  },
+  plumbing_stacks: {
+    label: 'Plumbing Stacks',
+    note: 'Hi-Dome roof flashings for plumbing penetrations',
+    products: [
+      { name: 'Hi-Dome Roof Flashing 3"', supplier: null, netCov: 1, uomCov: 'ea', price: 29.33, unit: 'ea' },
+      { name: 'Hi-Dome Roof Flashing 4"', supplier: null, netCov: 1, uomCov: 'ea', price: 29.33, unit: 'ea' }
+    ]
+  },
+  stack_jacks: {
+    label: 'Stack Jacks',
+    note: 'Thaler insulated stack jacks',
+    products: [
+      { name: 'Thaler Stack Jack SJ-20 3" Insul', supplier: null, netCov: 1, uomCov: 'ea', price: 53.00, unit: 'ea' },
+      { name: 'Thaler Stack Jack SJ-20 4" Insul', supplier: null, netCov: 1, uomCov: 'ea', price: 53.00, unit: 'ea' },
+      { name: 'Thaler Stack Jack SJ-20 6" Insul', supplier: null, netCov: 1, uomCov: 'ea', price: 63.00, unit: 'ea' }
+    ]
+  },
+  drains: {
+    label: 'Re-Roof Drains',
+    note: 'Thaler / U-Flow retrofit drains',
+    products: [
+      { name: 'Thaler Drain RD-29-RR 1-3/4" Alum', supplier: null, netCov: 1, uomCov: 'ea', price: 54.00, unit: 'ea' },
+      { name: 'Thaler Drain RD-29-RR 2-3/4" Alum', supplier: null, netCov: 1, uomCov: 'ea', price: 57.00, unit: 'ea' },
+      { name: 'Thaler Drain RD-29-RR 3-3/4" Alum', supplier: null, netCov: 1, uomCov: 'ea', price: 57.00, unit: 'ea' },
+      { name: 'Thaler Drain RD-29-RR 4-3/4" Alum', supplier: null, netCov: 1, uomCov: 'ea', price: 64.00, unit: 'ea' },
+      { name: 'Thaler Drain RD-29-RR 5-3/4" Alum', supplier: null, netCov: 1, uomCov: 'ea', price: 64.00, unit: 'ea' },
+      { name: 'U-Flow Seal UF-3 2-3/4"', supplier: null, netCov: 1, uomCov: 'ea', price: 97.68, unit: 'ea' },
+      { name: 'U-Flow Seal UF-4 3-3/4"', supplier: null, netCov: 1, uomCov: 'ea', price: 97.68, unit: 'ea' },
+      { name: 'U-Flow Seal UF-6 4-3/4"', supplier: null, netCov: 1, uomCov: 'ea', price: 130.23, unit: 'ea' },
+      { name: 'U-Flow Seal UF-6 5-3/4"', supplier: null, netCov: 1, uomCov: 'ea', price: 130.23, unit: 'ea' }
+    ]
+  },
+  scuppers: {
+    label: 'Scupper Drains',
+    products: [
+      { name: 'Scupper 6" Open', supplier: null, netCov: 1, uomCov: 'ea', price: 30.48, unit: 'ea' },
+      { name: 'Scupper 6" Closed', supplier: null, netCov: 1, uomCov: 'ea', price: 45.72, unit: 'ea' }
+    ]
+  },
+  gum_cups: {
+    label: 'Gum Cups',
+    note: 'Combo gum cups for pitch pockets',
+    products: [
+      { name: 'Gum Cup 4" Combo', supplier: null, netCov: 1, uomCov: 'ea', price: 31.75, unit: 'ea' },
+      { name: 'Gum Cup 6" Combo', supplier: null, netCov: 1, uomCov: 'ea', price: 31.75, unit: 'ea' },
+      { name: 'Gum Cup 8" Combo', supplier: null, netCov: 1, uomCov: 'ea', price: null, unit: 'ea' },
+      { name: 'Gum Cup 10" Combo', supplier: null, netCov: 1, uomCov: 'ea', price: null, unit: 'ea' },
+      { name: 'Gum Cup 12" Combo', supplier: null, netCov: 1, uomCov: 'ea', price: null, unit: 'ea' }
+    ]
+  },
+  bvents: {
+    label: 'B-Vents &amp; Collars',
+    note: 'Collar flashings and B-Vent flat flashings',
+    products: [
+      { name: 'Collar Flashing 3"', supplier: null, netCov: 1, uomCov: 'ea', price: null, unit: 'ea' },
+      { name: 'Collar Flashing 4"', supplier: null, netCov: 1, uomCov: 'ea', price: 5.00, unit: 'ea' },
+      { name: 'Collar Flashing 5"', supplier: null, netCov: 1, uomCov: 'ea', price: 5.00, unit: 'ea' },
+      { name: 'Collar Flashing 6"', supplier: null, netCov: 1, uomCov: 'ea', price: 6.00, unit: 'ea' },
+      { name: 'Collar Flashing 7"', supplier: null, netCov: 1, uomCov: 'ea', price: 7.00, unit: 'ea' },
+      { name: 'Collar Flashing 8"', supplier: null, netCov: 1, uomCov: 'ea', price: 8.00, unit: 'ea' },
+      { name: 'Collar Flashing 10"', supplier: null, netCov: 1, uomCov: 'ea', price: 12.00, unit: 'ea' },
+      { name: 'Collar Flashing 12"', supplier: null, netCov: 1, uomCov: 'ea', price: 14.00, unit: 'ea' },
+      { name: 'B-Vent Flat Flashing 3"', supplier: null, netCov: 1, uomCov: 'ea', price: 23.62, unit: 'ea' },
+      { name: 'B-Vent Flat Flashing 4"', supplier: null, netCov: 1, uomCov: 'ea', price: 23.98, unit: 'ea' },
+      { name: 'B-Vent Flat Flashing 5"', supplier: null, netCov: 1, uomCov: 'ea', price: 29.43, unit: 'ea' },
+      { name: 'B-Vent Flat Flashing 6"', supplier: null, netCov: 1, uomCov: 'ea', price: 32.70, unit: 'ea' },
+      { name: 'B-Vent Flat Flashing 7"', supplier: null, netCov: 1, uomCov: 'ea', price: 34.88, unit: 'ea' },
+      { name: 'B-Vent Flat Flashing 8"', supplier: null, netCov: 1, uomCov: 'ea', price: 38.15, unit: 'ea' },
+      { name: 'B-Vent Flat Flashing 10"', supplier: null, netCov: 1, uomCov: 'ea', price: 47.96, unit: 'ea' },
+      { name: 'B-Vent Flat Flashing 12"', supplier: null, netCov: 1, uomCov: 'ea', price: 63.22, unit: 'ea' }
+    ]
+  },
+  consumables: {
+    label: 'Other Materials',
+    note: 'Granules, mastic, propane, ballast',
+    products: [
+      { name: 'Granules', supplier: null, netCov: 1, uomCov: 'ea', price: 40.65, unit: 'pail' },
+      { name: 'Propane (per square)', supplier: null, netCov: 1, uomCov: 'ea', price: 10.00, unit: 'sq' },
+      { name: 'MS Detail Pail', supplier: null, netCov: 1, uomCov: 'ea', price: 160.50, unit: 'pail' },
+      { name: 'Ballast Stone', supplier: null, netCov: 1, uomCov: 'ea', price: 80.00, unit: 'ton' },
+      { name: 'Mastic 10k', supplier: null, netCov: 1, uomCov: 'ea', price: 36.95, unit: 'ea' },
+      { name: 'Mastic 20k', supplier: null, netCov: 1, uomCov: 'ea', price: 52.95, unit: 'ea' },
+      { name: 'Small Curbs (manufactured)', supplier: null, netCov: 1, uomCov: 'ea', price: 100.00, unit: 'ea' },
+      { name: 'Large Curbs (manufactured)', supplier: null, netCov: 1, uomCov: 'ea', price: 400.00, unit: 'ea' },
+      { name: 'RC2250 5 Gallon', supplier: null, netCov: 1, uomCov: 'ea', price: 641.45, unit: 'pail' }
+    ]
+  }
+};
+
+// Job costs (separate from materials — not from supplier lists)
+const JOB_COST_DEFAULTS = [
+  { key: 'travel', label: 'Travel', defaultRate: 0.55, unit: '$/km', qtyLabel: 'kilometers' },
+  { key: 'trucking', label: 'Trucking', defaultRate: 75.00, unit: '$/day', qtyLabel: 'days' },
+  { key: 'roomboard', label: 'Room & Board', defaultRate: 125.00, unit: '$/man-day', qtyLabel: 'man-days' },
+  { key: 'crane', label: 'Crane', defaultRate: 260.00, unit: '$/hr', qtyLabel: 'hours' },
+  { key: 'fuel', label: 'Fuel', defaultRate: 25.00, unit: '$/day', qtyLabel: 'days' },
+  { key: 'delivery', label: 'Delivery Charges', defaultRate: 520.00, unit: 'flat', qtyLabel: 'count', defaultQty: 1 }
+];
+
+// Section ordering for the system builder (top down through the build-up)
+const SECTION_ORDER = [
+  'deck', 'avb',
+  'insulation_eps', 'insulation_iso_4x4', 'insulation_iso_4x8', 'insulation_xps',
+  'secondary', 'fire_tape', 'base_membrane', 'cap_membrane', 'adhesives',
+  'fasteners', 'hatches', 'plumbing_stacks', 'stack_jacks',
+  'drains', 'scuppers', 'gum_cups', 'bvents', 'consumables'
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let layerSelections = {}; // { sectionKey: [ { productIdx, qty (auto or override) } ] }
+
+// Multi-area state: each area is a separate roof
+// Structure: { id, name, mode, area, waste, perim, stories, penets, drains, curbs, rtus, upstands: [{name, height, lf}] }
+let roofAreas = [];
+let nextAreaId = 1;
+let activeAreaId = null;
+
+function createArea(name){
+  const id = nextAreaId++;
+  return {
+    id: id,
+    name: name || 'Roof ' + id,
+    mode: 'reroof',     // reroof | replacement | recover (wired in Phase 2)
+    area: 0,
+    waste: 7,           // % default
+    perim: 0,
+    stories: 1,
+    penets: 0,
+    drains: 0,
+    curbs: 0,
+    rtus: 0,
+    upstands: []        // [{ id, name, height, lf }]
+  };
+}
+
+let nextUpstandId = 1;
+function createUpstand(){
+  return { id: nextUpstandId++, name: '', height: 24, lf: 0 };
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function $(id) { return document.getElementById(id); }
+function fmt(n){
+  if (typeof n !== 'number' || isNaN(n)) return '0.00';
+  return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function fmtMoney(n){ return '$' + fmt(n); }
+function showStatus(msg, type){
+  const el = $('status');
+  el.textContent = msg;
+  el.className = 'status-bar show' + (type ? ' ' + type : '');
+  setTimeout(() => el.classList.remove('show'), 2400);
+}
+
+// ============================================================
+// BUILD UI: Multi-Area Tabs
+// ============================================================
+function addArea(name){
+  const a = createArea(name);
+  roofAreas.push(a);
+  activeAreaId = a.id;
+  renderAreaTabs();
+  renderAreaPanels();
+}
+
+function removeArea(id){
+  if (roofAreas.length <= 1){
+    alert('At least one roof area is required.');
+    return;
+  }
+  if (!confirm('Remove this roof area?')) return;
+  roofAreas = roofAreas.filter(a => a.id !== id);
+  if (activeAreaId === id) activeAreaId = roofAreas[0].id;
+  renderAreaTabs();
+  renderAreaPanels();
+}
+
+function switchArea(id){
+  activeAreaId = id;
+  renderAreaTabs();
+  renderAreaPanels();
+}
+
+function renderAreaTabs(){
+  const tabs = $('areaTabs');
+  tabs.innerHTML = '';
+  roofAreas.forEach(a => {
+    const btn = document.createElement('button');
+    btn.className = 'struct-tab' + (a.id === activeAreaId ? ' active' : '');
+    btn.onclick = function(){ switchArea(a.id); };
+    btn.innerHTML = '<span>📍 ' + escapeHtml(a.name) + '</span>';
+    if (roofAreas.length > 1){
+      const x = document.createElement('span');
+      x.className = 'x'; x.textContent = '×';
+      x.onclick = function(e){ e.stopPropagation(); removeArea(a.id); };
+      btn.appendChild(x);
+    }
+    tabs.appendChild(btn);
+  });
+}
+
+function escapeHtml(s){
+  if (s === null || typeof s === 'undefined') return '';
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderAreaPanels(){
+  const wrap = $('areaPanels');
+  wrap.innerHTML = '';
+  roofAreas.forEach(a => {
+    const panel = document.createElement('div');
+    panel.className = 'struct-panel' + (a.id === activeAreaId ? ' active' : '');
+    panel.id = 'area-panel-' + a.id;
+
+    // Row 1: name, mode (hidden in Phase 1 but reserves space), stories
+    const r1 = document.createElement('div');
+    r1.className = 'grid-3';
+    r1.innerHTML =
+      '<div><label>Area name</label><input type="text" id="a-' + a.id + '-name" value="' + escapeHtml(a.name) + '" placeholder="e.g. Main building"></div>' +
+      '<div><label>System mode <span class="sub">(Phase 2)</span></label><select id="a-' + a.id + '-mode" disabled style="opacity:0.6;cursor:not-allowed;"><option>Re-roof (default)</option><option>Membrane replacement</option><option>Re-cover</option></select></div>' +
+      '<div><label>Stories <span class="sub">(affects crane/access)</span></label><input type="number" id="a-' + a.id + '-stories" value="' + a.stories + '" min="1" max="20"></div>';
+    panel.appendChild(r1);
+
+    // Row 2: area, waste, perimeter
+    const r2 = document.createElement('div');
+    r2.className = 'grid-3';
+    r2.style.marginTop = '10px';
+    r2.innerHTML =
+      '<div><label>Roof area <span class="sub">(sq ft)</span></label><input type="number" id="a-' + a.id + '-area" value="' + a.area + '" min="0"></div>' +
+      '<div><label>Waste factor <span class="sub">(% — typically 5-10%)</span></label><input type="number" id="a-' + a.id + '-waste" value="' + a.waste + '" min="0" max="50"></div>' +
+      '<div><label>Perimeter <span class="sub">(LF — for tapes &amp; flashings)</span></label><input type="number" id="a-' + a.id + '-perim" value="' + a.perim + '" min="0"></div>';
+    panel.appendChild(r2);
+
+    // Row 3: penetrations, drains, curbs/hatches, RTUs
+    const r3 = document.createElement('div');
+    r3.className = 'grid-4';
+    r3.style.marginTop = '10px';
+    r3.innerHTML =
+      '<div><label>Penetrations <span class="sub">(stacks, vents)</span></label><input type="number" id="a-' + a.id + '-penets" value="' + a.penets + '" min="0"></div>' +
+      '<div><label>Drains</label><input type="number" id="a-' + a.id + '-drains" value="' + a.drains + '" min="0"></div>' +
+      '<div><label>Curbs / hatches</label><input type="number" id="a-' + a.id + '-curbs" value="' + a.curbs + '" min="0"></div>' +
+      '<div><label>Roof top units <span class="sub">(RTUs)</span></label><input type="number" id="a-' + a.id + '-rtus" value="' + a.rtus + '" min="0"></div>';
+    panel.appendChild(r3);
+
+    // Upstands sub-section
+    const upHead = document.createElement('div');
+    upHead.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-top:18px;';
+    upHead.innerHTML = '<div class="area-h" style="margin:0;">Upstands / parapets</div>';
+    const addUp = document.createElement('button');
+    addUp.className = 'btn green sm';
+    addUp.textContent = '+ Add upstand';
+    addUp.onclick = function(){ addUpstand(a.id); };
+    upHead.appendChild(addUp);
+    panel.appendChild(upHead);
+
+    const upWrap = document.createElement('div');
+    upWrap.id = 'a-' + a.id + '-upstands';
+    upWrap.style.marginTop = '8px';
+    panel.appendChild(upWrap);
+
+    wrap.appendChild(panel);
+
+    // Wire up inputs to update state on change
+    setTimeout(() => wireAreaInputs(a.id), 0);
+    renderUpstands(a.id);
+  });
+}
+
+function wireAreaInputs(id){
+  const a = roofAreas.find(x => x.id === id);
+  if (!a) return;
+  const map = {
+    name: 'name', stories: 'stories',
+    area: 'area', waste: 'waste', perim: 'perim',
+    penets: 'penets', drains: 'drains', curbs: 'curbs', rtus: 'rtus'
+  };
+  Object.entries(map).forEach(([field, prop]) => {
+    const el = $('a-' + id + '-' + field);
+    if (!el) return;
+    el.oninput = function(){
+      if (prop === 'name'){
+        a[prop] = el.value;
+        renderAreaTabs(); // refresh tab label
+      } else {
+        a[prop] = parseFloat(el.value) || 0;
+      }
+    };
+  });
+}
+
+function addUpstand(areaId){
+  const a = roofAreas.find(x => x.id === areaId);
+  if (!a) return;
+  a.upstands.push(createUpstand());
+  renderUpstands(areaId);
+}
+
+function removeUpstand(areaId, upId){
+  const a = roofAreas.find(x => x.id === areaId);
+  if (!a) return;
+  a.upstands = a.upstands.filter(u => u.id !== upId);
+  renderUpstands(areaId);
+}
+
+function renderUpstands(areaId){
+  const wrap = $('a-' + areaId + '-upstands');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  const a = roofAreas.find(x => x.id === areaId);
+  if (!a || a.upstands.length === 0){
+    wrap.innerHTML = '<div style="font-size:12px;color:#888;padding:8px 4px;">No upstands yet. Click "+ Add upstand" to add one.</div>';
+    return;
+  }
+  a.upstands.forEach(u => {
+    const row = document.createElement('div');
+    row.className = 'upstand-row';
+
+    row.innerHTML =
+      '<div><label>Name</label><input type="text" data-uid="' + u.id + '" data-fld="name" value="' + escapeHtml(u.name) + '" placeholder="e.g. Penthouse east wall"></div>' +
+      '<div><label>Height <span class="sub">(inches)</span></label><input type="number" data-uid="' + u.id + '" data-fld="height" value="' + u.height + '" min="0" step="1"></div>' +
+      '<div><label>LF <span class="sub">(linear feet)</span></label><input type="number" data-uid="' + u.id + '" data-fld="lf" value="' + u.lf + '" min="0" step="1"></div>';
+
+    const rmCell = document.createElement('div');
+    rmCell.className = 'rm';
+    rmCell.textContent = '×';
+    rmCell.title = 'Remove upstand';
+    rmCell.onclick = function(){ removeUpstand(areaId, u.id); };
+    row.appendChild(rmCell);
+
+    wrap.appendChild(row);
+
+    // Wire input changes
+    row.querySelectorAll('input[data-uid]').forEach(inp => {
+      inp.oninput = function(){
+        const u2 = a.upstands.find(x => x.id === parseInt(inp.dataset.uid));
+        if (!u2) return;
+        const fld = inp.dataset.fld;
+        if (fld === 'name') u2[fld] = inp.value;
+        else u2[fld] = parseFloat(inp.value) || 0;
+      };
+    });
+  });
+}
+
+// ============================================================
+// BUILD UI: System Builder
+// ============================================================
+function buildSystemBuilder(){
+  const wrap = $('systemBuilder');
+  wrap.innerHTML = '';
+
+  SECTION_ORDER.forEach((key, idx) => {
+    const sec = FLAT_CATALOG[key];
+    if (!sec) return;
+    layerSelections[key] = layerSelections[key] || [];
+
+    const det = document.createElement('details');
+    det.className = 'collapsible';
+    det.id = 'sec-' + key;
+
+    const sum = document.createElement('summary');
+    sum.innerHTML = '<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:#1a1a1a;color:#fff;border-radius:50%;font-size:11px;margin-right:8px;">' + (idx + 1) + '</span>' + sec.label;
+    det.appendChild(sum);
+
+    const body = document.createElement('div');
+    if (sec.note){
+      const n = document.createElement('div');
+      n.className = 'section-sub'; n.innerHTML = sec.note;
+      n.style.marginBottom = '10px'; n.style.marginTop = '0';
+      body.appendChild(n);
+    }
+
+    // Render existing selections
+    const listWrap = document.createElement('div');
+    listWrap.id = 'sec-list-' + key;
+    body.appendChild(listWrap);
+
+    // Add-row controls
+    const addRow = document.createElement('div');
+    addRow.style.cssText = 'display:flex;gap:8px;align-items:end;margin-top:8px;';
+
+    const sel = document.createElement('select');
+    sel.id = 'sec-select-' + key;
+    sel.style.flex = '1';
+    sel.innerHTML = '<option value="">— Pick a product to add —</option>';
+    sec.products.forEach((p, pi) => {
+      const opt = document.createElement('option');
+      opt.value = pi;
+      const priceTxt = (p.price === null || typeof p.price === 'undefined') ? '⚠ no price' : '$' + p.price.toFixed(2);
+      opt.textContent = p.name + ' · ' + priceTxt + '/' + p.unit + (p.supplier ? ' · ' + p.supplier : '');
+      sel.appendChild(opt);
+    });
+    addRow.appendChild(sel);
+
+    const addBtn = document.createElement('button');
+    addBtn.className = 'btn primary sm';
+    addBtn.textContent = '+ Add';
+    addBtn.onclick = function(){ addLayer(key); };
+    addRow.appendChild(addBtn);
+
+    body.appendChild(addRow);
+    det.appendChild(body);
+    wrap.appendChild(det);
+
+    // Auto-open the first 5 sections (most common)
+    if (idx < 5) det.open = true;
+
+    renderLayerList(key);
+  });
+}
+
+function addLayer(key){
+  const sel = $('sec-select-' + key);
+  if (!sel.value) { showStatus('Pick a product first', 'success'); return; }
+  layerSelections[key].push({
+    productIdx: parseInt(sel.value),
+    qtyOverride: null  // null = auto-calc from area
+  });
+  sel.value = '';
+  renderLayerList(key);
+}
+
+function removeLayer(key, idx){
+  layerSelections[key].splice(idx, 1);
+  renderLayerList(key);
+}
+
+function renderLayerList(key){
+  const wrap = $('sec-list-' + key);
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  const sec = FLAT_CATALOG[key];
+
+  layerSelections[key].forEach((sel, idx) => {
+    const prod = sec.products[sel.productIdx];
+    const row = document.createElement('div');
+    row.className = 'layer-card';
+
+    const hdr = document.createElement('div');
+    hdr.className = 'layer-h';
+    hdr.innerHTML = '<span class="layer-num">' + (idx + 1) + '</span><strong>' + prod.name + '</strong>';
+    if (prod.price === null) {
+      const w = document.createElement('span');
+      w.className = 'warning-pill';
+      w.textContent = '⚠ NEEDS PRICE';
+      hdr.appendChild(w);
+    }
+    row.appendChild(hdr);
+
+    const fields = document.createElement('div');
+    fields.className = 'layer-fields';
+
+    // Info column: net coverage / unit
+    const info = document.createElement('div');
+    info.style.fontSize = '11px';
+    info.style.color = '#666';
+    info.innerHTML = 'Coverage: <strong>' + prod.netCov + ' ' + prod.uomCov + '</strong> per ' + prod.unit
+      + (prod.supplier ? '<br>Supplier: <strong>' + prod.supplier + '</strong>' : '')
+      + '<br>Price: <strong>' + (prod.price === null ? '— not set —' : '$' + prod.price.toFixed(2) + '/' + prod.unit) + '</strong>';
+    fields.appendChild(info);
+
+    // Qty override field (optional manual quantity)
+    const qtyDiv = document.createElement('div');
+    qtyDiv.innerHTML = '<label>Qty override <span class="sub">(auto if blank)</span></label>';
+    const qtyInp = document.createElement('input');
+    qtyInp.type = 'number'; qtyInp.step = '1'; qtyInp.min = '0';
+    qtyInp.placeholder = 'auto';
+    qtyInp.value = sel.qtyOverride !== null ? sel.qtyOverride : '';
+    qtyInp.oninput = function(){
+      sel.qtyOverride = qtyInp.value === '' ? null : parseFloat(qtyInp.value);
+    };
+    qtyDiv.appendChild(qtyInp);
+    fields.appendChild(qtyDiv);
+
+    // Remove button
+    const rm = document.createElement('div');
+    rm.innerHTML = '<label>&nbsp;</label>';
+    const rmBtn = document.createElement('button');
+    rmBtn.className = 'btn danger sm';
+    rmBtn.textContent = 'Remove';
+    rmBtn.onclick = function(){ removeLayer(key, idx); };
+    rm.appendChild(rmBtn);
+    fields.appendChild(rm);
+
+    row.appendChild(fields);
+    wrap.appendChild(row);
+  });
+}
+
+// ============================================================
+// BUILD UI: Job Costs
+// ============================================================
+function buildJobCosts(){
+  const wrap = $('jobCosts');
+  wrap.innerHTML = '';
+
+  const grid = document.createElement('div');
+  grid.className = 'grid-3';
+
+  JOB_COST_DEFAULTS.forEach(jc => {
+    const w = document.createElement('div');
+    w.style.cssText = 'border:1px solid #e5e5e0;border-radius:8px;padding:10px;background:#fafaf7;';
+
+    const lbl = document.createElement('div');
+    lbl.style.cssText = 'font-size:12px;font-weight:600;margin-bottom:8px;';
+    lbl.textContent = jc.label;
+    w.appendChild(lbl);
+
+    const inner = document.createElement('div');
+    inner.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:6px;';
+
+    const r = document.createElement('div');
+    r.innerHTML = '<label>Rate</label>';
+    const rInp = document.createElement('input');
+    rInp.type = 'number'; rInp.step = '0.01'; rInp.min = '0';
+    rInp.id = 'jc-rate-' + jc.key; rInp.value = jc.defaultRate;
+    r.appendChild(rInp);
+    inner.appendChild(r);
+
+    const q = document.createElement('div');
+    q.innerHTML = '<label>' + jc.qtyLabel + '</label>';
+    const qInp = document.createElement('input');
+    qInp.type = 'number'; qInp.step = '0.5'; qInp.min = '0';
+    qInp.id = 'jc-qty-' + jc.key; qInp.value = jc.defaultQty || 0;
+    q.appendChild(qInp);
+    inner.appendChild(q);
+
+    w.appendChild(inner);
+
+    const note = document.createElement('div');
+    note.style.cssText = 'font-size:10px;color:#888;margin-top:6px;';
+    note.textContent = jc.unit;
+    w.appendChild(note);
+
+    grid.appendChild(w);
+  });
+
+  wrap.appendChild(grid);
+}
+
+// ============================================================
+// MARGIN CALC
+// ============================================================
+function calcMargin(){
+  const oh = parseFloat($('f-overhead').value) || 0;
+  const pf = parseFloat($('f-profit').value) || 0;
+  const total = oh + pf;
+  const margin = total / (100 + total) * 100;
+  $('f-margin').value = margin.toFixed(1) + '%';
+}
+
+function buildProfitOptions(){
+  const sel = $('f-profit');
+  for (let i = 10; i <= 100; i += 5){
+    const o = document.createElement('option');
+    o.value = i; o.textContent = i + '%';
+    if (i === 20) o.selected = true;
+    sel.appendChild(o);
+  }
+}
+
+// ============================================================
+// QUOTE COUNTER
+// ============================================================
+function initQuote(){
+  const year = new Date().getFullYear();
+  let counter = parseInt(localStorage.getItem('greenlit_flat_quote_counter')) || 1;
+  const yKey = 'greenlit_flat_quote_year';
+  if (localStorage.getItem(yKey) !== String(year)){
+    counter = 1;
+    localStorage.setItem(yKey, String(year));
+    localStorage.setItem('greenlit_flat_quote_counter', '1');
+  }
+  $('f-quote').value = year + '-F' + String(counter).padStart(4, '0');
+}
+
+function incrementQuote(){
+  let counter = parseInt(localStorage.getItem('greenlit_flat_quote_counter')) || 0;
+  localStorage.setItem('greenlit_flat_quote_counter', String(counter + 1));
+  const year = new Date().getFullYear();
+  $('f-quote').value = year + '-F' + String(counter + 1).padStart(4, '0');
+}
+
+// ============================================================
+// CALCULATE
+// ============================================================
+function calculate(){
+  // ===== Aggregate across all roof areas =====
+  if (roofAreas.length === 0){
+    alert('Add at least one roof area before calculating.');
+    return;
+  }
+  let totalArea = 0;
+  let totalPerim = 0;
+  let totalPenets = 0;
+  let totalDrains = 0;
+  let totalCurbs = 0;
+  let totalRTUs = 0;
+  let totalAreaWithWaste = 0; // each area uses its own waste factor
+
+  roofAreas.forEach(a => {
+    const aWaste = (a.waste || 0) / 100;
+    totalArea += a.area || 0;
+    totalAreaWithWaste += (a.area || 0) * (1 + aWaste);
+    totalPerim += a.perim || 0;
+    totalPenets += a.penets || 0;
+    totalDrains += a.drains || 0;
+    totalCurbs += a.curbs || 0;
+    totalRTUs += a.rtus || 0;
+  });
+
+  if (totalArea <= 0) { alert('Enter a roof area greater than 0 sq ft.'); return; }
+
+  // For backward compatibility with existing math, use aggregated values
+  const area = totalArea;
+  const waste = totalAreaWithWaste / totalArea - 1; // effective overall waste
+  const perim = totalPerim;
+  const penets = totalPenets;
+  const drains = totalDrains;
+  const curbs = totalCurbs;
+  const areaWithWaste = totalAreaWithWaste;
+
+  // ===== Compute material lines per section =====
+  const sectionResults = [];
+  let materialTotal = 0;
+  let missingPriceCount = 0;
+
+  SECTION_ORDER.forEach(key => {
+    const sec = FLAT_CATALOG[key];
+    const selections = layerSelections[key] || [];
+    if (selections.length === 0) return;
+
+    const sectionRows = [];
+    let sectionTotal = 0;
+
+    selections.forEach(selection => {
+      const prod = sec.products[selection.productIdx];
+      let qty;
+      if (selection.qtyOverride !== null && !isNaN(selection.qtyOverride)) {
+        qty = selection.qtyOverride;
+      } else {
+        // Auto-calc: depends on what the product covers
+        if (prod.uomCov === 'sf') {
+          qty = Math.ceil(areaWithWaste / prod.netCov);
+        } else if (prod.uomCov === 'lf') {
+          qty = Math.ceil(perim / prod.netCov);
+        } else { // 'ea' or other
+          qty = 1;
+        }
+      }
+      const unitPrice = prod.price === null ? 0 : prod.price;
+      const cost = qty * unitPrice;
+      sectionTotal += cost;
+      if (prod.price === null) missingPriceCount++;
+
+      sectionRows.push({
+        name: prod.name,
+        supplier: prod.supplier || '—',
+        qty: qty,
+        unit: prod.unit,
+        coverage: prod.netCov + ' ' + prod.uomCov + '/' + prod.unit,
+        price: unitPrice,
+        cost: cost,
+        priceMissing: prod.price === null
+      });
+    });
+
+    materialTotal += sectionTotal;
+    sectionResults.push({
+      key: key,
+      label: sec.label,
+      rows: sectionRows,
+      total: sectionTotal
+    });
+  });
+
+  // ===== Labour =====
+  const labRows = [];
+  const sqs = areaWithWaste / 100;
+  const tearoff = (parseFloat($('lab-tearoff').value) || 0) * sqs;
+  const install = (parseFloat($('lab-install').value) || 0) * sqs;
+  const membrane = (parseFloat($('lab-membrane').value) || 0) * sqs;
+  const detail = (parseFloat($('lab-detail').value) || 0) * perim;
+  const penetCost = (parseFloat($('lab-penet').value) || 0) * penets;
+  const drainCost = (parseFloat($('lab-drain').value) || 0) * drains;
+  if (tearoff > 0)  labRows.push({ name: 'Tear-off', qty: sqs.toFixed(1), unit: 'sqs', price: parseFloat($('lab-tearoff').value), cost: tearoff });
+  if (install > 0)  labRows.push({ name: 'AVB & Insulation install', qty: sqs.toFixed(1), unit: 'sqs', price: parseFloat($('lab-install').value), cost: install });
+  if (membrane > 0) labRows.push({ name: 'Membrane install', qty: sqs.toFixed(1), unit: 'sqs', price: parseFloat($('lab-membrane').value), cost: membrane });
+  if (detail > 0)   labRows.push({ name: 'Detailing & flashings', qty: perim, unit: 'LF', price: parseFloat($('lab-detail').value), cost: detail });
+  if (penetCost > 0) labRows.push({ name: 'Penetration labour', qty: penets, unit: 'ea', price: parseFloat($('lab-penet').value), cost: penetCost });
+  if (drainCost > 0) labRows.push({ name: 'Drain labour', qty: drains, unit: 'ea', price: parseFloat($('lab-drain').value), cost: drainCost });
+  const labourTotal = labRows.reduce((s,r) => s + r.cost, 0);
+
+  // ===== Job costs =====
+  const jcRows = [];
+  let jcTotal = 0;
+  JOB_COST_DEFAULTS.forEach(jc => {
+    const rate = parseFloat(($('jc-rate-' + jc.key) || {}).value) || 0;
+    const qty = parseFloat(($('jc-qty-' + jc.key) || {}).value) || 0;
+    if (qty <= 0) return;
+    const cost = rate * qty;
+    jcTotal += cost;
+    jcRows.push({ name: jc.label, qty: qty, unit: jc.unit, price: rate, cost: cost });
+  });
+
+  // ===== Markup & selling price =====
+  const oh = parseFloat($('f-overhead').value) || 0;
+  const pf = parseFloat($('f-profit').value) || 0;
+  const totalMarkup = oh + pf;
+  const costBase = materialTotal + labourTotal + jcTotal;
+  const sellingPrice = costBase * (1 + totalMarkup / 100);
+  const overheadAmt = costBase * (oh / 100);
+  const profitAmt = costBase * (pf / 100);
+
+  // ===== Render results =====
+  renderResults({
+    area: area,
+    waste: waste,
+    areaWithWaste: areaWithWaste,
+    perim: perim,
+    sectionResults: sectionResults,
+    materialTotal: materialTotal,
+    labRows: labRows,
+    labourTotal: labourTotal,
+    jcRows: jcRows,
+    jcTotal: jcTotal,
+    costBase: costBase,
+    overheadAmt: overheadAmt,
+    profitAmt: profitAmt,
+    sellingPrice: sellingPrice,
+    missingPriceCount: missingPriceCount
+  });
+
+  incrementQuote();
+  $('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function renderResults(r){
+  const wrap = $('results');
+  wrap.innerHTML = '';
+  wrap.style.display = 'block';
+
+  // Header
+  const hdr = document.createElement('div');
+  hdr.className = 'card';
+  let hdrHTML = '<div class="section-h-row">' +
+    '<div class="section-h">Estimate Results</div>' +
+    '<button class="btn sm" onclick="window.print()">🖨 Print</button>' +
+    '</div>' +
+    '<div style="font-size:12px;color:#666;">Quote ' + $('f-quote').value + ' · ' +
+    '<strong>' + roofAreas.length + '</strong> roof area' + (roofAreas.length > 1 ? 's' : '') + ' · ' +
+    '<strong>' + Math.round(r.area).toLocaleString() + '</strong> sq ft total · ' +
+    '<strong>' + (r.areaWithWaste/100).toFixed(2) + '</strong> sqs with waste · ' +
+    '<strong>' + r.perim + '</strong> LF perimeter</div>';
+
+  // Per-area breakdown
+  if (roofAreas.length > 1){
+    hdrHTML += '<table class="results" style="margin-top:10px;"><thead><tr>' +
+      '<th>Area Name</th><th class="num">Sq Ft</th><th class="num">Waste %</th>' +
+      '<th class="num">Sq Ft + Waste</th><th class="num">Perim LF</th>' +
+      '<th class="num">Stories</th><th class="num">Upstands</th>' +
+      '</tr></thead><tbody>';
+    roofAreas.forEach(a => {
+      const aw = (a.area || 0) * (1 + (a.waste || 0)/100);
+      const upLF = a.upstands.reduce((s, u) => s + (u.lf || 0), 0);
+      hdrHTML += '<tr>' +
+        '<td>' + escapeHtml(a.name) + '</td>' +
+        '<td class="num">' + (a.area || 0).toLocaleString() + '</td>' +
+        '<td class="num">' + (a.waste || 0) + '%</td>' +
+        '<td class="num">' + aw.toFixed(0) + '</td>' +
+        '<td class="num">' + (a.perim || 0) + '</td>' +
+        '<td class="num">' + (a.stories || 1) + '</td>' +
+        '<td class="num">' + a.upstands.length + (upLF > 0 ? ' (' + upLF + ' LF)' : '') + '</td>' +
+        '</tr>';
+    });
+    hdrHTML += '</tbody></table>';
+  }
+  hdr.innerHTML = hdrHTML;
+  wrap.appendChild(hdr);
+
+  if (r.missingPriceCount > 0){
+    const w = document.createElement('div');
+    w.className = 'card warning-banner';
+    w.innerHTML = '⚠️ <strong>' + r.missingPriceCount + ' product(s) have no price set</strong> — costs treated as $0. Update prices before sending this quote.';
+    wrap.appendChild(w);
+  }
+
+  // Big selling price card
+  const selling = document.createElement('div');
+  selling.className = 'selling-card';
+  selling.innerHTML = '<div><div class="label">Selling Price</div>' +
+    '<div style="font-size:14px;margin-top:4px;color:#aaa;">$' + (r.sellingPrice/r.area).toFixed(2) + ' / sq ft · $' + ((r.sellingPrice/r.area)*100).toFixed(2) + ' / sq</div></div>' +
+    '<div class="value">' + fmtMoney(r.sellingPrice) + '</div>';
+  wrap.appendChild(selling);
+
+  // Materials table
+  const matCard = document.createElement('div');
+  matCard.className = 'card';
+  matCard.innerHTML = '<div class="section-h">Material Breakdown</div>';
+  const matTbl = document.createElement('table');
+  matTbl.className = 'results';
+  matTbl.innerHTML = '<thead><tr>' +
+    '<th>Product</th><th>Supplier</th><th class="num">Qty</th><th>Unit</th><th class="num">Price</th><th class="num">Cost</th>' +
+    '</tr></thead>';
+  const matBody = document.createElement('tbody');
+  r.sectionResults.forEach(sec => {
+    const sr = document.createElement('tr');
+    sr.className = 'section-row';
+    const td = document.createElement('td');
+    td.colSpan = 6; td.textContent = sec.label;
+    sr.appendChild(td);
+    matBody.appendChild(sr);
+
+    sec.rows.forEach(row => {
+      const tr = document.createElement('tr');
+      if (row.priceMissing) tr.className = 'warning-row';
+      tr.innerHTML = '<td>' + row.name + (row.priceMissing ? ' <span style="font-size:10px;color:#92400e;font-weight:600;">⚠ NO PRICE</span>' : '') + '</td>' +
+        '<td style="font-size:11px;color:#666;">' + row.supplier + '</td>' +
+        '<td class="num">' + row.qty + '</td>' +
+        '<td>' + row.unit + '</td>' +
+        '<td class="num">' + (row.price > 0 ? fmtMoney(row.price) : '—') + '</td>' +
+        '<td class="num">' + fmtMoney(row.cost) + '</td>';
+      matBody.appendChild(tr);
+    });
+
+    // Section subtotal
+    const totR = document.createElement('tr');
+    totR.className = 'total-row';
+    totR.innerHTML = '<td colspan="5">' + sec.label + ' subtotal</td><td class="num">' + fmtMoney(sec.total) + '</td>';
+    matBody.appendChild(totR);
+  });
+
+  // Materials grand subtotal
+  const matG = document.createElement('tr');
+  matG.className = 'grand-total';
+  matG.innerHTML = '<td colspan="5">MATERIALS TOTAL</td><td class="num">' + fmtMoney(r.materialTotal) + '</td>';
+  matBody.appendChild(matG);
+
+  matTbl.appendChild(matBody);
+  matCard.appendChild(matTbl);
+  wrap.appendChild(matCard);
+
+  // Labour table
+  if (r.labRows.length > 0){
+    const labCard = document.createElement('div');
+    labCard.className = 'card';
+    labCard.innerHTML = '<div class="section-h">Labour</div>';
+    const labTbl = document.createElement('table');
+    labTbl.className = 'results';
+    labTbl.innerHTML = '<thead><tr><th>Item</th><th class="num">Qty</th><th>Unit</th><th class="num">Rate</th><th class="num">Cost</th></tr></thead>';
+    const lb = document.createElement('tbody');
+    r.labRows.forEach(row => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + row.name + '</td><td class="num">' + row.qty + '</td><td>' + row.unit + '</td><td class="num">' + fmtMoney(row.price) + '</td><td class="num">' + fmtMoney(row.cost) + '</td>';
+      lb.appendChild(tr);
+    });
+    const labG = document.createElement('tr');
+    labG.className = 'grand-total';
+    labG.innerHTML = '<td colspan="4">LABOUR TOTAL</td><td class="num">' + fmtMoney(r.labourTotal) + '</td>';
+    lb.appendChild(labG);
+    labTbl.appendChild(lb);
+    labCard.appendChild(labTbl);
+    wrap.appendChild(labCard);
+  }
+
+  // Job costs table
+  if (r.jcRows.length > 0){
+    const jcCard = document.createElement('div');
+    jcCard.className = 'card';
+    jcCard.innerHTML = '<div class="section-h">Job Costs</div>';
+    const jcTbl = document.createElement('table');
+    jcTbl.className = 'results';
+    jcTbl.innerHTML = '<thead><tr><th>Item</th><th class="num">Qty</th><th>Unit</th><th class="num">Rate</th><th class="num">Cost</th></tr></thead>';
+    const jb = document.createElement('tbody');
+    r.jcRows.forEach(row => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + row.name + '</td><td class="num">' + row.qty + '</td><td>' + row.unit + '</td><td class="num">' + fmtMoney(row.price) + '</td><td class="num">' + fmtMoney(row.cost) + '</td>';
+      jb.appendChild(tr);
+    });
+    const jcG = document.createElement('tr');
+    jcG.className = 'grand-total';
+    jcG.innerHTML = '<td colspan="4">JOB COSTS TOTAL</td><td class="num">' + fmtMoney(r.jcTotal) + '</td>';
+    jb.appendChild(jcG);
+    jcTbl.appendChild(jb);
+    jcCard.appendChild(jcTbl);
+    wrap.appendChild(jcCard);
+  }
+
+  // Final totals
+  const totals = document.createElement('div');
+  totals.className = 'card';
+  totals.innerHTML = '<div class="section-h">Quote Summary</div>';
+  const tt = document.createElement('table');
+  tt.className = 'results';
+  tt.innerHTML = '<tbody>' +
+    '<tr><td>Materials</td><td class="num">' + fmtMoney(r.materialTotal) + '</td></tr>' +
+    '<tr><td>Labour</td><td class="num">' + fmtMoney(r.labourTotal) + '</td></tr>' +
+    '<tr><td>Job Costs</td><td class="num">' + fmtMoney(r.jcTotal) + '</td></tr>' +
+    '<tr class="total-row"><td>Cost Base</td><td class="num">' + fmtMoney(r.costBase) + '</td></tr>' +
+    '<tr><td>Overhead (' + $('f-overhead').value + '%)</td><td class="num">' + fmtMoney(r.overheadAmt) + '</td></tr>' +
+    '<tr><td>Profit (' + $('f-profit').value + '%)</td><td class="num">' + fmtMoney(r.profitAmt) + '</td></tr>' +
+    '<tr class="grand-total"><td>SELLING PRICE</td><td class="num">' + fmtMoney(r.sellingPrice) + '</td></tr>' +
+    '</tbody>';
+  totals.appendChild(tt);
+  wrap.appendChild(totals);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+window.addEventListener('DOMContentLoaded', function(){
+  buildProfitOptions();
+  // Seed with one initial roof area
+  addArea('Main roof');
+  buildSystemBuilder();
+  buildJobCosts();
+  $('f-date').value = new Date().toISOString().split('T')[0];
+  $('f-overhead').addEventListener('input', calcMargin);
+  $('f-profit').addEventListener('change', calcMargin);
+  calcMargin();
+  initQuote();
+});
+</script>
+
+</body>
+</html>
