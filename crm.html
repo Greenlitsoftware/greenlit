@@ -201,6 +201,26 @@ label:first-of-type{margin-top:0}
 <div class="toast" id="toast"></div>
 
 <script>
+// Storage shim — makes window.storage work on static GitHub Pages by falling back to localStorage
+if (!window.storage){
+  window.storage = {
+    async get(key){ const v = localStorage.getItem(key); return v === null ? null : { value: v }; },
+    async set(key, value){ localStorage.setItem(key, String(value)); },
+    async delete(key){ localStorage.removeItem(key); }
+  };
+}
+// Map a quote's type to the estimator page that can recall it
+function _estimatorUrlForQuote(q){
+  if (!q) return 'index.html';
+  if (q.type === 'sloped') return 'roofing_estimator.html?recall=' + encodeURIComponent(q.quoteNum);
+  // default to flat for legacy quotes or type==='flat'
+  return 'flat_roof_estimator.html?recall=' + encodeURIComponent(q.quoteNum);
+}
+function editQuoteInEstimator(quoteNum){
+  const q = quotes.find(x => x.quoteNum === quoteNum);
+  if (!q){ alert('Quote not found.'); return; }
+  location.href = _estimatorUrlForQuote(q);
+}
 // ── Data ──────────────────────────────────────────────────────────────────────
 let quotes=[];
 let customers=[];
@@ -305,17 +325,24 @@ function renderDashboard(){
   const recent=quotes.slice(0,6);
   const rDiv=document.getElementById('recent-quotes');
   if(!recent.length){rDiv.innerHTML='<div class="empty">No quotes yet.</div>';return;}
-  rDiv.innerHTML=recent.map(q=>`
+  rDiv.innerHTML=recent.map(q=>{
+    const typeBadge = q.type==='sloped'
+      ? '<span style="display:inline-block;background:#dcfce7;color:#15803d;font-size:10px;font-weight:700;padding:1px 6px;border-radius:8px;text-transform:uppercase;margin-right:6px;">Sloped</span>'
+      : q.type==='flat'
+        ? '<span style="display:inline-block;background:#dbeafe;color:#1d4ed8;font-size:10px;font-weight:700;padding:1px 6px;border-radius:8px;text-transform:uppercase;margin-right:6px;">Flat</span>'
+        : '';
+    return `
     <div onclick="openQuote('${q.quoteNum}')" style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:0.5px solid #f0f0f0;cursor:pointer">
       <div>
-        <div style="font-weight:500;font-size:13px">${q.customer||'—'}</div>
+        <div style="font-weight:500;font-size:13px">${typeBadge}${q.customer||'—'}</div>
         <div style="font-size:11px;color:#888">${q.quoteNum} · ${q.address||''}${q.city?', '+q.city:''}</div>
       </div>
       <div style="text-align:right">
         <span class="status ${STATUS_META[q.status]?.cls||'status-draft'}">${STATUS_META[q.status]?.label||q.status}</span>
         <div style="font-size:12px;font-weight:600;margin-top:2px">${q.value?'$'+fmtNum(q.value):''}</div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   // Pipeline chart
   const byStatus={};
@@ -365,8 +392,13 @@ function renderQuotes(){
   list.forEach(q=>{
     const tr=document.createElement('tr');
     tr.onclick=()=>openQuote(q.quoteNum);
+    const typeBadge = q.type==='sloped'
+      ? '<span style="display:inline-block;background:#dcfce7;color:#15803d;font-size:10px;font-weight:700;padding:1px 6px;border-radius:8px;text-transform:uppercase;margin-right:6px;">Sloped</span>'
+      : q.type==='flat'
+        ? '<span style="display:inline-block;background:#dbeafe;color:#1d4ed8;font-size:10px;font-weight:700;padding:1px 6px;border-radius:8px;text-transform:uppercase;margin-right:6px;">Flat</span>'
+        : '';
     tr.innerHTML=`
-      <td style="font-weight:500;white-space:nowrap">${q.quoteNum||'—'}</td>
+      <td style="font-weight:500;white-space:nowrap">${typeBadge}${q.quoteNum||'—'}</td>
       <td>${q.customer||'—'}</td>
       <td style="font-size:12px;color:#888">${q.address||''}${q.city?', '+q.city:''}</td>
       <td style="white-space:nowrap;font-size:12px">${fmtDate(q.createdAt)}</td>
@@ -377,6 +409,7 @@ function renderQuotes(){
       </select></td>
       <td onclick="event.stopPropagation()" style="white-space:nowrap">
         <button class="btn btn-outline btn-sm" onclick="openQuote('${q.quoteNum}')">View</button>
+        <button class="btn btn-outline btn-sm" style="margin-left:4px" onclick="editQuoteInEstimator('${q.quoteNum}')" title="Edit in estimator">✎ Edit</button>
         <button class="btn btn-outline btn-sm" style="margin-left:4px;color:#c0392b" onclick="deleteQuote('${q.quoteNum}')">✕</button>
       </td>`;
     tbody.appendChild(tr);
@@ -427,10 +460,15 @@ function openQuote(quoteNum){
   const q=quotes.find(x=>x.quoteNum===quoteNum);
   if(!q) return;
   const cust=customers.find(c=>c.quoteNums?.includes(quoteNum));
+  const modalTypeBadge = q.type==='sloped'
+    ? '<span style="display:inline-block;background:#dcfce7;color:#15803d;font-size:11px;font-weight:700;padding:2px 8px;border-radius:8px;text-transform:uppercase;margin-right:8px;">Sloped</span>'
+    : q.type==='flat'
+      ? '<span style="display:inline-block;background:#dbeafe;color:#1d4ed8;font-size:11px;font-weight:700;padding:2px 8px;border-radius:8px;text-transform:uppercase;margin-right:8px;">Flat</span>'
+      : '';
   document.getElementById('modal-content').innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
       <div>
-        <div style="font-size:17px;font-weight:700">${q.customer||'Unknown customer'}</div>
+        <div style="font-size:17px;font-weight:700">${modalTypeBadge}${q.customer||'Unknown customer'}</div>
         <div style="font-size:12px;color:#888;margin-top:2px">${q.quoteNum} · ${fmtDate(q.createdAt)}</div>
       </div>
       <span class="status ${STATUS_META[q.status]?.cls||''}" style="font-size:13px">${STATUS_META[q.status]?.label||q.status}</span>
@@ -492,7 +530,8 @@ function openQuote(quoteNum){
       <textarea id="modal-notes" placeholder="Add notes about this quote...">${q.notes||''}</textarea>
     </div>
 
-    <div style="display:flex;gap:8px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      ${q.snapshot ? `<button class="btn btn-dark" onclick="editQuoteInEstimator('${q.quoteNum}')" style="flex:1;background:#7bc043;color:#0a0a0a;">✎ Edit in Estimator</button>` : ''}
       <button class="btn btn-dark" onclick="saveModalNotes('${q.quoteNum}')" style="flex:1">Save Notes</button>
       <button class="btn btn-outline" onclick="closeModal()">Close</button>
     </div>`;

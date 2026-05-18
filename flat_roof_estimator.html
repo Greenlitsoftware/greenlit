@@ -162,7 +162,15 @@
       <div class="module-label">Flat Roofing Estimator</div>
     </div>
   </div>
-  <a href="index.html" class="home-btn">← Home</a>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <button type="button" id="btn-save-quote" onclick="saveQuoteToCRM()" class="home-btn" style="cursor:pointer;background:#7bc043;color:#0a0a0a;border:1px solid #7bc043;font-weight:600;">💾 Save Quote to CRM</button>
+    <a href="index.html" class="home-btn">← Home</a>
+  </div>
+</div>
+
+<div id="recall-banner" style="display:none;background:#fef3c7;border-bottom:1px solid #fbbf24;color:#78350f;padding:10px 28px;font-size:13px;text-align:center;">
+  <strong>Editing saved quote</strong> — make changes and click <em>Save Quote to CRM</em> to update.
+  <span id="recall-quote-num" style="font-weight:600;margin-left:8px;"></span>
 </div>
 
 <div class="container">
@@ -4930,14 +4938,175 @@ function initQuote(){
     localStorage.setItem(yKey, String(year));
     localStorage.setItem('greenlit_flat_quote_counter', '1');
   }
-  $('f-quote').value = year + '-F' + String(counter).padStart(4, '0');
+  $('f-quote').value = 'F-' + year + '-' + String(counter).padStart(4, '0');
 }
 
 function incrementQuote(){
   let counter = parseInt(localStorage.getItem('greenlit_flat_quote_counter')) || 0;
   localStorage.setItem('greenlit_flat_quote_counter', String(counter + 1));
   const year = new Date().getFullYear();
-  $('f-quote').value = year + '-F' + String(counter + 1).padStart(4, '0');
+  $('f-quote').value = 'F-' + year + '-' + String(counter + 1).padStart(4, '0');
+}
+
+// ============================================================
+// STORAGE SHIM — makes window.storage work on static GitHub Pages
+// ============================================================
+if (!window.storage){
+  window.storage = {
+    async get(key){ const v = localStorage.getItem(key); return v === null ? null : { value: v }; },
+    async set(key, value){ localStorage.setItem(key, String(value)); },
+    async delete(key){ localStorage.removeItem(key); }
+  };
+}
+
+// ============================================================
+// QUOTE SAVE / RECALL — writes to CRM, supports edit-recall
+// ============================================================
+function _flatQuoteValue(){
+  try {
+    let max = 0;
+    document.querySelectorAll('tr.grand-total td.num, .grand-total .num').forEach(r => {
+      const t = (r.textContent || '').replace(/[^0-9.]/g, '');
+      const n = parseFloat(t);
+      if (!isNaN(n) && n > max) max = n;
+    });
+    return Math.round(max);
+  } catch(e){ return 0; }
+}
+
+function serializeFlatQuote(){
+  const formValues = {};
+  document.querySelectorAll('input[id], select[id], textarea[id]').forEach(el => {
+    if (el.type === 'checkbox' || el.type === 'radio') formValues[el.id] = el.checked;
+    else formValues[el.id] = el.value;
+  });
+  return {
+    formValues,
+    state: {
+      systems: JSON.parse(JSON.stringify(systems || [])),
+      activeSystemId, nextSystemId,
+      roofAreas: JSON.parse(JSON.stringify(roofAreas || [])),
+      activeAreaId, nextAreaId,
+      outOfTown: JSON.parse(JSON.stringify(outOfTown || {})),
+      activeBoD,
+      tapeDefaultsByBoD: JSON.parse(JSON.stringify(tapeDefaultsByBoD || {})),
+      bins: JSON.parse(JSON.stringify(bins || {})),
+      nextBinId,
+      vacuumTruck: JSON.parse(JSON.stringify(vacuumTruck || {})),
+      toilets: JSON.parse(JSON.stringify(toilets || {})),
+      nextToiletId,
+      fencing: JSON.parse(JSON.stringify(fencing || {})),
+      nextFenceId,
+      labourEmployees: JSON.parse(JSON.stringify(labourEmployees || [])),
+      nextEmployeeId, labourBurdenPct,
+      labourPhases: JSON.parse(JSON.stringify(labourPhases || {}))
+    }
+  };
+}
+
+function deserializeFlatQuote(snapshot){
+  if (!snapshot) return;
+  try {
+    const st = snapshot.state || {};
+    if (st.systems) systems = st.systems;
+    if (st.activeSystemId !== undefined) activeSystemId = st.activeSystemId;
+    if (st.nextSystemId !== undefined) nextSystemId = st.nextSystemId;
+    if (st.roofAreas) roofAreas = st.roofAreas;
+    if (st.activeAreaId !== undefined) activeAreaId = st.activeAreaId;
+    if (st.nextAreaId !== undefined) nextAreaId = st.nextAreaId;
+    if (st.outOfTown) outOfTown = st.outOfTown;
+    if (st.activeBoD) activeBoD = st.activeBoD;
+    if (st.tapeDefaultsByBoD) tapeDefaultsByBoD = st.tapeDefaultsByBoD;
+    if (st.bins) bins = st.bins;
+    if (st.nextBinId !== undefined) nextBinId = st.nextBinId;
+    if (st.vacuumTruck) vacuumTruck = st.vacuumTruck;
+    if (st.toilets) toilets = st.toilets;
+    if (st.nextToiletId !== undefined) nextToiletId = st.nextToiletId;
+    if (st.fencing) fencing = st.fencing;
+    if (st.nextFenceId !== undefined) nextFenceId = st.nextFenceId;
+    if (st.labourEmployees) labourEmployees = st.labourEmployees;
+    if (st.nextEmployeeId !== undefined) nextEmployeeId = st.nextEmployeeId;
+    if (st.labourBurdenPct !== undefined) labourBurdenPct = st.labourBurdenPct;
+    if (st.labourPhases) labourPhases = st.labourPhases;
+
+    // Re-render UI from restored state
+    if (typeof renderAreaTabs === 'function') renderAreaTabs();
+    if (typeof renderAreaPanels === 'function') renderAreaPanels();
+    if (typeof renderSystemTabs === 'function') renderSystemTabs();
+    if (typeof renderSystemPanels === 'function') renderSystemPanels();
+    if (typeof renderBoDTabs === 'function') renderBoDTabs();
+    if (typeof renderTapeDefaults === 'function') renderTapeDefaults();
+    if (typeof renderLabourRoster === 'function') renderLabourRoster();
+
+    // Apply form values (after re-render, so dynamic IDs exist)
+    const fv = snapshot.formValues || {};
+    Object.entries(fv).forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if (el){
+        if (el.type === 'checkbox' || el.type === 'radio') el.checked = !!val;
+        else el.value = val;
+      }
+    });
+
+    // Recompute totals
+    if (typeof calcMargin === 'function') calcMargin();
+    if (typeof calculate === 'function') calculate();
+  } catch(e){
+    console.error('Recall failed:', e);
+    alert('Error loading quote: ' + e.message);
+  }
+}
+
+async function saveQuoteToCRM(){
+  if (typeof calculate === 'function'){ try { calculate(); } catch(e){} }
+  const quoteNum = $('f-quote').value || ('F-' + new Date().getFullYear() + '-0001');
+  const customer = ($('f-customer').value || '').trim();
+  if (!customer){
+    if (!confirm('No customer name entered. Save anyway?')) return;
+  }
+  const nowIso = new Date().toISOString();
+  const quote = {
+    quoteNum,
+    type: 'flat',
+    customer,
+    phone: $('f-phone').value || '',
+    email: $('f-email').value || '',
+    address: $('f-address').value || '',
+    city: $('f-city').value || '',
+    project: $('f-project') ? $('f-project').value : '',
+    description: $('f-desc') ? $('f-desc').value : '',
+    estimator: $('f-estimator') ? $('f-estimator').value : '',
+    date: $('f-date').value || nowIso.split('T')[0],
+    value: _flatQuoteValue(),
+    status: 'draft',
+    createdAt: nowIso,
+    updatedAt: nowIso,
+    snapshot: serializeFlatQuote()
+  };
+  try {
+    await window.storage.set('crm-incoming-quote', JSON.stringify(quote));
+    location.href = 'crm.html';
+  } catch(e){ alert('Error saving quote: ' + e.message); }
+}
+
+async function checkRecall(){
+  try {
+    const params = new URLSearchParams(location.search);
+    const recallNum = params.get('recall');
+    if (!recallNum) return;
+    const r = await window.storage.get('crm-quotes');
+    if (!r) return;
+    const quotes = JSON.parse(r.value);
+    const q = quotes.find(x => x.quoteNum === recallNum);
+    if (!q || q.type !== 'flat' || !q.snapshot) return;
+    deserializeFlatQuote(q.snapshot);
+    const banner = document.getElementById('recall-banner');
+    if (banner){
+      banner.style.display = 'block';
+      const lbl = document.getElementById('recall-quote-num');
+      if (lbl) lbl.textContent = '· ' + recallNum + (q.customer ? ' · ' + q.customer : '');
+    }
+  } catch(e){ console.error('Recall failed:', e); }
 }
 
 // ============================================================
@@ -5984,6 +6153,8 @@ window.addEventListener('DOMContentLoaded', function(){
   $('f-profit').addEventListener('change', calcMargin);
   calcMargin();
   initQuote();
+  // If we navigated here with ?recall=QUOTENUM, load the saved quote
+  checkRecall();
 });
 </script>
 

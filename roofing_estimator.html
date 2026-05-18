@@ -145,7 +145,15 @@
       <div class="module-label">Sloped Roofing Estimator</div>
     </div>
   </div>
-  <a href="index.html" class="home-btn">← Home</a>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <button type="button" id="btn-save-quote" onclick="saveQuoteToCRM()" class="home-btn" style="cursor:pointer;background:#7bc043;color:#0a0a0a;border:1px solid #7bc043;font-weight:600;">💾 Save Quote to CRM</button>
+    <a href="index.html" class="home-btn">← Home</a>
+  </div>
+</div>
+
+<div id="recall-banner" style="display:none;background:#fef3c7;border-bottom:1px solid #fbbf24;color:#78350f;padding:10px 28px;font-size:13px;text-align:center;">
+  <strong>Editing saved quote</strong> — make changes and click <em>Save Quote to CRM</em> to update.
+  <span id="recall-quote-num" style="font-weight:600;margin-left:8px;"></span>
 </div>
 
 <div class="container">
@@ -2216,34 +2224,175 @@ function renderRowsTable(rows){
   return tbl;
 }
 
+// ============ STORAGE SHIM ============
+if (!window.storage){
+  window.storage = {
+    async get(key){ const v = localStorage.getItem(key); return v === null ? null : { value: v }; },
+    async set(key, value){ localStorage.setItem(key, String(value)); },
+    async delete(key){ localStorage.removeItem(key); }
+  };
+}
+
 // ============ QUOTE COUNTER ============
 async function initQuote(){
   let num = 1;
   try {
-    if (window.storage && window.storage.get){
-      const r = await window.storage.get('quote-counter');
-      if (r) num = parseInt(r.value) || 1;
-    } else {
-      num = parseInt(localStorage.getItem('greenlit-quote-counter') || '1');
-    }
+    const r = await window.storage.get('sloped-quote-counter');
+    if (r) num = parseInt(r.value) || 1;
   } catch(e){}
   const yr = new Date().getFullYear();
-  $('f-quotenum').value = yr + '-' + String(num).padStart(4, '0');
+  $('f-quotenum').value = 'S-' + yr + '-' + String(num).padStart(4, '0');
   $('f-quotenum').dataset.num = num;
 }
 async function incrementQuote(){
   const cur = parseInt($('f-quotenum').dataset.num) || 1;
   const next = cur + 1;
-  try {
-    if (window.storage && window.storage.set){
-      await window.storage.set('quote-counter', String(next));
-    } else {
-      localStorage.setItem('greenlit-quote-counter', String(next));
-    }
-  } catch(e){}
+  try { await window.storage.set('sloped-quote-counter', String(next)); } catch(e){}
   const yr = new Date().getFullYear();
-  $('f-quotenum').value = yr + '-' + String(next).padStart(4,'0');
+  $('f-quotenum').value = 'S-' + yr + '-' + String(next).padStart(4,'0');
   $('f-quotenum').dataset.num = next;
+}
+
+// ============ QUOTE SAVE / RECALL ============
+function _slopedQuoteValue(){
+  try {
+    let max = 0;
+    document.querySelectorAll('tr.grand-total td.num, .grand-total .num, .grand-num').forEach(r => {
+      const t = (r.textContent || '').replace(/[^0-9.]/g, '');
+      const n = parseFloat(t);
+      if (!isNaN(n) && n > max) max = n;
+    });
+    return Math.round(max);
+  } catch(e){ return 0; }
+}
+
+function serializeSlopedQuote(){
+  const formValues = {};
+  document.querySelectorAll('input[id], select[id], textarea[id]').forEach(el => {
+    if (el.type === 'checkbox' || el.type === 'radio') formValues[el.id] = el.checked;
+    else formValues[el.id] = el.value;
+  });
+  return {
+    formValues,
+    state: {
+      jobType,
+      structures: JSON.parse(JSON.stringify(structures || [])),
+      activeStructId, nextStructId,
+      activePriceTab, activeResTab
+    }
+  };
+}
+
+function _rebuildStructureForRecall(struct, isFirst){
+  // Mirrors addStructure() but uses the given struct's id and properties
+  structures.push({ id: struct.id, type: struct.type || (isFirst ? 'House' : 'Garage'), customName: struct.customName || '' });
+  const tabs = $('structTabs');
+  const tab = document.createElement('button');
+  tab.className = 'struct-tab';
+  tab.id = 'stab-' + struct.id;
+  tab.onclick = function(){ switchStruct(struct.id); };
+  tab.textContent = struct.customName || struct.type || (isFirst ? 'House' : ('Structure ' + struct.id));
+  if (!isFirst){
+    const x = document.createElement('span');
+    x.className = 'x';
+    x.textContent = '×';
+    x.onclick = function(e){ e.stopPropagation(); removeStructure(struct.id); };
+    tab.appendChild(x);
+  }
+  tabs.appendChild(tab);
+  const panel = document.createElement('div');
+  panel.className = 'struct-panel';
+  panel.id = 'spanel-' + struct.id;
+  buildStructurePanel(panel, struct.id, isFirst);
+  $('structPanels').appendChild(panel);
+}
+
+function deserializeSlopedQuote(snapshot){
+  if (!snapshot) return;
+  try {
+    const st = snapshot.state || {};
+    // Reset DOM
+    $('structTabs').innerHTML = '';
+    $('structPanels').innerHTML = '';
+    structures = [];
+    if (st.jobType) { try { setJobType(st.jobType); } catch(e){} }
+    // Rebuild structures with their original IDs
+    const savedStructs = st.structures || [];
+    savedStructs.forEach((s, idx) => _rebuildStructureForRecall(s, idx === 0));
+    nextStructId = st.nextStructId || (savedStructs.length ? Math.max.apply(null, savedStructs.map(x => x.id)) + 1 : 1);
+    // Switch to the active structure (or first one)
+    const sid = st.activeStructId || (savedStructs[0] && savedStructs[0].id);
+    if (sid) switchStruct(sid);
+    // Apply form values (after panels exist, so per-structure inputs are present)
+    const fv = snapshot.formValues || {};
+    Object.entries(fv).forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if (el){
+        if (el.type === 'checkbox' || el.type === 'radio') el.checked = !!val;
+        else el.value = val;
+      }
+    });
+    // Update struct tab labels (which read from the now-restored 'name' inputs)
+    savedStructs.forEach(s => { try { updateStructLabel(s.id); } catch(e){} });
+    // Recompute
+    try { calcMargin(); } catch(e){}
+    try { calculate(); } catch(e){}
+  } catch(e){
+    console.error('Sloped recall failed:', e);
+    alert('Error loading quote: ' + e.message);
+  }
+}
+
+async function saveQuoteToCRM(){
+  try { calculate(); } catch(e){}
+  const quoteNum = $('f-quotenum').value || ('S-' + new Date().getFullYear() + '-0001');
+  const customer = ($('f-customer') ? $('f-customer').value : '').trim();
+  if (!customer){
+    if (!confirm('No customer name entered. Save anyway?')) return;
+  }
+  const nowIso = new Date().toISOString();
+  const quote = {
+    quoteNum,
+    type: 'sloped',
+    customer,
+    phone: $('f-phone') ? $('f-phone').value : '',
+    email: $('f-email') ? $('f-email').value : '',
+    address: $('f-address') ? $('f-address').value : '',
+    city: $('f-city') ? $('f-city').value : '',
+    project: $('f-project') ? $('f-project').value : '',
+    description: $('f-desc') ? $('f-desc').value : '',
+    estimator: $('f-estimator') ? $('f-estimator').value : '',
+    date: ($('f-date') && $('f-date').value) || nowIso.split('T')[0],
+    value: _slopedQuoteValue(),
+    status: 'draft',
+    createdAt: nowIso,
+    updatedAt: nowIso,
+    snapshot: serializeSlopedQuote()
+  };
+  try {
+    await window.storage.set('crm-incoming-quote', JSON.stringify(quote));
+    location.href = 'crm.html';
+  } catch(e){ alert('Error saving quote: ' + e.message); }
+}
+
+async function checkRecall(){
+  try {
+    const params = new URLSearchParams(location.search);
+    const recallNum = params.get('recall');
+    if (!recallNum) return;
+    const r = await window.storage.get('crm-quotes');
+    if (!r) return;
+    const quotes = JSON.parse(r.value);
+    const q = quotes.find(x => x.quoteNum === recallNum);
+    if (!q || q.type !== 'sloped' || !q.snapshot) return;
+    deserializeSlopedQuote(q.snapshot);
+    const banner = document.getElementById('recall-banner');
+    if (banner){
+      banner.style.display = 'block';
+      const lbl = document.getElementById('recall-quote-num');
+      if (lbl) lbl.textContent = '· ' + recallNum + (q.customer ? ' · ' + q.customer : '');
+    }
+  } catch(e){ console.error('Recall failed:', e); }
 }
 
 // ============ ROOFR PREFILL ============
@@ -2346,6 +2495,8 @@ window.addEventListener('DOMContentLoaded', function(){
   checkRoofrReport();
   setupRoofrDrop();
   loadSupplierPrices();
+  // If we navigated here with ?recall=QUOTENUM, load the saved quote
+  checkRecall();
 });
 
 // ============ SUPPLIER PRICING INTEGRATION ============
