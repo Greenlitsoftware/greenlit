@@ -294,36 +294,9 @@
 
 <!-- =================== LABOUR =================== -->
 <div class="card">
-  <div class="section-h">Labour Rates</div>
-  <div class="section-sub">Per square (100 sq ft) labour rates by system type.</div>
-  <div class="grid-3">
-    <div>
-      <label>Tear-off existing roof <span class="sub">($ per sq)</span></label>
-      <input type="number" id="lab-tearoff" value="75" step="1" min="0">
-    </div>
-    <div>
-      <label>Install AVB &amp; insulation <span class="sub">($ per sq)</span></label>
-      <input type="number" id="lab-install" value="55" step="1" min="0">
-    </div>
-    <div>
-      <label>Install membrane (torch / glue / SA) <span class="sub">($ per sq)</span></label>
-      <input type="number" id="lab-membrane" value="95" step="1" min="0">
-    </div>
-  </div>
-  <div class="grid-3" style="margin-top:10px;">
-    <div>
-      <label>Detailing &amp; flashings <span class="sub">($ per LF perimeter)</span></label>
-      <input type="number" id="lab-detail" value="8" step="0.50" min="0">
-    </div>
-    <div>
-      <label>Per-penetration labour <span class="sub">($ each)</span></label>
-      <input type="number" id="lab-penet" value="125" step="5" min="0">
-    </div>
-    <div>
-      <label>Per-drain labour <span class="sub">($ each)</span></label>
-      <input type="number" id="lab-drain" value="225" step="5" min="0">
-    </div>
-  </div>
+  <div class="section-h">Labour</div>
+  <div class="section-sub">Crew roster + phase-based hours. OT (1.5×) auto-calculated for hours over 8/day per employee.</div>
+  <div id="labourSection"></div>
 </div>
 
 <button class="btn primary calculate" onclick="calculate()">Calculate Flat Roof System</button>
@@ -1053,6 +1026,34 @@ let fencing = {
   rows: []
 };
 let nextFenceId = 1;
+
+// ===== LABOUR STATE =====
+// Five fixed phases (Set Up, Roof Removal, Base Install, Cap Install, Takedown).
+// Master employee roster shared across all phases. Each phase tracks which employees are assigned + days + hours/day.
+// OT auto-calc: hours over 8/day per employee at 1.5x wage. Daily threshold only (Alberta common practice).
+// Burden % is one app-level number, applied to full earnings including OT premium.
+const LABOUR_PHASES = [
+  { key: 'setup',     label: 'Set Up' },
+  { key: 'removal',   label: 'Roof Removal' },
+  { key: 'base',      label: 'Base Installation' },
+  { key: 'cap',       label: 'Cap Sheet Install' },
+  { key: 'takedown',  label: 'Takedown & Demobilize' }
+];
+const OT_DAILY_THRESHOLD = 8;  // hours per day before OT kicks in
+
+// Master employee roster: [{ id, name, wage }]
+let labourEmployees = [];
+let nextEmployeeId = 1;
+
+// App-level burden % (WCB, EI, CPP, vacation pay, etc.)
+let labourBurdenPct = 0;
+
+// Per-phase state: { phaseKey: { days, hoursPerDay, assignedIds: Set<id> } }
+// assignedIds tracks which employee ids are on this phase.
+let labourPhases = {};
+LABOUR_PHASES.forEach(p => {
+  labourPhases[p.key] = { days: 0, hoursPerDay: 0, assignedIds: [] };
+});
 
 // Helper: is the given ISO date (YYYY-MM-DD) in GFL "Winter" range (Oct 1 - Mar 31)?
 // Used for auto-picking the toilet type default.
@@ -2650,6 +2651,217 @@ function buildJobCosts(){
   // Vacuum Truck card (in-town flat rate vs out-of-town hourly modes)
   buildVacuumTruckCard(wrap);
 }
+
+// ============================================================
+// BUILD UI: LABOUR
+// ============================================================
+// Renders the full Labour section into #labourSection.
+// Three parts:
+//   1) Burden % field at the top (one app-level number)
+//   2) Master employee roster (add/remove/rename + wage)
+//   3) Five phase cards (Set Up / Roof Removal / Base Install / Cap Install / Takedown)
+//      Each phase: days + hours/day, employee checkboxes, live per-employee preview, phase total.
+function buildLabourSection(){
+  const wrap = $('labourSection');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+
+  // --- Burden % field ---
+  const burdenWrap = document.createElement('div');
+  burdenWrap.style.cssText = 'margin-bottom:12px;padding:10px 12px;background:#f4f4ed;border:1px solid #d8d8c8;border-radius:4px;';
+  burdenWrap.innerHTML =
+    '<label style="display:block;font-size:12px;font-weight:600;margin-bottom:4px;">Labour Burden % ' +
+      '<span style="font-weight:400;color:#666;font-size:11px;">(WCB, EI, CPP, vacation pay, etc. — applied to all wages including OT)</span>' +
+    '</label>' +
+    '<input id="lab-burden-pct" type="number" min="0" step="0.5" value="' + (labourBurdenPct || 0) + '" style="width:100px;" />' +
+    '<span style="margin-left:6px;color:#666;font-size:12px;">%</span>';
+  wrap.appendChild(burdenWrap);
+  // Wire the burden input
+  setTimeout(() => {
+    const bi = $('lab-burden-pct');
+    if (bi) bi.oninput = function(){
+      labourBurdenPct = parseFloat(bi.value) || 0;
+      refreshAllLabourPreviews();
+    };
+  }, 0);
+
+  // --- Employee roster ---
+  const rosterCard = document.createElement('div');
+  rosterCard.style.cssText = 'margin-bottom:14px;padding:10px 12px;background:#fff;border:1px solid #d0d0c8;border-radius:4px;';
+  rosterCard.innerHTML =
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
+      '<div style="font-weight:600;font-size:13px;">Employee Roster</div>' +
+      '<button type="button" class="btn" onclick="addLabourEmployee()" style="font-size:11px;padding:4px 10px;">+ Add employee</button>' +
+    '</div>' +
+    '<div id="labourRosterList"></div>';
+  wrap.appendChild(rosterCard);
+
+  // --- Phase cards ---
+  LABOUR_PHASES.forEach(p => {
+    const phaseCard = document.createElement('div');
+    phaseCard.id = 'labourPhaseCard-' + p.key;
+    phaseCard.style.cssText = 'margin-bottom:12px;padding:10px 12px;background:#fff;border:1px solid #d0d0c8;border-radius:4px;';
+    phaseCard.innerHTML = buildPhaseCardHtml(p);
+    wrap.appendChild(phaseCard);
+  });
+
+  renderLabourRoster();
+  LABOUR_PHASES.forEach(p => wirePhaseCard(p.key));
+}
+
+function buildPhaseCardHtml(phaseDef){
+  const p = labourPhases[phaseDef.key];
+  return '' +
+    '<div style="font-weight:600;font-size:13px;margin-bottom:8px;letter-spacing:0.3px;text-transform:uppercase;color:#3a3a3a;">' + phaseDef.label + '</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">' +
+      '<div>' +
+        '<label style="display:block;font-size:11px;color:#666;margin-bottom:2px;">Days</label>' +
+        '<input id="lab-' + phaseDef.key + '-days" type="number" min="0" step="0.5" value="' + (p.days || 0) + '" style="width:100%;" />' +
+      '</div>' +
+      '<div>' +
+        '<label style="display:block;font-size:11px;color:#666;margin-bottom:2px;">Hours per day <span style="color:#888;">(OT &gt; 8/day)</span></label>' +
+        '<input id="lab-' + phaseDef.key + '-hpd" type="number" min="0" step="0.5" value="' + (p.hoursPerDay || 0) + '" style="width:100%;" />' +
+      '</div>' +
+    '</div>' +
+    '<div style="font-size:11px;color:#555;margin-bottom:6px;font-weight:600;">Crew on this phase:</div>' +
+    '<div id="labourPhaseCrew-' + phaseDef.key + '"></div>' +
+    '<div id="labourPhasePreview-' + phaseDef.key + '" style="margin-top:8px;padding:8px 10px;background:#1a1a1a;color:#fff;border-radius:3px;font-size:11px;display:flex;justify-content:space-between;align-items:center;">' +
+      '<span style="text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">' + phaseDef.label + ' Total</span>' +
+      '<span class="phase-total" style="font-weight:600;">$0.00</span>' +
+    '</div>';
+}
+
+function wirePhaseCard(phaseKey){
+  const daysInp = $('lab-' + phaseKey + '-days');
+  const hpdInp = $('lab-' + phaseKey + '-hpd');
+  if (daysInp) daysInp.oninput = function(){
+    labourPhases[phaseKey].days = parseFloat(daysInp.value) || 0;
+    renderPhaseCrewList(phaseKey);
+    updatePhasePreview(phaseKey);
+  };
+  if (hpdInp) hpdInp.oninput = function(){
+    labourPhases[phaseKey].hoursPerDay = parseFloat(hpdInp.value) || 0;
+    renderPhaseCrewList(phaseKey);
+    updatePhasePreview(phaseKey);
+  };
+  renderPhaseCrewList(phaseKey);
+  updatePhasePreview(phaseKey);
+}
+
+// Render the master employee roster — one row per employee with name, wage, remove.
+function renderLabourRoster(){
+  const list = $('labourRosterList');
+  if (!list) return;
+  if (labourEmployees.length === 0) {
+    list.innerHTML = '<div style="font-size:11px;color:#888;font-style:italic;padding:4px 0;">No employees yet — click "+ Add employee" to start.</div>';
+    // Also refresh phase crew lists (they show empty state)
+    LABOUR_PHASES.forEach(p => renderPhaseCrewList(p.key));
+    return;
+  }
+  list.innerHTML = '';
+  labourEmployees.forEach(emp => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:grid;grid-template-columns:1fr 130px 32px;gap:8px;align-items:center;margin-bottom:4px;';
+    row.innerHTML =
+      '<input type="text" placeholder="Name" value="' + escapeHtml(emp.name || '') + '" id="lab-emp-name-' + emp.id + '" />' +
+      '<div style="display:flex;align-items:center;gap:4px;"><span style="color:#666;font-size:11px;">$</span><input type="number" min="0" step="0.50" placeholder="Wage" value="' + (emp.wage || '') + '" id="lab-emp-wage-' + emp.id + '" style="flex:1;" /><span style="color:#666;font-size:11px;">/hr</span></div>' +
+      '<button type="button" onclick="removeLabourEmployee(' + emp.id + ')" title="Remove employee" style="background:#c33;color:#fff;border:none;border-radius:3px;padding:4px 6px;cursor:pointer;font-size:11px;">✕</button>';
+    list.appendChild(row);
+    // Wire inputs
+    const nInp = row.querySelector('#lab-emp-name-' + emp.id);
+    const wInp = row.querySelector('#lab-emp-wage-' + emp.id);
+    if (nInp) nInp.oninput = function(){
+      emp.name = nInp.value;
+      // Update name labels in phase crew lists without full re-render
+      LABOUR_PHASES.forEach(p => {
+        const lbl = document.getElementById('lab-phase-' + p.key + '-emp-' + emp.id + '-label');
+        if (lbl) lbl.textContent = emp.name || '(unnamed)';
+      });
+    };
+    if (wInp) wInp.oninput = function(){
+      emp.wage = parseFloat(wInp.value) || 0;
+      LABOUR_PHASES.forEach(p => updatePhasePreview(p.key));
+    };
+  });
+  // Refresh phase crew lists (new employees become available checkboxes)
+  LABOUR_PHASES.forEach(p => renderPhaseCrewList(p.key));
+}
+
+// Render the crew checkbox list for one phase.
+// Shows each employee in the roster with a checkbox. Checked = assigned to this phase.
+// Each checked row shows live per-employee cost preview.
+function renderPhaseCrewList(phaseKey){
+  const list = $('labourPhaseCrew-' + phaseKey);
+  if (!list) return;
+  list.innerHTML = '';
+  if (labourEmployees.length === 0) {
+    list.innerHTML = '<div style="font-size:11px;color:#888;font-style:italic;padding:4px 0;">Add employees to the roster above first.</div>';
+    return;
+  }
+  const phase = labourPhases[phaseKey];
+  const assignedSet = new Set(phase.assignedIds || []);
+  labourEmployees.forEach(emp => {
+    const isAssigned = assignedSet.has(emp.id);
+    const row = document.createElement('div');
+    row.style.cssText = 'display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;padding:4px 0;border-top:1px solid #f0f0e8;';
+    const c = isAssigned ? computeLabourEmployeePhase(emp, phase, labourBurdenPct) : null;
+    let previewHtml = '';
+    if (isAssigned) {
+      const otTag = c.otHrs > 0 ? '<span style="color:#c33;font-weight:600;"> · ' + c.otHrs + ' OT</span>' : '';
+      previewHtml =
+        '<div style="font-size:10px;color:#555;text-align:right;">' +
+          c.regHrs + ' reg' + otTag +
+          ' · <span style="font-weight:600;color:#1a1a1a;">$' + c.total.toFixed(2) + '</span>' +
+        '</div>';
+    } else {
+      previewHtml = '<div style="font-size:10px;color:#aaa;text-align:right;">—</div>';
+    }
+    row.innerHTML =
+      '<input type="checkbox" id="lab-phase-' + phaseKey + '-emp-' + emp.id + '" ' + (isAssigned ? 'checked' : '') + ' />' +
+      '<label for="lab-phase-' + phaseKey + '-emp-' + emp.id + '" style="cursor:pointer;font-size:12px;"><span id="lab-phase-' + phaseKey + '-emp-' + emp.id + '-label">' + escapeHtml(emp.name || '(unnamed)') + '</span> <span style="color:#888;font-size:10px;">@ $' + (emp.wage || 0).toFixed(2) + '/hr</span></label>' +
+      previewHtml;
+    list.appendChild(row);
+    const cb = row.querySelector('input[type=checkbox]');
+    if (cb) cb.onchange = function(){
+      const set = new Set(phase.assignedIds || []);
+      if (cb.checked) set.add(emp.id); else set.delete(emp.id);
+      phase.assignedIds = Array.from(set);
+      renderPhaseCrewList(phaseKey);  // re-render so previews appear/disappear
+      updatePhasePreview(phaseKey);
+    };
+  });
+}
+
+function updatePhasePreview(phaseKey){
+  const pCard = $('labourPhasePreview-' + phaseKey);
+  if (!pCard) return;
+  const phaseResult = computeLabourPhase(phaseKey, labourBurdenPct);
+  const totalEl = pCard.querySelector('.phase-total');
+  if (totalEl) totalEl.textContent = '$' + phaseResult.total.toFixed(2);
+  // Also refresh the per-employee preview rows (wage in roster may have changed)
+  renderPhaseCrewList(phaseKey);
+}
+
+function refreshAllLabourPreviews(){
+  LABOUR_PHASES.forEach(p => updatePhasePreview(p.key));
+}
+
+function addLabourEmployee(){
+  labourEmployees.push({ id: nextEmployeeId++, name: '', wage: 0 });
+  renderLabourRoster();
+}
+
+function removeLabourEmployee(empId){
+  labourEmployees = labourEmployees.filter(e => e.id !== empId);
+  // Also remove from every phase's assigned list
+  LABOUR_PHASES.forEach(p => {
+    labourPhases[p.key].assignedIds = (labourPhases[p.key].assignedIds || []).filter(id => id !== empId);
+  });
+  renderLabourRoster();
+  LABOUR_PHASES.forEach(p => updatePhasePreview(p.key));
+}
+
+
 
 // ============================================================
 // BUILD UI: Tape Defaults (app-level)
@@ -4273,6 +4485,69 @@ function updateVacuumTruckPreview(){
 // Compute out-of-town totals (returns object with accommodation, laa, total, and detail strings)
 // Lodging is summed across 3 row types: B&B (whole rental), Single rooms, Double rooms.
 // Each: count × rate × nights, where nights = workDays + travelDays.
+// =========================================================================
+// LABOUR
+// Compute cost for one employee on one phase.
+// Phase has days + hoursPerDay. OT kicks in for hours above 8/day per employee.
+// Returns { regHrs, otHrs, regCost, otCost, baseCost, burdenCost, total }.
+// baseCost = (regHrs × wage) + (otHrs × wage × 1.5)
+// burdenCost = baseCost × burdenPct/100
+// total = baseCost + burdenCost
+function computeLabourEmployeePhase(emp, phase, burdenPct){
+  const days = phase.days || 0;
+  const hpd = phase.hoursPerDay || 0;
+  const wage = emp.wage || 0;
+  if (days <= 0 || hpd <= 0 || wage <= 0) {
+    return { regHrs: 0, otHrs: 0, regCost: 0, otCost: 0, baseCost: 0, burdenCost: 0, total: 0 };
+  }
+  const regHrsPerDay = Math.min(hpd, OT_DAILY_THRESHOLD);
+  const otHrsPerDay = Math.max(0, hpd - OT_DAILY_THRESHOLD);
+  const regHrs = regHrsPerDay * days;
+  const otHrs = otHrsPerDay * days;
+  const regCost = regHrs * wage;
+  const otCost = otHrs * wage * 1.5;
+  const baseCost = regCost + otCost;
+  const burdenCost = baseCost * (burdenPct || 0) / 100;
+  return { regHrs, otHrs, regCost, otCost, baseCost, burdenCost, total: baseCost + burdenCost };
+}
+
+// Compute one phase's total cost across all assigned employees.
+// Returns { phaseKey, phaseLabel, days, hoursPerDay, regHrsPerDay, otHrsPerDay,
+//           employees: [{empId, name, wage, ...computeLabourEmployeePhase output}], total }.
+function computeLabourPhase(phaseKey, burdenPct){
+  const phaseDef = LABOUR_PHASES.find(p => p.key === phaseKey);
+  const phase = labourPhases[phaseKey] || { days: 0, hoursPerDay: 0, assignedIds: [] };
+  const days = phase.days || 0;
+  const hpd = phase.hoursPerDay || 0;
+  const regHrsPerDay = Math.min(hpd, OT_DAILY_THRESHOLD);
+  const otHrsPerDay = Math.max(0, hpd - OT_DAILY_THRESHOLD);
+  const empBreakdown = [];
+  let phaseTotal = 0;
+  (phase.assignedIds || []).forEach(empId => {
+    const emp = labourEmployees.find(e => e.id === empId);
+    if (!emp) return;
+    const c = computeLabourEmployeePhase(emp, phase, burdenPct);
+    empBreakdown.push({ empId: emp.id, name: emp.name || '(unnamed)', wage: emp.wage || 0, ...c });
+    phaseTotal += c.total;
+  });
+  return {
+    phaseKey, phaseLabel: phaseDef ? phaseDef.label : phaseKey,
+    days, hoursPerDay: hpd, regHrsPerDay, otHrsPerDay,
+    employees: empBreakdown,
+    total: phaseTotal
+  };
+}
+
+// Compute the full Labour section across all phases.
+// Returns { burdenPct, phases: [computeLabourPhase output...], total, mathLines (per-phase breakdown lines for ⓘ toggle).
+function computeLabour(){
+  const burdenPct = labourBurdenPct || 0;
+  const phases = LABOUR_PHASES.map(pd => computeLabourPhase(pd.key, burdenPct));
+  const total = phases.reduce((s, p) => s + p.total, 0);
+  return { burdenPct, phases, total };
+}
+
+
 function computeOutOfTown(){
   if (!outOfTown.enabled) {
     return { enabled: false, accommodation: 0, laa: 0, total: 0, accommodationDetail: '', laaDetail: '', accommodationDetailLines: [] };
@@ -4762,22 +5037,37 @@ function calculate(){
   const drains = 0;
   const curbs = 0;
 
-  // ===== Labour (uses raw area without waste — labour scales with actual area, not waste) =====
+  // ===== Labour (phase-based: roster + days × hours/day × OT × burden) =====
+  const labour = computeLabour();
   const labRows = [];
-  const sqs = area / 100;
-  const tearoff = (parseFloat($('lab-tearoff').value) || 0) * sqs;
-  const install = (parseFloat($('lab-install').value) || 0) * sqs;
-  const membrane = (parseFloat($('lab-membrane').value) || 0) * sqs;
-  const detail = (parseFloat($('lab-detail').value) || 0) * perim;
-  const penetCost = (parseFloat($('lab-penet').value) || 0) * penets;
-  const drainCost = (parseFloat($('lab-drain').value) || 0) * drains;
-  if (tearoff > 0)  labRows.push({ name: 'Tear-off', qty: sqs.toFixed(1), unit: 'sqs', price: parseFloat($('lab-tearoff').value), cost: tearoff });
-  if (install > 0)  labRows.push({ name: 'AVB & Insulation install', qty: sqs.toFixed(1), unit: 'sqs', price: parseFloat($('lab-install').value), cost: install });
-  if (membrane > 0) labRows.push({ name: 'Membrane install', qty: sqs.toFixed(1), unit: 'sqs', price: parseFloat($('lab-membrane').value), cost: membrane });
-  if (detail > 0)   labRows.push({ name: 'Detailing & flashings', qty: perim, unit: 'LF', price: parseFloat($('lab-detail').value), cost: detail });
-  if (penetCost > 0) labRows.push({ name: 'Penetration labour', qty: penets, unit: 'ea', price: parseFloat($('lab-penet').value), cost: penetCost });
-  if (drainCost > 0) labRows.push({ name: 'Drain labour', qty: drains, unit: 'ea', price: parseFloat($('lab-drain').value), cost: drainCost });
-  const labourTotal = labRows.reduce((s,r) => s + r.cost, 0);
+  labour.phases.forEach(ph => {
+    if (ph.total <= 0) return;
+    // Build a "qty" string that summarizes the phase (days × hours/day, with OT noted)
+    const otTag = ph.otHrsPerDay > 0 ? ' (' + ph.regHrsPerDay + ' reg + ' + ph.otHrsPerDay + ' OT)' : '';
+    const qtyStr = ph.days + ' days × ' + ph.hoursPerDay + ' hrs/day' + otTag;
+    // Math lines for the ⓘ toggle — one line per employee on the phase
+    const mathLines = ph.employees.map(emp => {
+      let line = '· ' + (emp.name || '(unnamed)') + ' @ $' + emp.wage.toFixed(2) + '/hr';
+      line += ' — ' + emp.regHrs + ' reg';
+      if (emp.otHrs > 0) line += ' + ' + emp.otHrs + ' OT';
+      line += ' = $' + emp.baseCost.toFixed(2);
+      if (emp.burdenCost > 0) line += ' + $' + emp.burdenCost.toFixed(2) + ' burden';
+      line += ' = $' + emp.total.toFixed(2);
+      return line;
+    });
+    if (labour.burdenPct > 0) mathLines.push('Burden applied: ' + labour.burdenPct + '% on full earnings (incl. OT premium)');
+    labRows.push({
+      name: ph.phaseLabel,
+      qty: qtyStr,
+      unit: '',
+      price: 0,
+      cost: ph.total,
+      isLabourPhase: true,
+      phaseKey: ph.phaseKey,
+      mathLines: mathLines
+    });
+  });
+  const labourTotal = labour.total;
 
   // ===== Job costs (shared) =====
   const jcRows = [];
@@ -5030,6 +5320,7 @@ function calculate(){
     systemResults: systemResults,
     labRows: labRows,
     labourTotal: labourTotal,
+    labourBurdenPct: labour.burdenPct,
     jcRows: jcRows,
     jcTotal: jcTotal,
     overheadPct: oh,
@@ -5503,18 +5794,47 @@ function renderSystemDetailTab(card, r, sr){
     card.appendChild(psjcSec);
   }
 
-  // Labour table (shared)
+  // Labour table (shared) — phase-based rows with ⓘ math toggle showing per-employee breakdown.
   if (r.labRows.length > 0){
     const labSec = document.createElement('div');
-    labSec.innerHTML = '<div class="section-h" style="margin-top:18px;">Labour <span style="font-weight:400;color:#888;text-transform:none;">(applies to whichever system the customer picks)</span></div>';
+    const burdenNote = r.labourBurdenPct > 0
+      ? ' · burden ' + r.labourBurdenPct + '%'
+      : '';
+    labSec.innerHTML = '<div class="section-h" style="margin-top:18px;">Labour <span style="font-weight:400;color:#888;text-transform:none;">(phase-based' + burdenNote + ')</span></div>';
     const labTbl = document.createElement('table');
     labTbl.className = 'results';
-    labTbl.innerHTML = '<thead><tr><th>Item</th><th class="num">Qty</th><th>Unit</th><th class="num">Rate</th><th class="num">Cost</th></tr></thead>';
+    labTbl.innerHTML = '<thead><tr><th>Phase</th><th class="num">Days × Hrs</th><th></th><th class="num"></th><th class="num">Cost</th></tr></thead>';
     const lb = document.createElement('tbody');
-    r.labRows.forEach(row => {
+    r.labRows.forEach((row, labIdx) => {
       const tr = document.createElement('tr');
-      tr.innerHTML = '<td>' + row.name + '</td><td class="num">' + row.qty + '</td><td>' + row.unit + '</td><td class="num">' + fmtMoney(row.price) + '</td><td class="num">' + fmtMoney(row.cost) + '</td>';
+      const itemTd = document.createElement('td');
+      itemTd.innerHTML = row.name;
+      const mathKey = '_lab|phase|' + (row.phaseKey || labIdx);
+      const isExpanded = expandedMathRows.has(mathKey);
+      const infoBtn = document.createElement('button');
+      infoBtn.type = 'button';
+      infoBtn.className = 'info-btn' + (isExpanded ? ' active' : '');
+      infoBtn.textContent = 'ⓘ';
+      infoBtn.title = isExpanded ? 'Hide breakdown' : 'Show breakdown';
+      infoBtn.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+      infoBtn.onclick = function(){ toggleMathRow(mathKey); };
+      itemTd.appendChild(infoBtn);
+      tr.appendChild(itemTd);
+      tr.insertAdjacentHTML('beforeend',
+        '<td class="num">' + escapeHtml(row.qty) + '</td><td></td><td class="num"></td><td class="num">' + fmtMoney(row.cost) + '</td>'
+      );
       lb.appendChild(tr);
+      if (isExpanded) {
+        const mathTr = document.createElement('tr');
+        mathTr.className = 'math-row';
+        const mathTd = document.createElement('td');
+        mathTd.colSpan = 5;
+        const mathHtml = (row.mathLines || []).map(l => '<div class="math-line">' + escapeHtml(l) + '</div>').join('');
+        mathTd.innerHTML = mathHtml +
+          '<div class="math-line" style="margin-top:4px;font-weight:600;color:#1a1a1a;">Phase total: ' + escapeHtml(fmtMoney(row.cost)) + '</div>';
+        mathTr.appendChild(mathTd);
+        lb.appendChild(mathTr);
+      }
     });
     const labG = document.createElement('tr');
     labG.className = 'grand-total';
@@ -5654,6 +5974,7 @@ window.addEventListener('DOMContentLoaded', function(){
   // Seed with one initial system option
   addSystem('Option 1');
   buildJobCosts();
+  buildLabourSection();
   // BoD setup — render tab bar and auto-pick tape defaults for the default active BoD (Soprema SBS)
   renderBoDTabs();
   autoPickTapeDefaultsForBoD(activeBoD);
